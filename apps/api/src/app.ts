@@ -10,6 +10,7 @@ import { tripsRouter } from './modules/trips/trips.routes';
 import { travelersRouter } from './modules/travelers/travelers.routes';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes';
 import { itineraryRouter } from './modules/itinerary/itinerary.routes';
+import { ledgerRouter } from './modules/ledger/ledger.routes';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/v1/trips', tripsRouter);
 app.use('/api/v1/trips', travelersRouter);
 app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/trips', itineraryRouter);
+app.use('/api/v1/trips', ledgerRouter);
 
 app.use(errorHandler);
 
