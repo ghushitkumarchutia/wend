@@ -3,9 +3,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
 import { env } from './common/env';
-import { auth } from './common/auth';
 import { errorHandler } from './middleware/error-handler';
-import { toNodeHandler } from 'better-auth/node';
+import { authRouter } from './modules/auth/auth.routes';
 
 const app = express();
 
@@ -24,7 +23,7 @@ app.use(
 
 app.use(cookieParser());
 
-app.all('/api/auth/*splat', toNodeHandler(auth));
+app.use('/api/auth', authRouter);
 
 app.use(express.json());
 
