@@ -1,0 +1,52 @@
+# dependencies
+node_modules/
+
+# build output
+dist/
+
+# environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+*.log
+npm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Vite
+.vite/
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# TanStack Router (auto-generated)
+routeTree.gen.ts
+
+# Docker volumes (if local)
+pgdata/
+redisdata/
+miniodata/
+
+# pnpm
+.pnpm-store
+
+# coverage
+coverage/
+.nyc_output/
+
+# drizzle
+drizzle/meta/
