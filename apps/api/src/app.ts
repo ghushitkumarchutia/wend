@@ -8,6 +8,7 @@ import { enforceJsonContentType } from './middleware/content-type';
 import { authRouter } from './modules/auth/auth.routes';
 import { tripsRouter } from './modules/trips/trips.routes';
 import { travelersRouter } from './modules/travelers/travelers.routes';
+import { dashboardRouter } from './modules/dashboard/dashboard.routes';
 
 const app = express();
 
@@ -33,6 +34,7 @@ app.use(enforceJsonContentType);
 
 app.use('/api/v1/trips', tripsRouter);
 app.use('/api/v1/trips', travelersRouter);
+app.use('/api/v1/dashboard', dashboardRouter);
 
 app.use(errorHandler);
 
