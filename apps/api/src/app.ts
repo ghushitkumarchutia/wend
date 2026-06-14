@@ -12,6 +12,9 @@ import { dashboardRouter } from './modules/dashboard/dashboard.routes';
 import { itineraryRouter } from './modules/itinerary/itinerary.routes';
 import { ledgerRouter } from './modules/ledger/ledger.routes';
 import { documentsRouter } from './modules/documents/documents.routes';
+import { chatRouter } from './modules/chat/chat.routes';
+import { pollsRouter } from './modules/polls/polls.routes';
+import { notificationsRouter } from './modules/notifications/notifications.routes';
 
 const app = express();
 
@@ -41,6 +44,9 @@ app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/trips', itineraryRouter);
 app.use('/api/v1/trips', ledgerRouter);
 app.use('/api/v1/trips', documentsRouter);
+app.use('/api/v1/trips', chatRouter);
+app.use('/api/v1/trips', pollsRouter);
+app.use('/api/v1/notifications', notificationsRouter);
 
 app.use(errorHandler);
 
