@@ -15,6 +15,9 @@ import { documentsRouter } from './modules/documents/documents.routes';
 import { chatRouter } from './modules/chat/chat.routes';
 import { pollsRouter } from './modules/polls/polls.routes';
 import { notificationsRouter } from './modules/notifications/notifications.routes';
+import { accountRouter } from './modules/account/account.routes';
+import { templatesRouter } from './modules/templates/templates.routes';
+import { adminRouter } from './modules/admin/admin.routes';
 
 const app = express();
 
@@ -47,6 +50,9 @@ app.use('/api/v1/trips', documentsRouter);
 app.use('/api/v1/trips', chatRouter);
 app.use('/api/v1/trips', pollsRouter);
 app.use('/api/v1/notifications', notificationsRouter);
+app.use('/api/v1/account', accountRouter);
+app.use('/api/v1/templates', templatesRouter);
+app.use('/api/admin', adminRouter);
 
 app.use(errorHandler);
 
