@@ -1,0 +1,34 @@
+import { StrictMode } from 'react';
+import { createRoot } from 'react-dom/client';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { RouterProvider, createRouter } from '@tanstack/react-router';
+import { ThemeProvider } from 'next-themes';
+import { Toaster } from '@/components/ui/sonner';
+import { queryClient } from './lib/query-client';
+import { routeTree } from './routeTree.gen';
+import './index.css';
+
+const router = createRouter({
+  routeTree,
+  defaultPreloadStaleTime: 0,
+  context: {
+    queryClient,
+  },
+});
+
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router;
+  }
+}
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <RouterProvider router={router} />
+        <Toaster position="bottom-right" richColors closeButton />
+      </ThemeProvider>
+    </QueryClientProvider>
+  </StrictMode>,
+);
