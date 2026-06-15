@@ -8,52 +8,271 @@
 // You should NOT make any changes in this file as it will be overwritten.
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
-import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as rootRouteImport } from './routes/__root';
+import { Route as TermsRouteImport } from './routes/terms';
+import { Route as SignUpRouteImport } from './routes/sign-up';
+import { Route as SignInRouteImport } from './routes/sign-in';
+import { Route as PrivacyRouteImport } from './routes/privacy';
+import { Route as ExploreRouteImport } from './routes/explore';
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated';
+import { Route as IndexRouteImport } from './routes/index';
+import { Route as AuthenticatedSettingsRouteImport } from './routes/_authenticated/settings';
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications';
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
+import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId';
 
+const TermsRoute = TermsRouteImport.update({
+  id: '/terms',
+  path: '/terms',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SignUpRoute = SignUpRouteImport.update({
+  id: '/sign-up',
+  path: '/sign-up',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const SignInRoute = SignInRouteImport.update({
+  id: '/sign-in',
+  path: '/sign-in',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const PrivacyRoute = PrivacyRouteImport.update({
+  id: '/privacy',
+  path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any);
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
-} as any)
+} as any);
+const AuthenticatedSettingsRoute = AuthenticatedSettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => AuthenticatedRoute,
+} as any);
+const AuthenticatedNotificationsRoute = AuthenticatedNotificationsRouteImport.update({
+  id: '/notifications',
+  path: '/notifications',
+  getParentRoute: () => AuthenticatedRoute,
+} as any);
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRoute,
+} as any);
+const AuthenticatedTripsTripIdRoute = AuthenticatedTripsTripIdRouteImport.update({
+  id: '/trips/$tripId',
+  path: '/trips/$tripId',
+  getParentRoute: () => AuthenticatedRoute,
+} as any);
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof IndexRoute;
+  '/explore': typeof ExploreRoute;
+  '/privacy': typeof PrivacyRoute;
+  '/sign-in': typeof SignInRoute;
+  '/sign-up': typeof SignUpRoute;
+  '/terms': typeof TermsRoute;
+  '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/notifications': typeof AuthenticatedNotificationsRoute;
+  '/settings': typeof AuthenticatedSettingsRoute;
+  '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute;
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/': typeof IndexRoute;
+  '/explore': typeof ExploreRoute;
+  '/privacy': typeof PrivacyRoute;
+  '/sign-in': typeof SignInRoute;
+  '/sign-up': typeof SignUpRoute;
+  '/terms': typeof TermsRoute;
+  '/dashboard': typeof AuthenticatedDashboardRoute;
+  '/notifications': typeof AuthenticatedNotificationsRoute;
+  '/settings': typeof AuthenticatedSettingsRoute;
+  '/trips/$tripId': typeof AuthenticatedTripsTripIdRoute;
 }
 export interface FileRoutesById {
-  __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  __root__: typeof rootRouteImport;
+  '/': typeof IndexRoute;
+  '/_authenticated': typeof AuthenticatedRouteWithChildren;
+  '/explore': typeof ExploreRoute;
+  '/privacy': typeof PrivacyRoute;
+  '/sign-in': typeof SignInRoute;
+  '/sign-up': typeof SignUpRoute;
+  '/terms': typeof TermsRoute;
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute;
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute;
+  '/_authenticated/settings': typeof AuthenticatedSettingsRoute;
+  '/_authenticated/trips/$tripId': typeof AuthenticatedTripsTripIdRoute;
 }
 export interface FileRouteTypes {
-  fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
-  fileRoutesById: FileRoutesById
+  fileRoutesByFullPath: FileRoutesByFullPath;
+  fullPaths:
+    | '/'
+    | '/explore'
+    | '/privacy'
+    | '/sign-in'
+    | '/sign-up'
+    | '/terms'
+    | '/dashboard'
+    | '/notifications'
+    | '/settings'
+    | '/trips/$tripId';
+  fileRoutesByTo: FileRoutesByTo;
+  to:
+    | '/'
+    | '/explore'
+    | '/privacy'
+    | '/sign-in'
+    | '/sign-up'
+    | '/terms'
+    | '/dashboard'
+    | '/notifications'
+    | '/settings'
+    | '/trips/$tripId';
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/explore'
+    | '/privacy'
+    | '/sign-in'
+    | '/sign-up'
+    | '/terms'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/notifications'
+    | '/_authenticated/settings'
+    | '/_authenticated/trips/$tripId';
+  fileRoutesById: FileRoutesById;
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  IndexRoute: typeof IndexRoute;
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren;
+  ExploreRoute: typeof ExploreRoute;
+  PrivacyRoute: typeof PrivacyRoute;
+  SignInRoute: typeof SignInRoute;
+  SignUpRoute: typeof SignUpRoute;
+  TermsRoute: typeof TermsRoute;
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/terms': {
+      id: '/terms';
+      path: '/terms';
+      fullPath: '/terms';
+      preLoaderRoute: typeof TermsRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/sign-up': {
+      id: '/sign-up';
+      path: '/sign-up';
+      fullPath: '/sign-up';
+      preLoaderRoute: typeof SignUpRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/sign-in': {
+      id: '/sign-in';
+      path: '/sign-in';
+      fullPath: '/sign-in';
+      preLoaderRoute: typeof SignInRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/privacy': {
+      id: '/privacy';
+      path: '/privacy';
+      fullPath: '/privacy';
+      preLoaderRoute: typeof PrivacyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/explore': {
+      id: '/explore';
+      path: '/explore';
+      fullPath: '/explore';
+      preLoaderRoute: typeof ExploreRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/_authenticated': {
+      id: '/_authenticated';
+      path: '';
+      fullPath: '/';
+      preLoaderRoute: typeof AuthenticatedRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
+      id: '/';
+      path: '/';
+      fullPath: '/';
+      preLoaderRoute: typeof IndexRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/_authenticated/settings': {
+      id: '/_authenticated/settings';
+      path: '/settings';
+      fullPath: '/settings';
+      preLoaderRoute: typeof AuthenticatedSettingsRouteImport;
+      parentRoute: typeof AuthenticatedRoute;
+    };
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications';
+      path: '/notifications';
+      fullPath: '/notifications';
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport;
+      parentRoute: typeof AuthenticatedRoute;
+    };
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard';
+      path: '/dashboard';
+      fullPath: '/dashboard';
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport;
+      parentRoute: typeof AuthenticatedRoute;
+    };
+    '/_authenticated/trips/$tripId': {
+      id: '/_authenticated/trips/$tripId';
+      path: '/trips/$tripId';
+      fullPath: '/trips/$tripId';
+      preLoaderRoute: typeof AuthenticatedTripsTripIdRouteImport;
+      parentRoute: typeof AuthenticatedRoute;
+    };
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute;
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute;
+  AuthenticatedSettingsRoute: typeof AuthenticatedSettingsRoute;
+  AuthenticatedTripsTripIdRoute: typeof AuthenticatedTripsTripIdRoute;
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedSettingsRoute: AuthenticatedSettingsRoute,
+  AuthenticatedTripsTripIdRoute: AuthenticatedTripsTripIdRoute,
+};
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+);
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-}
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  ExploreRoute: ExploreRoute,
+  PrivacyRoute: PrivacyRoute,
+  SignInRoute: SignInRoute,
+  SignUpRoute: SignUpRoute,
+  TermsRoute: TermsRoute,
+};
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
-  ._addFileTypes<FileRouteTypes>()
+  ._addFileTypes<FileRouteTypes>();
