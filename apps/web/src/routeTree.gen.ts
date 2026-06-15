@@ -9,10 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root';
+import { Route as VerifyEmailRouteImport } from './routes/verify-email';
 import { Route as TermsRouteImport } from './routes/terms';
 import { Route as SignUpRouteImport } from './routes/sign-up';
 import { Route as SignInRouteImport } from './routes/sign-in';
+import { Route as ResetPasswordRouteImport } from './routes/reset-password';
 import { Route as PrivacyRouteImport } from './routes/privacy';
+import { Route as ForgotPasswordRouteImport } from './routes/forgot-password';
 import { Route as ExploreRouteImport } from './routes/explore';
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated';
 import { Route as IndexRouteImport } from './routes/index';
@@ -21,6 +24,11 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard';
 import { Route as AuthenticatedTripsTripIdRouteImport } from './routes/_authenticated/trips.$tripId';
 
+const VerifyEmailRoute = VerifyEmailRouteImport.update({
+  id: '/verify-email',
+  path: '/verify-email',
+  getParentRoute: () => rootRouteImport,
+} as any);
 const TermsRoute = TermsRouteImport.update({
   id: '/terms',
   path: '/terms',
@@ -36,9 +44,19 @@ const SignInRoute = SignInRouteImport.update({
   path: '/sign-in',
   getParentRoute: () => rootRouteImport,
 } as any);
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any);
 const PrivacyRoute = PrivacyRouteImport.update({
   id: '/privacy',
   path: '/privacy',
+  getParentRoute: () => rootRouteImport,
+} as any);
+const ForgotPasswordRoute = ForgotPasswordRouteImport.update({
+  id: '/forgot-password',
+  path: '/forgot-password',
   getParentRoute: () => rootRouteImport,
 } as any);
 const ExploreRoute = ExploreRouteImport.update({
@@ -79,10 +97,13 @@ const AuthenticatedTripsTripIdRoute = AuthenticatedTripsTripIdRouteImport.update
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute;
   '/explore': typeof ExploreRoute;
+  '/forgot-password': typeof ForgotPasswordRoute;
   '/privacy': typeof PrivacyRoute;
+  '/reset-password': typeof ResetPasswordRoute;
   '/sign-in': typeof SignInRoute;
   '/sign-up': typeof SignUpRoute;
   '/terms': typeof TermsRoute;
+  '/verify-email': typeof VerifyEmailRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
   '/notifications': typeof AuthenticatedNotificationsRoute;
   '/settings': typeof AuthenticatedSettingsRoute;
@@ -91,10 +112,13 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute;
   '/explore': typeof ExploreRoute;
+  '/forgot-password': typeof ForgotPasswordRoute;
   '/privacy': typeof PrivacyRoute;
+  '/reset-password': typeof ResetPasswordRoute;
   '/sign-in': typeof SignInRoute;
   '/sign-up': typeof SignUpRoute;
   '/terms': typeof TermsRoute;
+  '/verify-email': typeof VerifyEmailRoute;
   '/dashboard': typeof AuthenticatedDashboardRoute;
   '/notifications': typeof AuthenticatedNotificationsRoute;
   '/settings': typeof AuthenticatedSettingsRoute;
@@ -105,10 +129,13 @@ export interface FileRoutesById {
   '/': typeof IndexRoute;
   '/_authenticated': typeof AuthenticatedRouteWithChildren;
   '/explore': typeof ExploreRoute;
+  '/forgot-password': typeof ForgotPasswordRoute;
   '/privacy': typeof PrivacyRoute;
+  '/reset-password': typeof ResetPasswordRoute;
   '/sign-in': typeof SignInRoute;
   '/sign-up': typeof SignUpRoute;
   '/terms': typeof TermsRoute;
+  '/verify-email': typeof VerifyEmailRoute;
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute;
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute;
   '/_authenticated/settings': typeof AuthenticatedSettingsRoute;
@@ -119,10 +146,13 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/explore'
+    | '/forgot-password'
     | '/privacy'
+    | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/terms'
+    | '/verify-email'
     | '/dashboard'
     | '/notifications'
     | '/settings'
@@ -131,10 +161,13 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/explore'
+    | '/forgot-password'
     | '/privacy'
+    | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/terms'
+    | '/verify-email'
     | '/dashboard'
     | '/notifications'
     | '/settings'
@@ -144,10 +177,13 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/explore'
+    | '/forgot-password'
     | '/privacy'
+    | '/reset-password'
     | '/sign-in'
     | '/sign-up'
     | '/terms'
+    | '/verify-email'
     | '/_authenticated/dashboard'
     | '/_authenticated/notifications'
     | '/_authenticated/settings'
@@ -158,14 +194,24 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute;
   AuthenticatedRoute: typeof AuthenticatedRouteWithChildren;
   ExploreRoute: typeof ExploreRoute;
+  ForgotPasswordRoute: typeof ForgotPasswordRoute;
   PrivacyRoute: typeof PrivacyRoute;
+  ResetPasswordRoute: typeof ResetPasswordRoute;
   SignInRoute: typeof SignInRoute;
   SignUpRoute: typeof SignUpRoute;
   TermsRoute: typeof TermsRoute;
+  VerifyEmailRoute: typeof VerifyEmailRoute;
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/verify-email': {
+      id: '/verify-email';
+      path: '/verify-email';
+      fullPath: '/verify-email';
+      preLoaderRoute: typeof VerifyEmailRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/terms': {
       id: '/terms';
       path: '/terms';
@@ -187,11 +233,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SignInRouteImport;
       parentRoute: typeof rootRouteImport;
     };
+    '/reset-password': {
+      id: '/reset-password';
+      path: '/reset-password';
+      fullPath: '/reset-password';
+      preLoaderRoute: typeof ResetPasswordRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
     '/privacy': {
       id: '/privacy';
       path: '/privacy';
       fullPath: '/privacy';
       preLoaderRoute: typeof PrivacyRouteImport;
+      parentRoute: typeof rootRouteImport;
+    };
+    '/forgot-password': {
+      id: '/forgot-password';
+      path: '/forgot-password';
+      fullPath: '/forgot-password';
+      preLoaderRoute: typeof ForgotPasswordRouteImport;
       parentRoute: typeof rootRouteImport;
     };
     '/explore': {
@@ -268,10 +328,13 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
   ExploreRoute: ExploreRoute,
+  ForgotPasswordRoute: ForgotPasswordRoute,
   PrivacyRoute: PrivacyRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
   SignInRoute: SignInRoute,
   SignUpRoute: SignUpRoute,
   TermsRoute: TermsRoute,
+  VerifyEmailRoute: VerifyEmailRoute,
 };
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
