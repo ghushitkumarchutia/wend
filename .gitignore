@@ -33,9 +33,6 @@ vite.config.ts.timestamp-*
 .DS_Store
 Thumbs.db
 
-# TanStack Router (auto-generated)
-routeTree.gen.ts
-
 # Docker volumes (if local)
 pgdata/
 redisdata/
