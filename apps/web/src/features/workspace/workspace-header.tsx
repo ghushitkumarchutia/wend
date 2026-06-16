@@ -59,7 +59,8 @@ function StatusCard({ trip }: { trip: TripWithRole }) {
 
   if (trip.status === 'upcoming') {
     const days = differenceInDays(start, now);
-    const label = days <= 0 ? 'Starts today' : days === 1 ? 'Starts tomorrow' : `Starts in ${days} days`;
+    const label =
+      days <= 0 ? 'Starts today' : days === 1 ? 'Starts tomorrow' : `Starts in ${days} days`;
     return (
       <div className="rounded-lg bg-white/10 px-4 py-2 backdrop-blur-sm">
         <p className="text-sm font-medium text-white">{label}</p>
@@ -73,8 +74,13 @@ function StatusCard({ trip }: { trip: TripWithRole }) {
     const percent = Math.round((currentDay / totalDays) * 100);
     return (
       <div className="min-w-[140px] space-y-1 rounded-lg bg-white/10 px-4 py-2 backdrop-blur-sm">
-        <p className="text-sm font-medium text-white">Day {currentDay} of {totalDays}</p>
-        <Progress value={percent} className="h-1.5 bg-white/20 [&>[data-slot=progress-indicator]]:bg-white" />
+        <p className="text-sm font-medium text-white">
+          Day {currentDay} of {totalDays}
+        </p>
+        <Progress
+          value={percent}
+          className="h-1.5 bg-white/20 *:data-[slot=progress-indicator]:bg-white"
+        />
       </div>
     );
   }
@@ -118,7 +124,7 @@ export function WorkspaceHeader({
           : 'linear-gradient(135deg, oklch(0.488 0.243 264.376), oklch(0.627 0.265 303.9))',
       }}
     >
-      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/50 to-black/30" />
+      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/50 to-black/30" />
       <div className="relative mx-auto max-w-7xl space-y-4 px-4 pb-6 pt-4 sm:px-6">
         <Link
           to="/dashboard"
@@ -162,24 +168,16 @@ export function WorkspaceHeader({
             <AvatarGroup>
               {displayedMembers.map((m) => (
                 <Avatar key={m.userId} size="sm">
-                  {m.user.image ? (
-                    <AvatarImage src={m.user.image} alt={m.user.name} />
-                  ) : null}
+                  {m.user.image ? <AvatarImage src={m.user.image} alt={m.user.name} /> : null}
                   <AvatarFallback>{getInitials(m.user.name)}</AvatarFallback>
                 </Avatar>
               ))}
-              {remainingCount > 0 && (
-                <AvatarGroupCount>+{remainingCount}</AvatarGroupCount>
-              )}
+              {remainingCount > 0 && <AvatarGroupCount>+{remainingCount}</AvatarGroupCount>}
             </AvatarGroup>
 
             <div className="flex items-center gap-2">
               {isOrganizer && onInvite && (
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={onInvite}
-                >
+                <Button size="sm" variant="secondary" onClick={onInvite}>
                   <UserPlus className="mr-1.5 size-3.5" />
                   Invite
                 </Button>
