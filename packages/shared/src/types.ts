@@ -188,6 +188,25 @@ export interface TemplateWithDays {
   }>;
 }
 
+export interface DocumentWithMeta {
+  id: string;
+  tripId: string;
+  uploadedByUserId: string;
+  fileName: string;
+  fileType: string;
+  sizeBytes: number;
+  storageKey: string;
+  category: string | null;
+  visibility: 'shared' | 'private';
+  archivedAt: string | null;
+  createdAt: string;
+}
+
+export interface BudgetOverview {
+  totalSpent: number;
+  expenseCount: number;
+}
+
 export interface DashboardStats {
   upcomingTrips: number;
   ongoingTrips: number;

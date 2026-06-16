@@ -7,7 +7,12 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ErrorState } from '@/components/shared/error-state';
 import { WorkspaceHeader } from '@/features/workspace/workspace-header';
 import { WorkspaceTabs } from '@/features/workspace/workspace-tabs';
+import { ItineraryTimeline } from '@/features/workspace/itinerary-timeline';
+import { LedgerTab } from '@/features/workspace/ledger-tab';
+import { DocumentsTab } from '@/features/workspace/documents-tab';
+import { EditTripModal } from '@/features/workspace/edit-trip-modal';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { useAuth } from '@/hooks/use-auth';
 import type { WorkspaceTab } from '@/features/workspace/workspace-tabs';
 import type { TripWithRole, MemberWithUser } from '@wend/shared';
 
@@ -19,10 +24,12 @@ function TripWorkspacePage() {
   const { tripId } = Route.useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<WorkspaceTab>('journey');
   const [archiveOpen, setArchiveOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [leaveOpen, setLeaveOpen] = useState(false);
+  const [editTripOpen, setEditTripOpen] = useState(false);
 
   const tripQuery = useQuery({
     queryKey: ['trips', tripId],
@@ -104,7 +111,7 @@ function TripWorkspacePage() {
       <WorkspaceHeader
         trip={trip}
         members={members}
-        onEdit={() => {}}
+        onEdit={() => setEditTripOpen(true)}
         onArchive={() => setArchiveOpen(true)}
         onRestore={() => restoreMutation.mutate()}
         onDelete={() => setDeleteOpen(true)}
@@ -114,20 +121,14 @@ function TripWorkspacePage() {
       <WorkspaceTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
       <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6">
-        {activeTab === 'journey' && (
-          <div className="py-12 text-center text-muted-foreground">
-            Journey timeline will be rendered here.
-          </div>
+        {activeTab === 'journey' && user && (
+          <ItineraryTimeline trip={trip} members={members} currentUserId={user.id} />
         )}
-        {activeTab === 'ledger' && (
-          <div className="py-12 text-center text-muted-foreground">
-            Ledger will be rendered here.
-          </div>
+        {activeTab === 'ledger' && user && (
+          <LedgerTab trip={trip} members={members} currentUserId={user.id} />
         )}
-        {activeTab === 'documents' && (
-          <div className="py-12 text-center text-muted-foreground">
-            Documents will be rendered here.
-          </div>
+        {activeTab === 'documents' && user && (
+          <DocumentsTab trip={trip} members={members} currentUserId={user.id} />
         )}
         {activeTab === 'travelers' && (
           <div className="py-12 text-center text-muted-foreground">
@@ -167,6 +168,8 @@ function TripWorkspacePage() {
         isPending={leaveMutation.isPending}
         onConfirm={() => leaveMutation.mutate()}
       />
+
+      <EditTripModal open={editTripOpen} onOpenChange={setEditTripOpen} trip={trip} />
     </div>
   );
 }
