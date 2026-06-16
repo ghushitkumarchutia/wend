@@ -1,7 +1,9 @@
 import { createRootRouteWithContext, Outlet, useRouterState } from '@tanstack/react-router';
 import type { QueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { TopNavbar } from '@/components/shared/top-navbar';
+import { CreateTripModal } from '@/features/dashboard/create-trip-modal';
 
 interface RouterContext {
   queryClient: QueryClient;
@@ -31,11 +33,13 @@ function RootComponent() {
     pathname !== '/forgot-password' &&
     pathname !== '/reset-password' &&
     pathname !== '/verify-email';
+  const [createOpen, setCreateOpen] = useState(false);
 
   return (
     <TooltipProvider>
-      {showNavbar && <TopNavbar />}
+      {showNavbar && <TopNavbar onCreateTrip={() => setCreateOpen(true)} />}
       <Outlet />
+      <CreateTripModal open={createOpen} onOpenChange={setCreateOpen} />
     </TooltipProvider>
   );
 }
