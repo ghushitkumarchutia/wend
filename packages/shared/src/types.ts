@@ -1,5 +1,7 @@
 import type {
   TripMemberRole,
+  EventCategory,
+  EventStatus,
   SplitMethod,
   ExpenseCategory,
   NotificationType,
@@ -54,6 +56,38 @@ export interface TripWithRole {
   role: TripMemberRole;
   memberCount: number;
   status: 'upcoming' | 'ongoing' | 'completed' | 'archived';
+}
+
+export interface FlightDetailsData {
+  id: string;
+  eventId: string;
+  airline: string | null;
+  flightNumber: string | null;
+  departureAirport: string | null;
+  arrivalAirport: string | null;
+  confirmationRef: string | null;
+  terminal: string | null;
+  gate: string | null;
+  seat: string | null;
+  baggageAllowance: string | null;
+}
+
+export interface ItineraryEventWithDetails {
+  id: string;
+  tripId: string;
+  title: string;
+  category: EventCategory;
+  status: EventStatus;
+  startAt: string;
+  endAt: string | null;
+  location: string | null;
+  notes: string | null;
+  order: number;
+  version: number;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  flightDetails: FlightDetailsData | null;
 }
 
 export interface MemberWithUser {
