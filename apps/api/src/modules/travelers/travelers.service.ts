@@ -12,7 +12,7 @@ function hashToken(token: string): string {
 
 export const TravelersService = {
   async getMembers(tripId: string) {
-    return db
+    const rows = await db
       .select({
         userId: tripMembers.userId,
         role: tripMembers.role,
@@ -24,6 +24,20 @@ export const TravelersService = {
       .from(tripMembers)
       .innerJoin(user, eq(tripMembers.userId, user.id))
       .where(eq(tripMembers.tripId, tripId));
+
+    return rows.map((r) => ({
+      id: `${tripId}_${r.userId}`,
+      tripId,
+      userId: r.userId,
+      role: r.role,
+      joinedAt: r.joinedAt,
+      user: {
+        id: r.userId,
+        name: r.name,
+        email: r.email,
+        image: r.image,
+      },
+    }));
   },
 
   async changeRole(tripId: string, targetUserId: string, newRole: TripMemberRole) {
@@ -40,7 +54,9 @@ export const TravelersService = {
     }
 
     if (membership.role === 'organizer') {
-      const err = new Error('Cannot change the organizer role directly. Use transfer instead.') as Error & { status: number };
+      const err = new Error(
+        'Cannot change the organizer role directly. Use transfer instead.',
+      ) as Error & { status: number };
       err.status = 400;
       throw err;
     }
@@ -130,11 +146,7 @@ export const TravelersService = {
     });
   },
 
-  async transferOrganizer(
-    tripId: string,
-    currentOrgId: string,
-    newOrgId: string,
-  ) {
+  async transferOrganizer(tripId: string, currentOrgId: string, newOrgId: string) {
     const [target] = await db
       .select({ role: tripMembers.role })
       .from(tripMembers)
@@ -204,13 +216,13 @@ export const TravelersService = {
       .select({ userId: tripMembers.userId })
       .from(tripMembers)
       .innerJoin(user, eq(tripMembers.userId, user.id))
-      .where(
-        and(eq(tripMembers.tripId, tripId), eq(user.email, data.email)),
-      )
+      .where(and(eq(tripMembers.tripId, tripId), eq(user.email, data.email)))
       .limit(1);
 
     if (existingMember) {
-      const err = new Error('This user is already a member of this trip.') as Error & { status: number };
+      const err = new Error('This user is already a member of this trip.') as Error & {
+        status: number;
+      };
       err.status = 409;
       throw err;
     }
@@ -287,10 +299,7 @@ export const TravelersService = {
       throw err;
     }
 
-    await db
-      .update(tripInvites)
-      .set({ status: 'revoked' })
-      .where(eq(tripInvites.id, inviteId));
+    await db.update(tripInvites).set({ status: 'revoked' }).where(eq(tripInvites.id, inviteId));
   },
 
   async resendInvite(
@@ -325,10 +334,7 @@ export const TravelersService = {
       throw err;
     }
 
-    await db
-      .update(tripInvites)
-      .set({ status: 'expired' })
-      .where(eq(tripInvites.id, inviteId));
+    await db.update(tripInvites).set({ status: 'expired' }).where(eq(tripInvites.id, inviteId));
 
     const token = randomBytes(32).toString('hex');
     const tokenHash = hashToken(token);
@@ -396,16 +402,11 @@ export const TravelersService = {
     const [existingMember] = await db
       .select({ userId: tripMembers.userId })
       .from(tripMembers)
-      .where(
-        and(eq(tripMembers.tripId, invite.tripId), eq(tripMembers.userId, userId)),
-      )
+      .where(and(eq(tripMembers.tripId, invite.tripId), eq(tripMembers.userId, userId)))
       .limit(1);
 
     if (existingMember) {
-      await db
-        .update(tripInvites)
-        .set({ status: 'accepted' })
-        .where(eq(tripInvites.id, invite.id));
+      await db.update(tripInvites).set({ status: 'accepted' }).where(eq(tripInvites.id, invite.id));
       return { tripId: invite.tripId };
     }
 
@@ -416,10 +417,7 @@ export const TravelersService = {
         role: invite.role,
       });
 
-      await tx
-        .update(tripInvites)
-        .set({ status: 'accepted' })
-        .where(eq(tripInvites.id, invite.id));
+      await tx.update(tripInvites).set({ status: 'accepted' }).where(eq(tripInvites.id, invite.id));
 
       await tx.insert(activityLog).values({
         tripId: invite.tripId,
@@ -447,16 +445,13 @@ export const TravelersService = {
       .limit(1);
 
     if (!invite || invite.status !== 'pending') {
-      const err = new Error(
-        'This invitation has expired or been cancelled.',
-      ) as Error & { status: number };
+      const err = new Error('This invitation has expired or been cancelled.') as Error & {
+        status: number;
+      };
       err.status = 400;
       throw err;
     }
 
-    await db
-      .update(tripInvites)
-      .set({ status: 'declined' })
-      .where(eq(tripInvites.id, invite.id));
+    await db.update(tripInvites).set({ status: 'declined' }).where(eq(tripInvites.id, invite.id));
   },
 };
