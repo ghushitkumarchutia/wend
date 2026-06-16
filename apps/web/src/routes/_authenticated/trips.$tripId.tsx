@@ -10,6 +10,7 @@ import { WorkspaceTabs } from '@/features/workspace/workspace-tabs';
 import { ItineraryTimeline } from '@/features/workspace/itinerary-timeline';
 import { LedgerTab } from '@/features/workspace/ledger-tab';
 import { DocumentsTab } from '@/features/workspace/documents-tab';
+import { TravelersTab } from '@/features/workspace/travelers-tab';
 import { EditTripModal } from '@/features/workspace/edit-trip-modal';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import { useAuth } from '@/hooks/use-auth';
@@ -130,10 +131,8 @@ function TripWorkspacePage() {
         {activeTab === 'documents' && user && (
           <DocumentsTab trip={trip} members={members} currentUserId={user.id} />
         )}
-        {activeTab === 'travelers' && (
-          <div className="py-12 text-center text-muted-foreground">
-            Travelers will be rendered here.
-          </div>
+        {activeTab === 'travelers' && user && (
+          <TravelersTab trip={trip} members={members} currentUserId={user.id} />
         )}
       </div>
 
