@@ -1,0 +1,33 @@
+{
+  "name": "wend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm:dev:*\"",
+    "dev:client": "cd client && pnpm dev",
+    "dev:admin": "cd admin && pnpm dev",
+    "dev:server": "cd server && pnpm dev",
+    "dev:worker": "cd worker && pnpm dev",
+    "build": "cd server && pnpm build && cd ../client && pnpm build && cd ../admin && pnpm build && cd ../worker && pnpm build",
+    "typecheck": "cd server && pnpm typecheck && cd ../client && pnpm typecheck && cd ../admin && pnpm typecheck && cd ../worker && pnpm typecheck",
+    "lint": "eslint .",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json,yml}\""
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devEngines": {
+    "packageManager": {
+      "name": "pnpm",
+      "version": "^11.1.2",
+      "onFail": "download"
+    }
+  },
+  "type": "module",
+  "devDependencies": {
+    "concurrently": "^10.0.3",
+    "eslint": "^10.6.0",
+    "prettier": "^3.9.4"
+  }
+}
