@@ -1,0 +1,24 @@
+{
+  "name": "worker",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "bullmq": "^5.79.2",
+    "postgres": "^3.4.9",
+    "resend": "^4.5.1",
+    "@react-email/components": "^0.0.36",
+    "@react-email/render": "^1.0.6",
+    "react": "^19.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^26.1.0",
+    "@types/react": "^19.1.8",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3"
+  }
+}
