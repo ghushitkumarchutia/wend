@@ -3,6 +3,24 @@ import { getPresignedPutUrl } from '../../common/storage.js';
 import { emailQueue } from '../../common/queues.js';
 import { user, session, account, tripMembers } from '../../db/index.js';
 import { eq, and, count } from 'drizzle-orm';
+import { scrypt, randomBytes, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
+
+const scryptAsync = promisify(scrypt);
+
+async function hashPassword(password: string): Promise<string> {
+  const salt = randomBytes(16).toString('hex');
+  const hash = (await scryptAsync(password, salt, 64)) as Buffer;
+  return `${salt}:${hash.toString('hex')}`;
+}
+
+async function verifyPassword(storedHash: string, password: string): Promise<boolean> {
+  const [salt, hash] = storedHash.split(':');
+  if (!salt || !hash) return false;
+  const hashBuffer = (await scryptAsync(password, salt, 64)) as Buffer;
+  const storedBuffer = Buffer.from(hash, 'hex');
+  return timingSafeEqual(hashBuffer, storedBuffer);
+}
 
 export async function getUserProfile(userId: string) {
   const row = await db.query.user.findFirst({
@@ -80,6 +98,24 @@ export async function changeUserEmail(
   userId: string,
   data: { newEmail: string; currentPassword: string },
 ) {
+  const credentialAccount = await db.query.account.findFirst({
+    where: and(eq(account.userId, userId), eq(account.providerId, 'credential')),
+    columns: { password: true },
+  });
+
+  if (!credentialAccount?.password) {
+    const err = new Error('No password set — cannot verify identity') as Error & { status: number };
+    err.status = 400;
+    throw err;
+  }
+
+  const valid = await verifyPassword(credentialAccount.password, data.currentPassword);
+  if (!valid) {
+    const err = new Error('Current password is incorrect') as Error & { status: number };
+    err.status = 403;
+    throw err;
+  }
+
   const existing = await db.query.user.findFirst({
     where: eq(user.email, data.newEmail),
     columns: { id: true },
@@ -91,8 +127,16 @@ export async function changeUserEmail(
     throw err;
   }
 
+  await db
+    .update(user)
+    .set({ email: data.newEmail, emailVerified: false, updatedAt: new Date() })
+    .where(eq(user.id, userId));
+
   await emailQueue.add('email-change', {
     to: data.newEmail,
+    userName:
+      (await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } }))
+        ?.name ?? 'User',
     userId,
     type: 'email-change',
   });
@@ -102,17 +146,82 @@ export async function changeUserPassword(
   userId: string,
   data: { currentPassword: string; newPassword: string },
 ) {
+  const credentialAccount = await db.query.account.findFirst({
+    where: and(eq(account.userId, userId), eq(account.providerId, 'credential')),
+    columns: { id: true, password: true },
+  });
+
+  if (!credentialAccount?.password) {
+    const err = new Error('No password set — use set-password instead') as Error & {
+      status: number;
+    };
+    err.status = 400;
+    throw err;
+  }
+
+  const valid = await verifyPassword(credentialAccount.password, data.currentPassword);
+  if (!valid) {
+    const err = new Error('Current password is incorrect') as Error & { status: number };
+    err.status = 403;
+    throw err;
+  }
+
+  const newHash = await hashPassword(data.newPassword);
+
+  await db
+    .update(account)
+    .set({ password: newHash, updatedAt: new Date() })
+    .where(eq(account.id, credentialAccount.id));
+
+  await db.delete(session).where(eq(session.userId, userId));
+
+  const userRow = await db.query.user.findFirst({
+    where: eq(user.id, userId),
+    columns: { email: true, name: true },
+  });
+
   await emailQueue.add('security-alert', {
+    to: userRow?.email ?? '',
+    userName: userRow?.name ?? 'User',
     userId,
     type: 'security-alert',
     action: 'password_changed',
   });
-
-  await db.delete(session).where(and(eq(session.userId, userId)));
 }
 
 export async function setUserPassword(userId: string, data: { newPassword: string }) {
+  const credentialAccount = await db.query.account.findFirst({
+    where: and(eq(account.userId, userId), eq(account.providerId, 'credential')),
+    columns: { id: true, password: true },
+  });
+
+  const newHash = await hashPassword(data.newPassword);
+
+  if (credentialAccount) {
+    await db
+      .update(account)
+      .set({ password: newHash, updatedAt: new Date() })
+      .where(eq(account.id, credentialAccount.id));
+  } else {
+    await db.insert(account).values({
+      id: crypto.randomUUID(),
+      userId,
+      providerId: 'credential',
+      accountId: userId,
+      password: newHash,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  const userRow = await db.query.user.findFirst({
+    where: eq(user.id, userId),
+    columns: { email: true, name: true },
+  });
+
   await emailQueue.add('security-alert', {
+    to: userRow?.email ?? '',
+    userName: userRow?.name ?? 'User',
     userId,
     type: 'security-alert',
     action: 'password_set',

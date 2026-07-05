@@ -9,6 +9,7 @@ import {
   changeEmailSchema,
   deleteAccountConfirmSchema,
   avatarUploadSchema,
+  photoConfirmSchema,
 } from '../../shared/schemas/accountSchemas.js';
 
 export const accountRouter = Router();
@@ -29,7 +30,12 @@ accountRouter.post(
   accountController.requestPhotoUrl,
 );
 
-accountRouter.post('/profile/photo-confirm', accountController.confirmPhoto);
+accountRouter.post(
+  '/profile/photo-confirm',
+  generalMutateLimiter,
+  validate({ body: photoConfirmSchema }),
+  accountController.confirmPhoto,
+);
 
 accountRouter.post(
   '/change-email',

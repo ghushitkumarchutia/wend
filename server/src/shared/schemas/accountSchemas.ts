@@ -40,3 +40,7 @@ export const avatarUploadSchema = z.object({
   fileType: z.enum(['image/jpeg', 'image/png', 'image/webp']),
   sizeBytes: z.number().int().positive().max(MAX_AVATAR_SIZE_BYTES),
 });
+
+export const photoConfirmSchema = z.object({
+  storageKey: z.string().min(1),
+});
