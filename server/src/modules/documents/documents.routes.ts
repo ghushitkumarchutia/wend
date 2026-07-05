@@ -7,7 +7,7 @@ import {
   generalMutateLimiter,
   uploadLimiter,
 } from '../../middleware/rate-limit.js';
-import { uploadConfirmSchema } from '../../shared/schemas/documentsSchemas.js';
+import { uploadConfirmSchema, requestUploadSchema } from '../../shared/schemas/documentsSchemas.js';
 
 export const documentsRouter = Router();
 
@@ -22,6 +22,7 @@ documentsRouter.post(
   '/:tripId/documents/upload-url',
   uploadLimiter,
   requireTripRole('member'),
+  validate({ body: requestUploadSchema }),
   documentsController.requestUploadUrl,
 );
 

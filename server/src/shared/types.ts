@@ -205,6 +205,7 @@ export interface DocumentWithMeta {
 export interface BudgetOverview {
   totalSpent: number;
   expenseCount: number;
+  estimatedBudget: number | null;
 }
 
 export interface DashboardStats {

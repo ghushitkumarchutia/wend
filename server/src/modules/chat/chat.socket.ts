@@ -23,11 +23,12 @@ export function registerChatHandlers(): void {
 
     socket.on('chat:typing:start', (tripId: string) => {
       const userId = socket.data.userId as string | undefined;
+      const userName = socket.data.userName as string | undefined;
       if (!userId || !tripId) return;
 
       socket.to(`trip:${tripId}`).emit('chat:user:typing', {
         userId,
-        tripId,
+        userName: userName ?? 'Unknown',
       });
     });
   });

@@ -13,3 +13,7 @@ export const uploadConfirmSchema = z.object({
   category: z.enum(DocumentCategory).optional(),
   visibility: z.enum(DocumentVisibility).default('shared'),
 });
+
+export const requestUploadSchema = z.object({
+  fileType: z.enum(uniqueTypes),
+});
