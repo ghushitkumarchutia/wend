@@ -4,9 +4,7 @@ import { templates, templateDays, templateEvents, templateAuditLog } from '../..
 import { eq, asc, sql } from 'drizzle-orm';
 
 export async function listAllTemplates(page: number, pageSize: number) {
-  const [countResult] = await db
-    .select({ total: sql<number>`count(*)::int` })
-    .from(templates);
+  const [countResult] = await db.select({ total: sql<number>`count(*)::int` }).from(templates);
 
   const total = countResult?.total ?? 0;
   const offset = (page - 1) * pageSize;
@@ -35,9 +33,7 @@ export async function listAllTemplates(page: number, pageSize: number) {
 }
 
 export async function getTemplateStats() {
-  const [total] = await db
-    .select({ count: sql<number>`count(*)::int` })
-    .from(templates);
+  const [total] = await db.select({ count: sql<number>`count(*)::int` }).from(templates);
 
   const [published] = await db
     .select({ count: sql<number>`count(*)::int` })
@@ -114,7 +110,8 @@ export async function createTemplate(
       recommendedGroupSizeMin: data.recommendedGroupSizeMin ?? null,
       recommendedGroupSizeMax: data.recommendedGroupSizeMax ?? null,
       bestSeason: data.bestSeason ?? null,
-      difficultyLevel: (data.difficultyLevel ?? null) as typeof templates.$inferInsert.difficultyLevel,
+      difficultyLevel: (data.difficultyLevel ??
+        null) as typeof templates.$inferInsert.difficultyLevel,
       estimatedBudgetBreakdown: data.estimatedBudgetBreakdown ?? null,
       estimatedBudgetCurrency: data.estimatedBudgetCurrency ?? null,
       createdByUserId: adminUserId,
@@ -143,12 +140,16 @@ export async function updateTemplate(
   if (data.coverImageUrl !== undefined) values.coverImageUrl = data.coverImageUrl;
   if (data.visibility !== undefined) values.visibility = data.visibility;
   if (data.categories !== undefined) values.categories = data.categories;
-  if (data.recommendedGroupSizeMin !== undefined) values.recommendedGroupSizeMin = data.recommendedGroupSizeMin;
-  if (data.recommendedGroupSizeMax !== undefined) values.recommendedGroupSizeMax = data.recommendedGroupSizeMax;
+  if (data.recommendedGroupSizeMin !== undefined)
+    values.recommendedGroupSizeMin = data.recommendedGroupSizeMin;
+  if (data.recommendedGroupSizeMax !== undefined)
+    values.recommendedGroupSizeMax = data.recommendedGroupSizeMax;
   if (data.bestSeason !== undefined) values.bestSeason = data.bestSeason;
   if (data.difficultyLevel !== undefined) values.difficultyLevel = data.difficultyLevel;
-  if (data.estimatedBudgetBreakdown !== undefined) values.estimatedBudgetBreakdown = data.estimatedBudgetBreakdown;
-  if (data.estimatedBudgetCurrency !== undefined) values.estimatedBudgetCurrency = data.estimatedBudgetCurrency;
+  if (data.estimatedBudgetBreakdown !== undefined)
+    values.estimatedBudgetBreakdown = data.estimatedBudgetBreakdown;
+  if (data.estimatedBudgetCurrency !== undefined)
+    values.estimatedBudgetCurrency = data.estimatedBudgetCurrency;
 
   const [updated] = await db
     .update(templates)
@@ -272,12 +273,6 @@ export async function duplicateTemplate(templateId: string, adminUserId: string)
 }
 
 export async function deleteTemplate(templateId: string, adminUserId: string): Promise<void> {
-  await db.insert(templateAuditLog).values({
-    templateId,
-    adminUserId,
-    action: 'deleted',
-  });
-
   const [deleted] = await db
     .delete(templates)
     .where(eq(templates.id, templateId))
@@ -288,12 +283,15 @@ export async function deleteTemplate(templateId: string, adminUserId: string): P
     err.status = 404;
     throw err;
   }
+
+  await db.insert(templateAuditLog).values({
+    templateId,
+    adminUserId,
+    action: 'deleted',
+  });
 }
 
-export async function addDay(
-  templateId: string,
-  data: { dayNumber: number },
-) {
+export async function addDay(templateId: string, data: { dayNumber: number }) {
   const [day] = await db
     .insert(templateDays)
     .values({
@@ -394,12 +392,13 @@ export async function removeEvent(eventId: string): Promise<void> {
   }
 }
 
-export async function reorderItems(
-  items: Array<{ id: string; order: number }>,
-): Promise<void> {
+export async function reorderItems(items: Array<{ id: string; order: number }>): Promise<void> {
   for (const item of items) {
     await db.update(templateDays).set({ order: item.order }).where(eq(templateDays.id, item.id));
-    await db.update(templateEvents).set({ order: item.order }).where(eq(templateEvents.id, item.id));
+    await db
+      .update(templateEvents)
+      .set({ order: item.order })
+      .where(eq(templateEvents.id, item.id));
   }
 }
 

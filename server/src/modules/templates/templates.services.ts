@@ -24,44 +24,45 @@ export async function listPublishedTemplates(
     );
   }
 
+  if (category) {
+    conditions.push(sql`${templates.categories}::jsonb @> ${JSON.stringify([category])}::jsonb`);
+  }
+
+  const whereClause = sql`${conditions.reduce((acc, c) => sql`${acc} AND ${c}`)}`;
+
   const [countResult] = await db
     .select({ total: sql<number>`count(*)::int` })
     .from(templates)
-    .where(sql`${conditions.reduce((acc, c) => sql`${acc} AND ${c}`)}`);
+    .where(whereClause);
 
   const total = countResult?.total ?? 0;
   const offset = (page - 1) * pageSize;
 
   const rows = await db.query.templates.findMany({
-    where: sql`${conditions.reduce((acc, c) => sql`${acc} AND ${c}`)}`,
+    where: whereClause,
     orderBy: [asc(templates.createdAt)],
     limit: pageSize,
     offset,
   });
 
-  const data = rows
-    .filter((r) => {
-      if (!category) return true;
-      return (r.categories as string[]).includes(category);
-    })
-    .map((r) => ({
-      id: r.id,
-      title: r.title,
-      destination: r.destination,
-      description: r.description,
-      coverImageUrl: r.coverImageUrl,
-      categories: r.categories as string[],
-      recommendedGroupSizeMin: r.recommendedGroupSizeMin,
-      recommendedGroupSizeMax: r.recommendedGroupSizeMax,
-      bestSeason: r.bestSeason as string[] | null,
-      difficultyLevel: r.difficultyLevel,
-      estimatedBudgetBreakdown: r.estimatedBudgetBreakdown as Record<string, number> | null,
-      estimatedBudgetCurrency: r.estimatedBudgetCurrency,
-      visibility: r.visibility as TemplateWithDays['visibility'],
-      cloneCount: r.cloneCount,
-      createdAt: r.createdAt.toISOString(),
-      updatedAt: r.updatedAt.toISOString(),
-    }));
+  const data = rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    destination: r.destination,
+    description: r.description,
+    coverImageUrl: r.coverImageUrl,
+    categories: r.categories as string[],
+    recommendedGroupSizeMin: r.recommendedGroupSizeMin,
+    recommendedGroupSizeMax: r.recommendedGroupSizeMax,
+    bestSeason: r.bestSeason as string[] | null,
+    difficultyLevel: r.difficultyLevel,
+    estimatedBudgetBreakdown: r.estimatedBudgetBreakdown as Record<string, number> | null,
+    estimatedBudgetCurrency: r.estimatedBudgetCurrency,
+    visibility: r.visibility as TemplateWithDays['visibility'],
+    cloneCount: r.cloneCount,
+    createdAt: r.createdAt.toISOString(),
+    updatedAt: r.updatedAt.toISOString(),
+  }));
 
   return {
     data,

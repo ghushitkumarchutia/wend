@@ -30,6 +30,8 @@ adminRouter.post(
   adminController.createTemplate,
 );
 
+adminRouter.patch('/templates/reorder', validate({ body: reorderSchema }), adminController.reorder);
+
 adminRouter.patch(
   '/templates/:id',
   validate({ body: updateTemplateSchema }),
@@ -48,7 +50,11 @@ adminRouter.delete('/templates/:id', adminController.deleteTemplate);
 
 adminRouter.post('/templates/:id/days', validate({ body: addDaySchema }), adminController.addDay);
 
-adminRouter.patch('/templates/:id/days/:dayId', adminController.editDay);
+adminRouter.patch(
+  '/templates/:id/days/:dayId',
+  validate({ body: addDaySchema }),
+  adminController.editDay,
+);
 
 adminRouter.delete('/templates/:id/days/:dayId', adminController.removeDay);
 
@@ -65,7 +71,5 @@ adminRouter.patch(
 );
 
 adminRouter.delete('/templates/:id/events/:eventId', adminController.removeEvent);
-
-adminRouter.patch('/templates/reorder', validate({ body: reorderSchema }), adminController.reorder);
 
 adminRouter.post('/templates/:id/cover-image-url', adminController.getCoverImageUrl);
