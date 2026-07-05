@@ -189,6 +189,33 @@ export async function createInvite(
   inviterUserId: string,
   data: { email: string; role: TripMemberRole; name?: string },
 ) {
+  const allMembers = await db.query.tripMembers.findMany({
+    where: eq(tripMembers.tripId, tripId),
+    with: { user: { columns: { email: true } } },
+  });
+
+  if (allMembers.some((m) => m.user.email === data.email)) {
+    const err = new Error('User is already a member of this trip') as Error & { status: number };
+    err.status = 409;
+    throw err;
+  }
+
+  const pendingInvite = await db.query.tripInvites.findFirst({
+    where: and(
+      eq(tripInvites.tripId, tripId),
+      eq(tripInvites.invitedEmail, data.email),
+      eq(tripInvites.status, 'pending'),
+    ),
+  });
+
+  if (pendingInvite) {
+    const err = new Error('A pending invite already exists for this email') as Error & {
+      status: number;
+    };
+    err.status = 409;
+    throw err;
+  }
+
   const token = crypto.randomUUID();
   const tokenHash = await hashToken(token);
 
@@ -225,6 +252,15 @@ export async function createInvite(
     tripName: trip?.name ?? 'a trip',
     token,
     type: 'trip-invite',
+  });
+
+  await db.insert(activityLog).values({
+    tripId,
+    actorUserId: inviterUserId,
+    type: 'invite_sent',
+    referenceId: invite.id,
+    referenceType: 'invite',
+    metadata: { invitedEmail: data.email },
   });
 
   return invite;
@@ -301,4 +337,90 @@ async function hashToken(token: string): Promise<string> {
   const hashBuffer = await crypto.subtle.digest('SHA-256', data);
   const hashArray = Array.from(new Uint8Array(hashBuffer));
   return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+export async function acceptInvite(token: string, userId: string): Promise<void> {
+  const tokenHash = await hashToken(token);
+
+  const invite = await db.query.tripInvites.findFirst({
+    where: and(eq(tripInvites.tokenHash, tokenHash), eq(tripInvites.status, 'pending')),
+  });
+
+  if (!invite) {
+    const err = new Error('Invite not found or already processed') as Error & { status: number };
+    err.status = 404;
+    throw err;
+  }
+
+  if (new Date() > invite.expiresAt) {
+    await db
+      .update(tripInvites)
+      .set({ status: 'expired' })
+      .where(eq(tripInvites.id, invite.id));
+
+    const err = new Error('Invite has expired') as Error & { status: number };
+    err.status = 410;
+    throw err;
+  }
+
+  const existingMember = await db.query.tripMembers.findFirst({
+    where: and(eq(tripMembers.tripId, invite.tripId), eq(tripMembers.userId, userId)),
+  });
+
+  if (existingMember) {
+    await db
+      .update(tripInvites)
+      .set({ status: 'accepted' })
+      .where(eq(tripInvites.id, invite.id));
+    return;
+  }
+
+  await db.insert(tripMembers).values({
+    tripId: invite.tripId,
+    userId,
+    role: invite.role,
+  });
+
+  await db
+    .update(tripInvites)
+    .set({ status: 'accepted' })
+    .where(eq(tripInvites.id, invite.id));
+
+  await db.insert(activityLog).values({
+    tripId: invite.tripId,
+    actorUserId: userId,
+    type: 'member_joined',
+    referenceId: invite.id,
+    referenceType: 'invite',
+  });
+}
+
+export async function declineInvite(token: string): Promise<void> {
+  const tokenHash = await hashToken(token);
+
+  const invite = await db.query.tripInvites.findFirst({
+    where: and(eq(tripInvites.tokenHash, tokenHash), eq(tripInvites.status, 'pending')),
+  });
+
+  if (!invite) {
+    const err = new Error('Invite not found or already processed') as Error & { status: number };
+    err.status = 404;
+    throw err;
+  }
+
+  if (new Date() > invite.expiresAt) {
+    await db
+      .update(tripInvites)
+      .set({ status: 'expired' })
+      .where(eq(tripInvites.id, invite.id));
+
+    const err = new Error('Invite has expired') as Error & { status: number };
+    err.status = 410;
+    throw err;
+  }
+
+  await db
+    .update(tripInvites)
+    .set({ status: 'declined' })
+    .where(eq(tripInvites.id, invite.id));
 }

@@ -11,6 +11,8 @@ import {
   inviteMemberSchema,
   changeRoleSchema,
   transferOrganizerSchema,
+  acceptInviteSchema,
+  declineInviteSchema,
 } from '../../shared/schemas/tripsSchemas.js';
 
 export const travelersRouter = Router();
@@ -79,4 +81,20 @@ travelersRouter.post(
   inviteLimiter,
   requireTripRole('organizer'),
   travelersController.resendInvite,
+);
+
+export const invitesRouter = Router();
+
+invitesRouter.post(
+  '/accept',
+  generalMutateLimiter,
+  validate({ body: acceptInviteSchema }),
+  travelersController.acceptInvite,
+);
+
+invitesRouter.post(
+  '/decline',
+  generalMutateLimiter,
+  validate({ body: declineInviteSchema }),
+  travelersController.declineInvite,
 );

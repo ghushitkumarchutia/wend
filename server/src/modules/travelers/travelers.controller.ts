@@ -70,3 +70,14 @@ export async function resendInvite(req: Request, res: Response): Promise<void> {
   );
   res.json({ data: { success: true } });
 }
+
+export async function acceptInvite(req: Request, res: Response): Promise<void> {
+  const userId = (req as Request & { user: { id: string } }).user.id;
+  await travelersServices.acceptInvite(req.body.token, userId);
+  res.json({ data: { success: true } });
+}
+
+export async function declineInvite(req: Request, res: Response): Promise<void> {
+  await travelersServices.declineInvite(req.body.token);
+  res.json({ data: { success: true } });
+}
