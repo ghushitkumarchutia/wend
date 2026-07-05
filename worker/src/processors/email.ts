@@ -31,10 +31,13 @@ interface EmailJobData {
     | 'password-reset'
     | 'trip-invite'
     | 'trip-departure-reminder'
-    | 'event-reminder';
+    | 'event-reminder'
+    | 'email-change'
+    | 'security-alert';
   subject?: string;
   tripName?: string;
   eventTitle?: string;
+  action?: string;
 }
 
 function renderEmailTemplate(data: EmailJobData) {
@@ -177,6 +180,54 @@ function renderEmailTemplate(data: EmailJobData) {
           ),
         ),
       );
+
+    case 'email-change':
+      return React.createElement(
+        Html,
+        null,
+        React.createElement(Head, null),
+        React.createElement(
+          Body,
+          { style: { fontFamily: 'sans-serif', backgroundColor: '#f4f4f5' } },
+          React.createElement(
+            Container,
+            { style: { maxWidth: '600px', margin: '0 auto', padding: '20px' } },
+            React.createElement(
+              Section,
+              { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '40px' } },
+              React.createElement(Text, { style: { fontSize: '24px', fontWeight: 'bold' } }, 'Email Address Changed'),
+              React.createElement(Text, null, `Hi ${data.userName}, your email address on Wend has been updated to this address.`),
+              React.createElement(Text, null, 'If you did not make this change, please contact support immediately.'),
+              React.createElement(Hr, null),
+              React.createElement(Text, { style: { fontSize: '12px', color: '#71717a' } }, 'This is an automated security notification from Wend.'),
+            ),
+          ),
+        ),
+      );
+
+    case 'security-alert':
+      return React.createElement(
+        Html,
+        null,
+        React.createElement(Head, null),
+        React.createElement(
+          Body,
+          { style: { fontFamily: 'sans-serif', backgroundColor: '#f4f4f5' } },
+          React.createElement(
+            Container,
+            { style: { maxWidth: '600px', margin: '0 auto', padding: '20px' } },
+            React.createElement(
+              Section,
+              { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '40px' } },
+              React.createElement(Text, { style: { fontSize: '24px', fontWeight: 'bold' } }, 'Security Alert'),
+              React.createElement(Text, null, `Hi ${data.userName}, a security-related change was made to your Wend account: ${(data.action ?? 'unknown action').replace(/_/g, ' ')}.`),
+              React.createElement(Text, null, 'If you did not perform this action, please reset your password immediately.'),
+              React.createElement(Hr, null),
+              React.createElement(Text, { style: { fontSize: '12px', color: '#71717a' } }, 'This is an automated security notification from Wend.'),
+            ),
+          ),
+        ),
+      );
   }
 }
 
@@ -189,6 +240,8 @@ export async function processEmailJob(job: Job<EmailJobData>): Promise<void> {
     'trip-invite': `You're invited to ${data.tripName ?? 'a trip'} — Wend`,
     'trip-departure-reminder': `Departure reminder: ${data.tripName ?? 'Your trip'} — Wend`,
     'event-reminder': `Event reminder: ${data.eventTitle ?? 'Upcoming event'} — Wend`,
+    'email-change': 'Your email was changed — Wend',
+    'security-alert': 'Security alert — Wend',
   };
 
   const element = renderEmailTemplate(data);
