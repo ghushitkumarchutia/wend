@@ -6,8 +6,10 @@ import {
   tripMembers,
   trips,
   activityLog,
+  user,
 } from '../../db/index.js';
 import { eq, and, desc, isNull, sql, sum } from 'drizzle-orm';
+import { notificationsQueue } from '../../common/queues.js';
 import type { BalanceEntry, SettlementSuggestion, BudgetOverview } from '../../shared/types.js';
 
 export async function listExpenses(tripId: string) {
@@ -107,39 +109,55 @@ export async function createExpense(
 ) {
   const trip = await db.query.trips.findFirst({
     where: eq(trips.id, tripId),
-    columns: { baseCurrency: true },
+    columns: { baseCurrency: true, name: true },
   });
 
-  const [expense] = await db
-    .insert(expenses)
-    .values({
+  const expense = await db.transaction(async (tx) => {
+    const [exp] = await tx
+      .insert(expenses)
+      .values({
+        tripId,
+        description: data.description,
+        amount: data.amount.toString(),
+        currency: trip?.baseCurrency ?? 'USD',
+        category: data.category as typeof expenses.$inferInsert.category,
+        paidByUserId: data.paidByUserId,
+        splitMethod: (data.splitMethod ?? 'equal') as typeof expenses.$inferInsert.splitMethod,
+        incurredAt: new Date(data.incurredAt),
+        receiptUrl: data.receiptUrl ?? null,
+        createdByUserId: userId,
+      })
+      .returning();
+
+    if (data.participants.length > 0) {
+      await tx.insert(expenseParticipants).values(
+        data.participants.map((p) => ({
+          expenseId: exp.id,
+          userId: p.userId,
+          shareAmount: p.shareAmount.toString(),
+        })),
+      );
+    }
+
+    await tx.insert(activityLog).values({
       tripId,
-      description: data.description,
-      amount: data.amount.toString(),
-      currency: trip?.baseCurrency ?? 'USD',
-      category: data.category as typeof expenses.$inferInsert.category,
-      paidByUserId: data.paidByUserId,
-      splitMethod: (data.splitMethod ?? 'equal') as typeof expenses.$inferInsert.splitMethod,
-      incurredAt: new Date(data.incurredAt),
-      receiptUrl: data.receiptUrl ?? null,
-      createdByUserId: userId,
-    })
-    .returning();
+      actorUserId: userId,
+      type: 'expense_added',
+      referenceId: exp.id,
+      referenceType: 'expense',
+    });
 
-  if (data.participants.length > 0) {
-    await db.insert(expenseParticipants).values(
-      data.participants.map((p) => ({
-        expenseId: expense.id,
-        userId: p.userId,
-        shareAmount: p.shareAmount.toString(),
-      })),
-    );
-  }
+    return exp;
+  });
 
-  await db.insert(activityLog).values({
-    tripId,
-    actorUserId: userId,
+  const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
+
+  await notificationsQueue.add('expense_added', {
     type: 'expense_added',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: userId,
+    actorName: actor?.name ?? 'Someone',
     referenceId: expense.id,
     referenceType: 'expense',
   });
@@ -186,31 +204,48 @@ export async function updateExpense(
   if (data.incurredAt !== undefined) values.incurredAt = new Date(data.incurredAt as string);
   if (data.receiptUrl !== undefined) values.receiptUrl = data.receiptUrl;
 
-  const [updated] = await db
-    .update(expenses)
-    .set(values)
-    .where(eq(expenses.id, expenseId))
-    .returning();
+  const updated = await db.transaction(async (tx) => {
+    const [upd] = await tx
+      .update(expenses)
+      .set(values)
+      .where(eq(expenses.id, expenseId))
+      .returning();
 
-  if (data.participants !== undefined) {
-    await db.delete(expenseParticipants).where(eq(expenseParticipants.expenseId, expenseId));
+    if (data.participants !== undefined) {
+      await tx.delete(expenseParticipants).where(eq(expenseParticipants.expenseId, expenseId));
 
-    const participants = data.participants as Array<{ userId: string; shareAmount: number }>;
-    if (participants.length > 0) {
-      await db.insert(expenseParticipants).values(
-        participants.map((p) => ({
-          expenseId,
-          userId: p.userId,
-          shareAmount: p.shareAmount.toString(),
-        })),
-      );
+      const participants = data.participants as Array<{ userId: string; shareAmount: number }>;
+      if (participants.length > 0) {
+        await tx.insert(expenseParticipants).values(
+          participants.map((p) => ({
+            expenseId,
+            userId: p.userId,
+            shareAmount: p.shareAmount.toString(),
+          })),
+        );
+      }
     }
-  }
 
-  await db.insert(activityLog).values({
-    tripId,
-    actorUserId: userId,
+    await tx.insert(activityLog).values({
+      tripId,
+      actorUserId: userId,
+      type: 'expense_updated',
+      referenceId: expenseId,
+      referenceType: 'expense',
+    });
+
+    return upd;
+  });
+
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
+  const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
+
+  await notificationsQueue.add('expense_updated', {
     type: 'expense_updated',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: userId,
+    actorName: actor?.name ?? 'Someone',
     referenceId: expenseId,
     referenceType: 'expense',
   });
@@ -379,6 +414,11 @@ export async function recordSettlement(
 }
 
 export async function getBudgetOverview(tripId: string): Promise<BudgetOverview> {
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, tripId),
+    columns: { estimatedBudget: true },
+  });
+
   const [result] = await db
     .select({
       totalSpent: sum(expenses.amount),
@@ -390,5 +430,6 @@ export async function getBudgetOverview(tripId: string): Promise<BudgetOverview>
   return {
     totalSpent: Number(result?.totalSpent ?? 0),
     expenseCount: result?.expenseCount ?? 0,
+    estimatedBudget: trip?.estimatedBudget ? Number(trip.estimatedBudget) : null,
   };
 }

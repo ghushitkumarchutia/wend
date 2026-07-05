@@ -1,6 +1,7 @@
 import { db } from '../../common/db.js';
 import { trips, tripMembers, activityLog, user } from '../../db/index.js';
 import { eq, and, desc, lt, isNull } from 'drizzle-orm';
+import { remindersQueue } from '../../common/queues.js';
 import type { TripMemberRole } from '../../shared/enums.js';
 import type { TripWithRole, CursorPaginatedResponse } from '../../shared/types.js';
 
@@ -60,31 +61,47 @@ export async function createTrip(
     estimatedBudget?: number;
   },
 ) {
-  const [trip] = await db
-    .insert(trips)
-    .values({
-      name: data.name,
-      destination: data.destination,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
-      description: data.description ?? null,
-      baseCurrency: data.baseCurrency ?? 'USD',
-      estimatedBudget: data.estimatedBudget?.toString() ?? null,
-      createdByUserId: userId,
-    })
-    .returning();
+  const trip = await db.transaction(async (tx) => {
+    const [newTrip] = await tx
+      .insert(trips)
+      .values({
+        name: data.name,
+        destination: data.destination,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        description: data.description ?? null,
+        baseCurrency: data.baseCurrency ?? 'USD',
+        estimatedBudget: data.estimatedBudget?.toString() ?? null,
+        createdByUserId: userId,
+      })
+      .returning();
 
-  await db.insert(tripMembers).values({
-    tripId: trip.id,
-    userId,
-    role: 'organizer',
+    await tx.insert(tripMembers).values({
+      tripId: newTrip.id,
+      userId,
+      role: 'organizer',
+    });
+
+    await tx.insert(activityLog).values({
+      tripId: newTrip.id,
+      actorUserId: userId,
+      type: 'trip_created',
+    });
+
+    return newTrip;
   });
 
-  await db.insert(activityLog).values({
-    tripId: trip.id,
-    actorUserId: userId,
-    type: 'trip_created',
-  });
+  const startDate = new Date(data.startDate);
+  const reminderTime = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
+  const delay = Math.max(0, reminderTime.getTime() - Date.now());
+
+  if (delay > 0) {
+    await remindersQueue.add(
+      `reminder:trip:${trip.id}:1d`,
+      { type: 'trip-departure', tripId: trip.id },
+      { delay, jobId: `reminder:trip:${trip.id}:1d` },
+    );
+  }
 
   return trip;
 }
@@ -164,10 +181,28 @@ export async function deleteTrip(tripId: string): Promise<void> {
 }
 
 export async function archiveTrip(tripId: string): Promise<void> {
-  await db
+  const [result] = await db
     .update(trips)
     .set({ archivedAt: new Date(), updatedAt: new Date() })
-    .where(and(eq(trips.id, tripId), isNull(trips.archivedAt)));
+    .where(and(eq(trips.id, tripId), isNull(trips.archivedAt)))
+    .returning({ id: trips.id });
+
+  if (!result) {
+    const existing = await db.query.trips.findFirst({
+      where: eq(trips.id, tripId),
+      columns: { archivedAt: true },
+    });
+
+    if (existing?.archivedAt) {
+      const err = new Error('Trip is already archived') as Error & { status: number };
+      err.status = 409;
+      throw err;
+    }
+
+    const err = new Error('Trip not found') as Error & { status: number };
+    err.status = 404;
+    throw err;
+  }
 }
 
 export async function restoreTrip(tripId: string): Promise<void> {

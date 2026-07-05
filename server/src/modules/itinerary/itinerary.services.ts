@@ -1,7 +1,14 @@
 import { db } from '../../common/db.js';
 import { getIO } from '../../common/socket.js';
-import { itineraryEvents, itineraryFlightDetails, activityLog } from '../../db/index.js';
+import {
+  itineraryEvents,
+  itineraryFlightDetails,
+  activityLog,
+  trips,
+  user,
+} from '../../db/index.js';
 import { eq, and, asc } from 'drizzle-orm';
+import { notificationsQueue, remindersQueue } from '../../common/queues.js';
 import type { ItineraryEventWithDetails } from '../../shared/types.js';
 
 function formatEvent(
@@ -84,48 +91,81 @@ export async function createEvent(
     flightDetails?: Record<string, string | undefined>;
   },
 ) {
-  const [event] = await db
-    .insert(itineraryEvents)
-    .values({
+  const event = await db.transaction(async (tx) => {
+    const [evt] = await tx
+      .insert(itineraryEvents)
+      .values({
+        tripId,
+        title: data.title,
+        category: data.category as typeof itineraryEvents.$inferInsert.category,
+        status: (data.status ?? 'confirmed') as typeof itineraryEvents.$inferInsert.status,
+        startAt: new Date(data.startAt),
+        endAt: data.endAt ? new Date(data.endAt) : null,
+        location: data.location ?? null,
+        notes: data.notes ?? null,
+        createdByUserId: userId,
+      })
+      .returning();
+
+    if (data.flightDetails && data.category === 'flight') {
+      await tx.insert(itineraryFlightDetails).values({
+        eventId: evt.id,
+        airline: data.flightDetails.airline ?? null,
+        flightNumber: data.flightDetails.flightNumber ?? null,
+        departureAirport: data.flightDetails.departureAirport ?? null,
+        arrivalAirport: data.flightDetails.arrivalAirport ?? null,
+        confirmationRef: data.flightDetails.confirmationRef ?? null,
+        terminal: data.flightDetails.terminal ?? null,
+        gate: data.flightDetails.gate ?? null,
+        seat: data.flightDetails.seat ?? null,
+        baggageAllowance: data.flightDetails.baggageAllowance ?? null,
+      });
+    }
+
+    await tx.insert(activityLog).values({
       tripId,
-      title: data.title,
-      category: data.category as typeof itineraryEvents.$inferInsert.category,
-      status: (data.status ?? 'confirmed') as typeof itineraryEvents.$inferInsert.status,
-      startAt: new Date(data.startAt),
-      endAt: data.endAt ? new Date(data.endAt) : null,
-      location: data.location ?? null,
-      notes: data.notes ?? null,
-      createdByUserId: userId,
-    })
-    .returning();
-
-  if (data.flightDetails && data.category === 'flight') {
-    await db.insert(itineraryFlightDetails).values({
-      eventId: event.id,
-      airline: data.flightDetails.airline ?? null,
-      flightNumber: data.flightDetails.flightNumber ?? null,
-      departureAirport: data.flightDetails.departureAirport ?? null,
-      arrivalAirport: data.flightDetails.arrivalAirport ?? null,
-      confirmationRef: data.flightDetails.confirmationRef ?? null,
-      terminal: data.flightDetails.terminal ?? null,
-      gate: data.flightDetails.gate ?? null,
-      seat: data.flightDetails.seat ?? null,
-      baggageAllowance: data.flightDetails.baggageAllowance ?? null,
+      actorUserId: userId,
+      type: 'event_created',
+      referenceId: evt.id,
+      referenceType: 'itinerary_event',
     });
-  }
 
-  await db.insert(activityLog).values({
-    tripId,
-    actorUserId: userId,
-    type: 'event_created',
-    referenceId: event.id,
-    referenceType: 'itinerary_event',
+    return evt;
   });
 
   getIO().to(`trip:${tripId}`).emit('activity:new', {
     type: 'event_created',
     tripId,
     referenceId: event.id,
+  });
+
+  const eventStart = new Date(data.startAt);
+  const reminderDelay = Math.max(0, eventStart.getTime() - 60 * 60 * 1000 - Date.now());
+  if (reminderDelay > 0) {
+    await remindersQueue.add(
+      `reminder:event:${event.id}`,
+      { type: 'event', eventId: event.id },
+      { delay: reminderDelay, jobId: `reminder:event:${event.id}` },
+    );
+  }
+
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, tripId),
+    columns: { name: true },
+  });
+  const actor = await db.query.user.findFirst({
+    where: eq(user.id, userId),
+    columns: { name: true },
+  });
+
+  await notificationsQueue.add('event_created', {
+    type: 'event_created',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: userId,
+    actorName: actor?.name ?? 'Someone',
+    referenceId: event.id,
+    referenceType: 'itinerary_event',
   });
 
   return event;
@@ -229,10 +269,12 @@ export async function reorderEvents(
   tripId: string,
   events: Array<{ id: string; order: number }>,
 ): Promise<void> {
-  for (const item of events) {
-    await db
-      .update(itineraryEvents)
-      .set({ order: item.order })
-      .where(and(eq(itineraryEvents.id, item.id), eq(itineraryEvents.tripId, tripId)));
-  }
+  await db.transaction(async (tx) => {
+    for (const item of events) {
+      await tx
+        .update(itineraryEvents)
+        .set({ order: item.order })
+        .where(and(eq(itineraryEvents.id, item.id), eq(itineraryEvents.tripId, tripId)));
+    }
+  });
 }

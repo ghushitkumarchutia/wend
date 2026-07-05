@@ -1,5 +1,5 @@
 import { db } from '../../common/db.js';
-import { emailQueue } from '../../common/queues.js';
+import { emailQueue, notificationsQueue } from '../../common/queues.js';
 import { trips, tripMembers, tripInvites, activityLog, user } from '../../db/index.js';
 import { eq, and } from 'drizzle-orm';
 import { INVITE_EXPIRY_DAYS } from '../../shared/constants.js';
@@ -64,6 +64,20 @@ export async function changeMemberRole(
     tripId,
     actorUserId: actorId,
     type: 'role_changed',
+    referenceId: targetUserId,
+    referenceType: 'user',
+    metadata: { newRole },
+  });
+
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
+  const actor = await db.query.user.findFirst({ where: eq(user.id, actorId), columns: { name: true } });
+
+  await notificationsQueue.add('role_changed', {
+    type: 'role_changed',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: actorId,
+    actorName: actor?.name ?? 'Someone',
     referenceId: targetUserId,
     referenceType: 'user',
     metadata: { newRole },
@@ -150,20 +164,35 @@ export async function transferOrganizerRole(
     throw err;
   }
 
-  await db
-    .update(tripMembers)
-    .set({ role: 'member' })
-    .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, currentOrganizerId)));
+  await db.transaction(async (tx) => {
+    await tx
+      .update(tripMembers)
+      .set({ role: 'member' })
+      .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, currentOrganizerId)));
 
-  await db
-    .update(tripMembers)
-    .set({ role: 'organizer' })
-    .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, newOrganizerId)));
+    await tx
+      .update(tripMembers)
+      .set({ role: 'organizer' })
+      .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, newOrganizerId)));
 
-  await db.insert(activityLog).values({
-    tripId,
-    actorUserId: currentOrganizerId,
+    await tx.insert(activityLog).values({
+      tripId,
+      actorUserId: currentOrganizerId,
+      type: 'organizer_transferred',
+      referenceId: newOrganizerId,
+      referenceType: 'user',
+    });
+  });
+
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
+  const actor = await db.query.user.findFirst({ where: eq(user.id, currentOrganizerId), columns: { name: true } });
+
+  await notificationsQueue.add('organizer_transferred', {
     type: 'organizer_transferred',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: currentOrganizerId,
+    actorName: actor?.name ?? 'Someone',
     referenceId: newOrganizerId,
     referenceType: 'user',
   });
@@ -375,21 +404,36 @@ export async function acceptInvite(token: string, userId: string): Promise<void>
     return;
   }
 
-  await db.insert(tripMembers).values({
-    tripId: invite.tripId,
-    userId,
-    role: invite.role,
+  await db.transaction(async (tx) => {
+    await tx.insert(tripMembers).values({
+      tripId: invite.tripId,
+      userId,
+      role: invite.role,
+    });
+
+    await tx
+      .update(tripInvites)
+      .set({ status: 'accepted' })
+      .where(eq(tripInvites.id, invite.id));
+
+    await tx.insert(activityLog).values({
+      tripId: invite.tripId,
+      actorUserId: userId,
+      type: 'member_joined',
+      referenceId: invite.id,
+      referenceType: 'invite',
+    });
   });
 
-  await db
-    .update(tripInvites)
-    .set({ status: 'accepted' })
-    .where(eq(tripInvites.id, invite.id));
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, invite.tripId), columns: { name: true } });
+  const joiner = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
 
-  await db.insert(activityLog).values({
-    tripId: invite.tripId,
-    actorUserId: userId,
+  await notificationsQueue.add('member_joined', {
     type: 'member_joined',
+    tripId: invite.tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: userId,
+    actorName: joiner?.name ?? 'Someone',
     referenceId: invite.id,
     referenceType: 'invite',
   });
