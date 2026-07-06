@@ -9,7 +9,7 @@ services:
     name: wend-api
     runtime: node
     region: singapore
-    buildCommand: pnpm install && cd server && pnpm build
+    buildCommand: cd server && pnpm install --prod=false && pnpm build
     startCommand: cd server && node dist/src/server.js
     envVars:
       - key: PNPM_VERSION
@@ -40,7 +40,7 @@ services:
     name: wend-worker
     runtime: node
     region: singapore
-    buildCommand: pnpm install && cd worker && pnpm build
+    buildCommand: cd worker && pnpm install --prod=false && pnpm build
     startCommand: cd worker && node dist/src/index.js
     envVars:
       - key: PNPM_VERSION
