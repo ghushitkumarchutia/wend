@@ -4,6 +4,9 @@ import { ioRedisClient } from '../common/redis.js';
 import { RATE_LIMITS } from '../shared/constants.js';
 
 function createLimiter(key: string, limit: number, windowMs: number) {
+  if (process.env.NODE_ENV === 'test') {
+    return (req: any, res: any, next: any) => next();
+  }
   return rateLimit({
     windowMs,
     max: limit,

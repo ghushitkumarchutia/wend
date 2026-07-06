@@ -2,6 +2,7 @@ import { db } from '../../common/db.js';
 import { emailQueue, notificationsQueue } from '../../common/queues.js';
 import { trips, tripMembers, tripInvites, activityLog, user } from '../../db/index.js';
 import { eq, and } from 'drizzle-orm';
+import { env } from '../../common/env.js';
 import { INVITE_EXPIRY_DAYS } from '../../shared/constants.js';
 import type { MemberWithUser } from '../../shared/types.js';
 import type { TripMemberRole } from '../../shared/enums.js';
@@ -110,6 +111,19 @@ export async function removeTripMember(
     tripId,
     actorUserId: actorId,
     type: 'member_removed',
+    referenceId: targetUserId,
+    referenceType: 'user',
+  });
+
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
+  const actor = await db.query.user.findFirst({ where: eq(user.id, actorId), columns: { name: true } });
+
+  await notificationsQueue.add('member_removed', {
+    type: 'member_removed',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: actorId,
+    actorName: actor?.name ?? 'Someone',
     referenceId: targetUserId,
     referenceType: 'user',
   });
@@ -276,10 +290,10 @@ export async function createInvite(
 
   await emailQueue.add('trip-invite', {
     to: data.email,
-    inviteeName: data.name ?? data.email,
+    userName: data.name ?? data.email,
     inviterName: inviter?.name ?? 'Someone',
     tripName: trip?.name ?? 'a trip',
-    token,
+    url: `${env.WEB_ORIGIN}/invites/accept?token=${token}`,
     type: 'trip-invite',
   });
 
@@ -352,10 +366,10 @@ export async function resendInviteEmail(tripId: string, inviteId: string): Promi
 
   await emailQueue.add('trip-invite', {
     to: invite.invitedEmail,
-    inviteeName: invite.name ?? invite.invitedEmail,
+    userName: invite.name ?? invite.invitedEmail,
     inviterName: inviter?.name ?? 'Someone',
     tripName: trip?.name ?? 'a trip',
-    token: newToken,
+    url: `${env.WEB_ORIGIN}/invites/accept?token=${newToken}`,
     type: 'trip-invite',
   });
 }

@@ -1,10 +1,12 @@
 import { db } from '../../common/db.js';
+import { auth } from '../../common/auth.js';
 import { getPresignedPutUrl } from '../../common/storage.js';
 import { emailQueue } from '../../common/queues.js';
 import { user, session, account, tripMembers } from '../../db/index.js';
-import { eq, and, count } from 'drizzle-orm';
+import { eq, and, count, isNull } from 'drizzle-orm';
 import { scrypt, randomBytes, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
+import type { IncomingHttpHeaders } from 'node:http';
 
 const scryptAsync = promisify(scrypt);
 
@@ -117,7 +119,7 @@ export async function changeUserEmail(
   }
 
   const existing = await db.query.user.findFirst({
-    where: eq(user.email, data.newEmail),
+    where: and(eq(user.email, data.newEmail), isNull(user.deletedAt)),
     columns: { id: true },
   });
 
@@ -145,35 +147,24 @@ export async function changeUserEmail(
 export async function changeUserPassword(
   userId: string,
   data: { currentPassword: string; newPassword: string },
+  headers: IncomingHttpHeaders,
 ) {
-  const credentialAccount = await db.query.account.findFirst({
-    where: and(eq(account.userId, userId), eq(account.providerId, 'credential')),
-    columns: { id: true, password: true },
-  });
-
-  if (!credentialAccount?.password) {
-    const err = new Error('No password set — use set-password instead') as Error & {
-      status: number;
-    };
+  try {
+    await auth.api.changePassword({
+      body: {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+        revokeOtherSessions: true,
+      },
+      headers: headers as unknown as Headers,
+    });
+  } catch (error: unknown) {
+    const err = new Error(
+      error instanceof Error ? error.message : 'Password change failed',
+    ) as Error & { status: number };
     err.status = 400;
     throw err;
   }
-
-  const valid = await verifyPassword(credentialAccount.password, data.currentPassword);
-  if (!valid) {
-    const err = new Error('Current password is incorrect') as Error & { status: number };
-    err.status = 403;
-    throw err;
-  }
-
-  const newHash = await hashPassword(data.newPassword);
-
-  await db
-    .update(account)
-    .set({ password: newHash, updatedAt: new Date() })
-    .where(eq(account.id, credentialAccount.id));
-
-  await db.delete(session).where(eq(session.userId, userId));
 
   const userRow = await db.query.user.findFirst({
     where: eq(user.id, userId),

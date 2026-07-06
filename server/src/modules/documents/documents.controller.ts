@@ -35,10 +35,12 @@ export async function getDownloadUrl(req: Request, res: Response): Promise<void>
 
 export async function deleteDocument(req: Request, res: Response): Promise<void> {
   const userId = (req as Request & { user: { id: string } }).user.id;
+  const tripRole = (req as Request & { tripRole: string }).tripRole;
   await documentsServices.softDeleteDocument(
     req.params.tripId as string,
     req.params.docId as string,
     userId,
+    tripRole,
   );
   res.json({ data: { success: true } });
 }

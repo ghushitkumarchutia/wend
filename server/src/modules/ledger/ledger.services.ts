@@ -279,6 +279,19 @@ export async function softDeleteExpense(
     referenceId: expenseId,
     referenceType: 'expense',
   });
+
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
+  const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
+
+  await notificationsQueue.add('expense_deleted', {
+    type: 'expense_deleted',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: userId,
+    actorName: actor?.name ?? 'Someone',
+    referenceId: expenseId,
+    referenceType: 'expense',
+  });
 }
 
 export async function computeBalances(tripId: string): Promise<BalanceEntry[]> {
@@ -392,6 +405,28 @@ export async function recordSettlement(
   actorUserId: string,
   data: { fromUserId: string; toUserId: string; amount: number },
 ) {
+  if (data.fromUserId === data.toUserId) {
+    const err = new Error('Cannot settle with yourself') as Error & { status: number };
+    err.status = 400;
+    throw err;
+  }
+
+  const fromMember = await db.query.tripMembers.findFirst({
+    where: and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, data.fromUserId)),
+    columns: { id: true },
+  });
+
+  const toMember = await db.query.tripMembers.findFirst({
+    where: and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, data.toUserId)),
+    columns: { id: true },
+  });
+
+  if (!fromMember || !toMember) {
+    const err = new Error('Both users must be trip members') as Error & { status: number };
+    err.status = 400;
+    throw err;
+  }
+
   const [settlement] = await db
     .insert(settlements)
     .values({

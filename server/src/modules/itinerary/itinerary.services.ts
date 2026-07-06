@@ -241,6 +241,12 @@ export async function updateEvent(
     referenceType: 'itinerary_event',
   });
 
+  getIO().to(`trip:${tripId}`).emit('activity:new', {
+    type: 'event_updated',
+    tripId,
+    referenceId: eventId,
+  });
+
   return updated;
 }
 
@@ -262,6 +268,12 @@ export async function deleteEvent(tripId: string, eventId: string, userId: strin
     type: 'event_deleted',
     referenceId: eventId,
     referenceType: 'itinerary_event',
+  });
+
+  getIO().to(`trip:${tripId}`).emit('activity:new', {
+    type: 'event_deleted',
+    tripId,
+    referenceId: eventId,
   });
 }
 

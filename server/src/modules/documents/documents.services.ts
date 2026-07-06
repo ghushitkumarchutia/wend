@@ -95,24 +95,35 @@ export async function softDeleteDocument(
   tripId: string,
   docId: string,
   userId: string,
+  tripRole: string,
 ): Promise<void> {
-  const [archived] = await db
-    .update(tripDocuments)
-    .set({ archivedAt: new Date() })
-    .where(
-      and(
-        eq(tripDocuments.id, docId),
-        eq(tripDocuments.tripId, tripId),
-        isNull(tripDocuments.archivedAt),
-      ),
-    )
-    .returning({ id: tripDocuments.id });
+  const doc = await db.query.tripDocuments.findFirst({
+    where: and(
+      eq(tripDocuments.id, docId),
+      eq(tripDocuments.tripId, tripId),
+      isNull(tripDocuments.archivedAt),
+    ),
+    columns: { id: true, uploadedByUserId: true },
+  });
 
-  if (!archived) {
+  if (!doc) {
     const err = new Error('Document not found') as Error & { status: number };
     err.status = 404;
     throw err;
   }
+
+  if (doc.uploadedByUserId !== userId && tripRole !== 'organizer') {
+    const err = new Error('Only the uploader or organizer can delete this document') as Error & {
+      status: number;
+    };
+    err.status = 403;
+    throw err;
+  }
+
+  await db
+    .update(tripDocuments)
+    .set({ archivedAt: new Date() })
+    .where(eq(tripDocuments.id, docId));
 
   await db.insert(activityLog).values({
     tripId,

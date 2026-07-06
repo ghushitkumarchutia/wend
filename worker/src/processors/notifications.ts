@@ -69,8 +69,10 @@ export async function processNotificationJob(job: Job<NotificationJobData>): Pro
       await emailQueue.add(`notification-email-${data.type}`, {
         to: recipient.email,
         userName: recipient.name,
-        type: 'trip-invite',
+        type: 'notification' as const,
         tripName: data.tripName,
+        actorName: data.actorName,
+        action: data.type,
         subject: `${data.actorName} — ${data.type.replace(/_/g, ' ')} in "${data.tripName}"`,
       });
     }

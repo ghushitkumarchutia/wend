@@ -35,7 +35,7 @@ export async function changeEmail(req: Request, res: Response): Promise<void> {
 
 export async function changePassword(req: Request, res: Response): Promise<void> {
   const userId = (req as Request & { user: { id: string } }).user.id;
-  await accountServices.changeUserPassword(userId, req.body);
+  await accountServices.changeUserPassword(userId, req.body, req.headers);
   res.json({ data: { success: true } });
 }
 

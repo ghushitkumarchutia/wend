@@ -1,6 +1,6 @@
 import { db } from '../../common/db.js';
 import { trips, tripMembers, tripInvites } from '../../db/index.js';
-import { eq, and, count, isNull, lte, gte, gt, sql } from 'drizzle-orm';
+import { eq, and, count, isNull, lte, gte, gt, lt, sql } from 'drizzle-orm';
 import type { DashboardStats } from '../../shared/types.js';
 
 export async function getDashboardStats(
@@ -43,7 +43,7 @@ export async function getDashboardStats(
     .where(
       and(
         sql`${trips.id} IN ${memberTrips}`,
-        sql`${trips.endDate} < ${now}`,
+        lt(trips.endDate, now),
         isNull(trips.archivedAt),
       ),
     );

@@ -1,6 +1,7 @@
 import { db } from '../../common/db.js';
 import { getIO } from '../../common/socket.js';
-import { polls, pollOptions, pollVotes, activityLog } from '../../db/index.js';
+import { notificationsQueue } from '../../common/queues.js';
+import { polls, pollOptions, pollVotes, activityLog, trips, user } from '../../db/index.js';
 import { eq, and, sql, asc, desc } from 'drizzle-orm';
 
 export async function listPolls(tripId: string) {
@@ -69,6 +70,19 @@ export async function createPoll(
   });
 
   getIO().to(`trip:${tripId}`).emit('poll:created', { pollId: poll.id, question: data.question });
+
+  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
+  const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
+
+  await notificationsQueue.add('poll_created', {
+    type: 'poll_created',
+    tripId,
+    tripName: trip?.name ?? '',
+    actorUserId: userId,
+    actorName: actor?.name ?? 'Someone',
+    referenceId: poll.id,
+    referenceType: 'poll',
+  });
 
   return poll;
 }

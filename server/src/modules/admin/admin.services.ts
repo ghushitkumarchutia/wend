@@ -273,12 +273,12 @@ export async function duplicateTemplate(templateId: string, adminUserId: string)
 }
 
 export async function deleteTemplate(templateId: string, adminUserId: string): Promise<void> {
-  const [deleted] = await db
-    .delete(templates)
-    .where(eq(templates.id, templateId))
-    .returning({ id: templates.id });
+  const existing = await db.query.templates.findFirst({
+    where: eq(templates.id, templateId),
+    columns: { id: true },
+  });
 
-  if (!deleted) {
+  if (!existing) {
     const err = new Error('Template not found') as Error & { status: number };
     err.status = 404;
     throw err;
@@ -289,6 +289,8 @@ export async function deleteTemplate(templateId: string, adminUserId: string): P
     adminUserId,
     action: 'deleted',
   });
+
+  await db.delete(templates).where(eq(templates.id, templateId));
 }
 
 export async function addDay(templateId: string, data: { dayNumber: number }) {

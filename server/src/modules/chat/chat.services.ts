@@ -132,7 +132,7 @@ export async function editMessage(
     .where(eq(messages.id, messageId))
     .returning();
 
-  return {
+  const payload = {
     id: updated.id,
     tripId: updated.tripId,
     userId: updated.userId,
@@ -140,6 +140,10 @@ export async function editMessage(
     editedAt: updated.editedAt?.toISOString() ?? null,
     createdAt: updated.createdAt.toISOString(),
   };
+
+  getIO().to(`trip:${tripId}`).emit('chat:message:edited', payload);
+
+  return payload;
 }
 
 export async function softDeleteMessage(
@@ -172,4 +176,9 @@ export async function softDeleteMessage(
     .update(messages)
     .set({ deletedAt: new Date() })
     .where(eq(messages.id, messageId));
+
+  getIO().to(`trip:${tripId}`).emit('chat:message:deleted', {
+    messageId,
+    tripId,
+  });
 }

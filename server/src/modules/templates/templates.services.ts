@@ -7,7 +7,7 @@ import {
   tripMembers,
   itineraryEvents,
 } from '../../db/index.js';
-import { eq, sql, asc, or, ilike } from 'drizzle-orm';
+import { eq, sql, asc, or, ilike, and } from 'drizzle-orm';
 import type { TemplateWithDays, PaginatedResponse } from '../../shared/types.js';
 
 export async function listPublishedTemplates(
@@ -28,7 +28,7 @@ export async function listPublishedTemplates(
     conditions.push(sql`${templates.categories}::jsonb @> ${JSON.stringify([category])}::jsonb`);
   }
 
-  const whereClause = sql`${conditions.reduce((acc, c) => sql`${acc} AND ${c}`)}`;
+  const whereClause = and(...conditions);
 
   const [countResult] = await db
     .select({ total: sql<number>`count(*)::int` })

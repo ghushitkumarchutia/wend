@@ -33,11 +33,13 @@ interface EmailJobData {
     | 'trip-departure-reminder'
     | 'event-reminder'
     | 'email-change'
-    | 'security-alert';
+    | 'security-alert'
+    | 'notification';
   subject?: string;
   tripName?: string;
   eventTitle?: string;
   action?: string;
+  actorName?: string;
 }
 
 function renderEmailTemplate(data: EmailJobData) {
@@ -228,6 +230,36 @@ function renderEmailTemplate(data: EmailJobData) {
           ),
         ),
       );
+
+    case 'notification':
+      return React.createElement(
+        Html,
+        null,
+        React.createElement(Head, null),
+        React.createElement(
+          Body,
+          { style: { fontFamily: 'sans-serif', backgroundColor: '#f4f4f5' } },
+          React.createElement(
+            Container,
+            { style: { maxWidth: '600px', margin: '0 auto', padding: '20px' } },
+            React.createElement(
+              Section,
+              { style: { backgroundColor: '#ffffff', borderRadius: '8px', padding: '40px' } },
+              React.createElement(Text, { style: { fontSize: '24px', fontWeight: 'bold' } }, 'Trip Activity'),
+              React.createElement(Text, null, `Hi ${data.userName}, ${data.actorName ?? 'Someone'} — ${(data.action ?? 'activity').replace(/_/g, ' ')} in "${data.tripName ?? 'your trip'}".`),
+              data.url
+                ? React.createElement(
+                    Button,
+                    { href: data.url, style: { backgroundColor: '#6366f1', color: '#ffffff', padding: '12px 24px', borderRadius: '6px', textDecoration: 'none' } },
+                    'View Trip',
+                  )
+                : null,
+              React.createElement(Hr, null),
+              React.createElement(Text, { style: { fontSize: '12px', color: '#71717a' } }, 'You can manage your notification preferences in your Wend account settings.'),
+            ),
+          ),
+        ),
+      );
   }
 }
 
@@ -242,6 +274,7 @@ export async function processEmailJob(job: Job<EmailJobData>): Promise<void> {
     'event-reminder': `Event reminder: ${data.eventTitle ?? 'Upcoming event'} — Wend`,
     'email-change': 'Your email was changed — Wend',
     'security-alert': 'Security alert — Wend',
+    'notification': `New activity in ${data.tripName ?? 'your trip'} — Wend`,
   };
 
   const element = renderEmailTemplate(data);

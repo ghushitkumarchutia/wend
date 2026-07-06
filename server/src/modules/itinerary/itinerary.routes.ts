@@ -26,6 +26,14 @@ itineraryRouter.post(
   itineraryController.createEvent,
 );
 
+itineraryRouter.patch(
+  '/:tripId/itinerary/reorder',
+  generalMutateLimiter,
+  requireTripRole('member'),
+  validate({ body: reorderEventsSchema }),
+  itineraryController.reorderEvents,
+);
+
 itineraryRouter.get(
   '/:tripId/itinerary/:eventId',
   generalGetLimiter,
@@ -46,12 +54,4 @@ itineraryRouter.delete(
   generalMutateLimiter,
   requireTripRole('member'),
   itineraryController.deleteEvent,
-);
-
-itineraryRouter.patch(
-  '/:tripId/itinerary/reorder',
-  generalMutateLimiter,
-  requireTripRole('member'),
-  validate({ body: reorderEventsSchema }),
-  itineraryController.reorderEvents,
 );

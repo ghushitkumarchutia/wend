@@ -55,4 +55,10 @@ app.use('/api/v1/templates', templatesRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api', docsRouter);
 
+app.use((_req, res) => {
+  res.status(404).json({
+    error: { code: 'NOT_FOUND', message: 'Route not found', details: null },
+  });
+});
+
 app.use(errorHandler);
