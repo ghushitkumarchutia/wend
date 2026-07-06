@@ -36,15 +36,15 @@ services:
       - key: ADMIN_ORIGIN
         sync: false
       - key: S3_ENDPOINT
-        sync: false
+        value: "https://dummy-s3.com"
       - key: S3_REGION
-        sync: false
+        value: "us-east-1"
       - key: S3_ACCESS_KEY
-        sync: false
+        value: "placeholder"
       - key: S3_SECRET_KEY
-        sync: false
+        value: "placeholder"
       - key: S3_BUCKET
-        sync: false
+        value: "placeholder"
 
   - type: worker
     name: wend-worker
@@ -64,3 +64,5 @@ services:
           property: connectionString
       - key: DATABASE_URL
         sync: false
+      - key: RESEND_API_KEY
+        value: "re_placeholder_key"
