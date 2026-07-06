@@ -9,9 +9,11 @@ services:
     name: wend-api
     runtime: node
     region: singapore
-    buildCommand: npm install -g pnpm && pnpm install && cd server && pnpm build
+    buildCommand: pnpm install && cd server && pnpm build
     startCommand: cd server && node dist/src/server.js
     envVars:
+      - key: PNPM_VERSION
+        value: "11.1.2"
       - key: NODE_ENV
         value: production
       - key: PORT
@@ -38,9 +40,11 @@ services:
     name: wend-worker
     runtime: node
     region: singapore
-    buildCommand: npm install -g pnpm && pnpm install && cd worker && pnpm build
+    buildCommand: pnpm install && cd worker && pnpm build
     startCommand: cd worker && node dist/src/index.js
     envVars:
+      - key: PNPM_VERSION
+        value: "11.1.2"
       - key: NODE_ENV
         value: production
       - key: REDIS_URL
