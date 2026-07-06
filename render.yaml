@@ -1,0 +1,52 @@
+services:
+  - type: redis
+    name: wend-redis
+    region: singapore
+    plan: free
+    ipAllowList: []
+
+  - type: web
+    name: wend-api
+    runtime: node
+    region: singapore
+    buildCommand: npm install -g pnpm && pnpm install && cd server && pnpm build
+    startCommand: cd server && node dist/src/server.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3000
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: wend-redis
+          property: connectionString
+      - key: DATABASE_URL
+        sync: false
+      - key: BETTER_AUTH_SECRET
+        sync: false
+      - key: GOOGLE_CLIENT_ID
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false
+      - key: WEB_ORIGIN
+        sync: false
+      - key: ADMIN_ORIGIN
+        sync: false
+
+  - type: worker
+    name: wend-worker
+    runtime: node
+    region: singapore
+    buildCommand: npm install -g pnpm && pnpm install && cd worker && pnpm build
+    startCommand: cd worker && node dist/src/index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: wend-redis
+          property: connectionString
+      - key: DATABASE_URL
+        sync: false
