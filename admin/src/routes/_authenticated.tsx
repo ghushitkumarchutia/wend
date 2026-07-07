@@ -2,6 +2,7 @@
 import { createFileRoute, Outlet, Navigate } from '@tanstack/react-router';
 import { authClient } from '@/lib/auth-client';
 import { Loader2 } from 'lucide-react';
+import { AdminNavbar } from '@/components/shared/admin-navbar';
 
 export const Route = createFileRoute('/_authenticated')({
   component: AuthenticatedLayout,
@@ -24,6 +25,7 @@ function AuthenticatedLayout() {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
+      <AdminNavbar />
       <main className="flex-1 p-8">
         <Outlet />
       </main>
