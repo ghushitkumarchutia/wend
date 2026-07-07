@@ -4,6 +4,7 @@ import { fetcher } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { Clock, MapPin, Plus, Trash2, GripVertical, Pencil } from 'lucide-react';
 import { EventInlineForm } from './event-inline-form';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
 import type { TemplateDay, TemplateEvent } from '@/types/models';
 import { toast } from 'sonner';
 
@@ -16,6 +17,11 @@ export function DaySectionBuilder({ templateId, day }: Props) {
   const queryClient = useQueryClient();
   const [isAddingEvent, setIsAddingEvent] = useState(false);
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [dayDeleteDialog, setDayDeleteDialog] = useState(false);
+  const [eventDeleteDialog, setEventDeleteDialog] = useState<{ isOpen: boolean; id: string }>({
+    isOpen: false,
+    id: '',
+  });
 
   const deleteDayMutation = useMutation({
     mutationFn: async () => {
@@ -28,6 +34,7 @@ export function DaySectionBuilder({ templateId, day }: Props) {
       if (response.error) throw new Error(response.error);
       toast.success('Day removed');
       queryClient.invalidateQueries({ queryKey: ['template', templateId] });
+      setDayDeleteDialog(false);
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : 'Failed to remove day');
@@ -45,6 +52,7 @@ export function DaySectionBuilder({ templateId, day }: Props) {
       if (response.error) throw new Error(response.error);
       toast.success('Event removed');
       queryClient.invalidateQueries({ queryKey: ['template', templateId] });
+      setEventDeleteDialog({ isOpen: false, id: '' });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : 'Failed to remove event');
@@ -61,11 +69,7 @@ export function DaySectionBuilder({ templateId, day }: Props) {
         <Button
           variant="ghost"
           size="icon"
-          onClick={() => {
-            if (window.confirm('Are you sure you want to remove this day?')) {
-              deleteDayMutation.mutate();
-            }
-          }}
+          onClick={() => setDayDeleteDialog(true)}
           disabled={deleteDayMutation.isPending}
         >
           <Trash2 className="h-4 w-4 text-destructive" />
@@ -124,11 +128,7 @@ export function DaySectionBuilder({ templateId, day }: Props) {
                         variant="ghost"
                         size="icon"
                         className="h-8 w-8"
-                        onClick={() => {
-                          if (window.confirm('Remove this event?')) {
-                            deleteEventMutation.mutate(ev.id);
-                          }
-                        }}
+                        onClick={() => setEventDeleteDialog({ isOpen: true, id: ev.id })}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
@@ -158,6 +158,26 @@ export function DaySectionBuilder({ templateId, day }: Props) {
           </Button>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={dayDeleteDialog}
+        title="Delete Day"
+        description={`Are you sure you want to permanently delete Day ${day.dayNumber}? All events in this day will also be deleted.`}
+        variant="destructive"
+        isLoading={deleteDayMutation.isPending}
+        onConfirm={() => deleteDayMutation.mutate()}
+        onCancel={() => setDayDeleteDialog(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={eventDeleteDialog.isOpen}
+        title="Delete Event"
+        description="Are you sure you want to delete this event?"
+        variant="destructive"
+        isLoading={deleteEventMutation.isPending}
+        onConfirm={() => deleteEventMutation.mutate(eventDeleteDialog.id)}
+        onCancel={() => setEventDeleteDialog({ isOpen: false, id: '' })}
+      />
     </div>
   );
 }

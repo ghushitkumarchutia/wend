@@ -14,7 +14,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
+import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { LoadingSkeleton } from '@/components/shared/loading-skeleton';
 import { useNavigate } from '@tanstack/react-router';
 import { toast } from 'sonner';
 
@@ -33,6 +34,11 @@ export function TemplateDirectory() {
     isOpen: false,
     templateId: '',
     current: '',
+  });
+
+  const [deleteDialog, setDeleteDialog] = useState<{ isOpen: boolean; id: string }>({
+    isOpen: false,
+    id: '',
   });
 
   const { data, isLoading, error } = useQuery<TemplateListResponse>({
@@ -71,6 +77,7 @@ export function TemplateDirectory() {
       if (res.error) throw new Error(res.error);
       toast.success('Template deleted');
       queryClient.invalidateQueries({ queryKey: ['templates'] });
+      setDeleteDialog({ isOpen: false, id: '' });
     },
     onError: (err) => {
       toast.error(err instanceof Error ? err.message : 'Failed to delete template');
@@ -86,9 +93,7 @@ export function TemplateDirectory() {
   };
 
   const handleDelete = (id: string) => {
-    if (window.confirm('Are you sure you want to permanently delete this template?')) {
-      deleteMutation.mutate(id);
-    }
+    setDeleteDialog({ isOpen: true, id });
   };
 
   const handleChangeVisibility = (id: string, current: string) => {
@@ -99,6 +104,20 @@ export function TemplateDirectory() {
     return (
       <div className="rounded-md border border-destructive bg-destructive/10 p-8 text-center text-destructive">
         Failed to load templates. Please try again later.
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <div>
+        <TemplateFilters
+          search={search}
+          onSearchChange={setSearch}
+          visibility={visibilityFilter}
+          onVisibilityChange={setVisibilityFilter}
+        />
+        <LoadingSkeleton columns={['Title', 'Destination', 'Visibility', 'Last Updated', 'Clones', 'Actions']} />
       </div>
     );
   }
@@ -133,30 +152,7 @@ export function TemplateDirectory() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {isLoading ? (
-              Array.from({ length: 5 }).map((_, i) => (
-                <TableRow key={i}>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[200px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[150px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-5 w-[80px] rounded-full" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[100px]" />
-                  </TableCell>
-                  <TableCell>
-                    <Skeleton className="h-4 w-[40px]" />
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Skeleton className="h-8 w-8 ml-auto" />
-                  </TableCell>
-                </TableRow>
-              ))
-            ) : templates.length === 0 ? (
+            {templates.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="h-24 text-center text-muted-foreground">
                   No templates found matching your filters.
@@ -186,6 +182,16 @@ export function TemplateDirectory() {
           onClose={() => setVisibilityDialog((prev) => ({ ...prev, isOpen: false }))}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        title="Delete Template"
+        description="Are you sure you want to permanently delete this template? This action cannot be undone."
+        variant="destructive"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => deleteMutation.mutate(deleteDialog.id)}
+        onCancel={() => setDeleteDialog({ isOpen: false, id: '' })}
+      />
     </div>
   );
 }
