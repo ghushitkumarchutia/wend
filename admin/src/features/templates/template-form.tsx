@@ -1,12 +1,13 @@
 import { useTemplateFormStore } from '@/stores/template-form-store';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TemplateGeneralInfo } from './template-general-info';
 import { TemplateMetadata } from './template-metadata';
 import { TemplateBudgetBreakdown } from './template-budget-breakdown';
 import { TemplateItineraryBuilder } from './template-itinerary-builder';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Save } from 'lucide-react';
+import { Link } from '@tanstack/react-router';
+import { Save, ChevronLeft } from 'lucide-react';
 import type { Template } from '@/types/models';
 
 interface Props {
@@ -19,12 +20,25 @@ export function TemplateForm({ onSave, isSaving }: Props) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight">Edit Template</h2>
-        <Button onClick={() => onSave(data)} disabled={!isDirty || isSaving}>
-          <Save className="mr-2 h-4 w-4" />
-          {isSaving ? 'Saving...' : 'Save Changes'}
-        </Button>
+      <div className="flex flex-col space-y-4">
+        <div>
+          <Link 
+            to="/templates" 
+            className={buttonVariants({ variant: 'ghost', size: 'sm', className: '-ml-3 text-muted-foreground' })}
+          >
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            Back to Templates
+          </Link>
+        </div>
+        <div className="flex items-center justify-between">
+          <h2 className="text-2xl font-semibold tracking-tight">
+            {(data as Template).id ? 'Edit Template' : 'New Template'}
+          </h2>
+          <Button onClick={() => onSave(data)} disabled={!isDirty || isSaving}>
+            <Save className="mr-2 h-4 w-4" />
+            {isSaving ? 'Saving...' : 'Save Changes'}
+          </Button>
+        </div>
       </div>
 
       <Tabs defaultValue="general" className="w-full">
