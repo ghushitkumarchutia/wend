@@ -1,8 +1,8 @@
 import { create } from 'zustand';
-import type { Template, DifficultyLevel } from '@/types/models';
+import type { Template, TemplateDifficulty } from '@/types/models';
 
 type PartialTemplate = Partial<
-  Omit<Template, 'id' | 'createdAt' | 'updatedAt' | 'createdByUserId' | 'cloneCount'>
+  Omit<Template, 'id' | 'createdAt' | 'updatedAt' | 'cloneCount'>
 >;
 
 interface TemplateFormState {
@@ -22,7 +22,7 @@ interface TemplateFormState {
     recommendedGroupSizeMin?: number | null;
     recommendedGroupSizeMax?: number | null;
     bestSeason?: string[] | null;
-    difficultyLevel?: DifficultyLevel | null;
+    difficultyLevel?: TemplateDifficulty | null;
   }) => void;
   updateBudget: (budget: {
     estimatedBudgetCurrency?: string | null;

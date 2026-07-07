@@ -1,6 +1,6 @@
-export type TemplateVisibility = 'draft' | 'published' | 'featured' | 'hidden';
+import type { TemplateVisibility, TemplateDifficulty } from './enums';
 
-export type DifficultyLevel = 'easy' | 'moderate' | 'challenging';
+export type { TemplateVisibility, TemplateDifficulty };
 
 export interface Template {
   id: string;
@@ -13,11 +13,10 @@ export interface Template {
   recommendedGroupSizeMin: number | null;
   recommendedGroupSizeMax: number | null;
   bestSeason: string[] | null;
-  difficultyLevel: DifficultyLevel | null;
+  difficultyLevel: TemplateDifficulty | null;
   estimatedBudgetBreakdown: Record<string, number> | null;
   estimatedBudgetCurrency: string | null;
   cloneCount: number;
-  createdByUserId: string;
   createdAt: string;
   updatedAt: string;
 }
