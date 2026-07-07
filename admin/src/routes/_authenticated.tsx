@@ -1,6 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createFileRoute, Outlet, Navigate } from '@tanstack/react-router';
-import { authClient } from '@/lib/auth-client';
+import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 import { AdminNavbar } from '@/components/shared/admin-navbar';
 
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/_authenticated')({
 });
 
 function AuthenticatedLayout() {
-  const { data: session, isPending } = authClient.useSession();
+  const { isAuthenticated, isPending } = useAuth();
 
   if (isPending) {
     return (
@@ -19,7 +19,7 @@ function AuthenticatedLayout() {
     );
   }
 
-  if (!session || (session.user as { role?: string })?.role !== 'admin') {
+  if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
 

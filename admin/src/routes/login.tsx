@@ -1,7 +1,7 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createFileRoute, Navigate } from '@tanstack/react-router';
 import { AdminLoginForm } from '@/components/shared/admin-login-form';
-import { authClient } from '@/lib/auth-client';
+import { useAuth } from '@/hooks/use-auth';
 import { Loader2 } from 'lucide-react';
 
 export const Route = createFileRoute('/login')({
@@ -9,7 +9,7 @@ export const Route = createFileRoute('/login')({
 });
 
 function LoginPage() {
-  const { data: session, isPending } = authClient.useSession();
+  const { isAuthenticated, isPending } = useAuth();
 
   if (isPending) {
     return (
@@ -19,7 +19,7 @@ function LoginPage() {
     );
   }
 
-  if ((session?.user as { role?: string })?.role === 'admin') {
+  if (isAuthenticated) {
     return <Navigate to="/templates" />;
   }
 
