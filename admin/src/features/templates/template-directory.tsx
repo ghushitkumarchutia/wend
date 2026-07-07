@@ -11,15 +11,18 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useNavigate } from '@tanstack/react-router';
 
 export function TemplateDirectory() {
+  const navigate = useNavigate();
+
   const { data, isLoading, error } = useQuery<TemplateListResponse>({
     queryKey: ['templates'],
     queryFn: () => fetcher('/admin/templates'),
   });
 
   const handleEdit = (id: string) => {
-    console.log('Edit', id);
+    navigate({ to: '/templates/$templateId/edit', params: { templateId: id } });
   };
 
   const handleDuplicate = async (id: string) => {
