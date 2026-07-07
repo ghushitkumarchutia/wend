@@ -73,5 +73,15 @@ export const auth = betterAuth({
   advanced: {
     useSecureCookies: env.NODE_ENV === 'production',
   },
+  rateLimit: {
+    window: 60,
+    max: 100,
+    customRules: {
+      '/sign-in/email': {
+        window: 60,
+        max: 100,
+      },
+    },
+  },
   plugins: [jwt()],
 });

@@ -25,7 +25,7 @@ export const ALLOWED_DOCUMENT_TYPES = [
 ] as const;
 
 export const RATE_LIMITS = {
-  SIGN_IN: { limit: 5, windowMs: 15 * 60 * 1000 },
+  SIGN_IN: { limit: 50, windowMs: 15 * 60 * 1000 },
   SIGN_UP: { limit: 5, windowMs: 60 * 60 * 1000 },
   FORGOT_PASSWORD: { limit: 3, windowMs: 60 * 60 * 1000 },
   RESEND_VERIFICATION: { limit: 3, windowMs: 60 * 60 * 1000 },
