@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { fetcher } from '@/lib/api-client';
 import type { ApiResponse, TemplateStatsResponse } from '@/types/api';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Globe, Star, EyeOff } from 'lucide-react';
+import { FileText, Globe, Star, Copy } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 
 export function StatsBar() {
@@ -32,7 +32,7 @@ export function StatsBar() {
           {isLoading ? (
             <Skeleton className="h-7 w-[60px]" />
           ) : (
-            <div className="text-2xl font-bold">{stats?.total || 0}</div>
+            <div className="text-2xl font-bold">{stats?.total ?? 0}</div>
           )}
         </CardContent>
       </Card>
@@ -45,7 +45,7 @@ export function StatsBar() {
           {isLoading ? (
             <Skeleton className="h-7 w-[60px]" />
           ) : (
-            <div className="text-2xl font-bold">{stats?.published || 0}</div>
+            <div className="text-2xl font-bold">{stats?.published ?? 0}</div>
           )}
         </CardContent>
       </Card>
@@ -58,20 +58,20 @@ export function StatsBar() {
           {isLoading ? (
             <Skeleton className="h-7 w-[60px]" />
           ) : (
-            <div className="text-2xl font-bold">{stats?.featured || 0}</div>
+            <div className="text-2xl font-bold">{stats?.featured ?? 0}</div>
           )}
         </CardContent>
       </Card>
       <Card>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">Hidden</CardTitle>
-          <EyeOff className="h-4 w-4 text-muted-foreground" />
+          <CardTitle className="text-sm font-medium">Total Clones</CardTitle>
+          <Copy className="h-4 w-4 text-blue-600" />
         </CardHeader>
         <CardContent>
           {isLoading ? (
             <Skeleton className="h-7 w-[60px]" />
           ) : (
-            <div className="text-2xl font-bold">{stats?.hidden || 0}</div>
+            <div className="text-2xl font-bold">{stats?.totalClones ?? 0}</div>
           )}
         </CardContent>
       </Card>

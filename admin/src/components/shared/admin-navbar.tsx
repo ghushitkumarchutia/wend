@@ -22,7 +22,7 @@ export function AdminNavbar() {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-backdrop-filter:bg-white/60">
       <div className="flex h-16 items-center px-8">
         <div className="mr-8 hidden md:flex">
           <span className="font-bold tracking-tight text-xl">Wend Admin</span>

@@ -48,15 +48,14 @@ export function TemplateDirectory() {
 
   const duplicateMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetcher(`/admin/templates/${id}/duplicate`, {
+      return fetcher<{ data: Template }>(`/admin/templates/${id}/duplicate`, {
         method: 'POST',
       });
-      return res as { data?: { id: string }; error?: string };
     },
     onSuccess: (res) => {
-      if (res.error) throw new Error(res.error);
       toast.success('Template duplicated');
       queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['template-stats'] });
       if (res.data?.id) {
         navigate({ to: '/templates/$templateId/edit', params: { templateId: res.data.id } });
       }
@@ -68,15 +67,12 @@ export function TemplateDirectory() {
 
   const deleteMutation = useMutation({
     mutationFn: async (id: string) => {
-      const res = await fetcher(`/admin/templates/${id}`, {
-        method: 'DELETE',
-      });
-      return res as { error?: string };
+      await fetcher(`/admin/templates/${id}`, { method: 'DELETE' });
     },
-    onSuccess: (res) => {
-      if (res.error) throw new Error(res.error);
+    onSuccess: () => {
       toast.success('Template deleted');
       queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['template-stats'] });
       setDeleteDialog({ isOpen: false, id: '' });
     },
     onError: (err) => {
@@ -117,12 +113,14 @@ export function TemplateDirectory() {
           visibility={visibilityFilter}
           onVisibilityChange={setVisibilityFilter}
         />
-        <LoadingSkeleton columns={['Title', 'Destination', 'Visibility', 'Last Updated', 'Clones', 'Actions']} />
+        <LoadingSkeleton
+          columns={['Title', 'Destination', 'Visibility', 'Last Updated', 'Clones', 'Actions']}
+        />
       </div>
     );
   }
 
-  const rawTemplates = (data?.data as unknown as Template[]) || [];
+  const rawTemplates = data?.data ?? [];
 
   const templates = rawTemplates.filter((t) => {
     const matchesSearch = t.title.toLowerCase().includes(search.toLowerCase());

@@ -19,6 +19,7 @@ import {
 } from '@/components/ui/select';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { TemplateVisibility } from '@/types/enums';
 
 interface Props {
   templateId: string;
@@ -31,21 +32,17 @@ export function TemplateVisibilityActions({ templateId, currentVisibility, isOpe
   const queryClient = useQueryClient();
   const [visibility, setVisibility] = useState<string>(currentVisibility);
 
-
-
   const mutation = useMutation({
     mutationFn: async (newVisibility: string) => {
-      const res = await fetcher(`/admin/templates/${templateId}/visibility`, {
+      return fetcher(`/admin/templates/${templateId}/visibility`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ visibility: newVisibility }),
       });
-      return res as { error?: string };
     },
-    onSuccess: (res) => {
-      if (res.error) throw new Error(res.error);
+    onSuccess: () => {
       toast.success('Visibility updated');
       queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['template-stats'] });
       onClose();
     },
     onError: (err) => {
@@ -55,6 +52,13 @@ export function TemplateVisibilityActions({ templateId, currentVisibility, isOpe
 
   const handleSave = () => {
     mutation.mutate(visibility);
+  };
+
+  const visibilityLabels: Record<string, string> = {
+    draft: 'Draft (Private)',
+    published: 'Published (Public)',
+    featured: 'Featured (Highlighted)',
+    hidden: 'Hidden (Archived)',
   };
 
   return (
@@ -74,10 +78,11 @@ export function TemplateVisibilityActions({ templateId, currentVisibility, isOpe
                 <SelectValue placeholder="Select visibility" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="draft">Draft (Private)</SelectItem>
-                <SelectItem value="published">Published (Public)</SelectItem>
-                <SelectItem value="featured">Featured (Highlighted)</SelectItem>
-                <SelectItem value="hidden">Hidden (Archived)</SelectItem>
+                {TemplateVisibility.map((v) => (
+                  <SelectItem key={v} value={v}>
+                    {visibilityLabels[v] ?? v}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
