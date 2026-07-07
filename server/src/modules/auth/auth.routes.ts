@@ -5,6 +5,11 @@ import { authLimiter } from '../../middleware/rate-limit.js';
 
 export const authRouter = Router();
 
-authRouter.use(authLimiter);
+authRouter.use((req, res, next) => {
+  if (req.method === 'GET') {
+    return next();
+  }
+  return authLimiter(req, res, next);
+});
 
 authRouter.all('/*splat', toNodeHandler(auth));
