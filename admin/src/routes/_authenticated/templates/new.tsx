@@ -22,21 +22,35 @@ function NewTemplatePage() {
     title: '',
     destination: '',
     description: '',
+    categories: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    const categoriesArray = formData.categories
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    if (categoriesArray.length === 0) {
+      toast.error('At least one category is required');
+      return;
+    }
+
     setIsSubmitting(true);
-    
+
     try {
-      const res = (await fetcher('/admin/templates', {
+      const res = await fetcher<ApiResponse<Template>>('/admin/templates', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-      })) as ApiResponse<Template>;
-      
-      if (res.error) throw new Error(res.error);
-      
+        body: JSON.stringify({
+          title: formData.title,
+          destination: formData.destination,
+          description: formData.description,
+          categories: categoriesArray,
+        }),
+      });
+
       toast.success('Template created successfully');
       navigate({ to: '/templates/$templateId/edit', params: { templateId: res.data.id } });
     } catch (err) {
@@ -49,7 +63,7 @@ function NewTemplatePage() {
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Create New Template</h1>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>Initial Setup</CardTitle>
@@ -88,6 +102,20 @@ function NewTemplatePage() {
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="categories">Categories * (comma separated)</Label>
+              <Input
+                id="categories"
+                required
+                placeholder="e.g. Nature, Adventure, Cultural"
+                value={formData.categories}
+                onChange={(e) => setFormData({ ...formData, categories: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                At least one category is required. Separate multiple with commas.
+              </p>
             </div>
 
             <div className="flex justify-end space-x-2">

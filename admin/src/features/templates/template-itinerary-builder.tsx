@@ -18,16 +18,20 @@ export function TemplateItineraryBuilder({ templateId }: Props) {
     queryFn: () => fetcher(`/admin/templates/${templateId}`),
   });
 
+  const days = data?.data?.days ?? [];
+  const sortedDays = [...days].sort((a, b) => (a.order ?? a.dayNumber) - (b.order ?? b.dayNumber));
+
   const addDayMutation = useMutation({
     mutationFn: async () => {
-      return (await fetcher(`/admin/templates/${templateId}/days`, {
+      const nextDayNumber =
+        sortedDays.length > 0 ? Math.max(...sortedDays.map((d) => d.dayNumber)) + 1 : 1;
+
+      return fetcher(`/admin/templates/${templateId}/days`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({}),
-      })) as { error?: string };
+        body: JSON.stringify({ dayNumber: nextDayNumber }),
+      });
     },
-    onSuccess: (res) => {
-      if (res.error) throw new Error(res.error);
+    onSuccess: () => {
       toast.success('New day added');
       queryClient.invalidateQueries({ queryKey: ['template', templateId] });
     },
@@ -47,10 +51,6 @@ export function TemplateItineraryBuilder({ templateId }: Props) {
   if (error || !data?.data) {
     return <div className="text-destructive">Failed to load itinerary.</div>;
   }
-
-  const days = data.data.days || [];
-
-  const sortedDays = [...days].sort((a, b) => (a.order ?? a.dayNumber) - (b.order ?? b.dayNumber));
 
   return (
     <div className="space-y-6">

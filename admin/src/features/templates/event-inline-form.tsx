@@ -11,37 +11,41 @@ import { toast } from 'sonner';
 interface Props {
   templateId: string;
   dayId: string;
+  existingEventCount?: number;
   event?: TemplateEvent;
   onClose: () => void;
 }
 
-export function EventInlineForm({ templateId, dayId, event, onClose }: Props) {
+export function EventInlineForm({
+  templateId,
+  dayId,
+  existingEventCount = 0,
+  event,
+  onClose,
+}: Props) {
   const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
-    title: event?.title || '',
-    time: event?.time || '',
-    location: event?.location || '',
-    description: event?.description || '',
+    title: event?.title ?? '',
+    time: event?.time ?? '',
+    location: event?.location ?? '',
+    description: event?.description ?? '',
   });
 
   const mutation = useMutation({
-    mutationFn: async (data: Partial<TemplateEvent>) => {
+    mutationFn: async (data: Record<string, unknown>) => {
       if (event?.id) {
-        return (await fetcher(`/admin/templates/${templateId}/events/${event.id}`, {
+        return fetcher(`/admin/templates/${templateId}/events/${event.id}`, {
           method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
-        })) as { error?: string };
+        });
       } else {
-        return (await fetcher(`/admin/templates/${templateId}/days/${dayId}/events`, {
+        return fetcher(`/admin/templates/${templateId}/days/${dayId}/events`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data),
-        })) as { error?: string };
+        });
       }
     },
-    onSuccess: (res) => {
-      if (res.error) throw new Error(res.error);
+    onSuccess: () => {
       toast.success(event?.id ? 'Event updated' : 'Event added');
       queryClient.invalidateQueries({ queryKey: ['template', templateId] });
       onClose();
@@ -54,7 +58,23 @@ export function EventInlineForm({ templateId, dayId, event, onClose }: Props) {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.title.trim()) return toast.error('Title is required');
-    mutation.mutate(formData);
+
+    const payload: Record<string, unknown> = {
+      title: formData.title.trim(),
+    };
+
+    if (event?.id) {
+      payload.time = formData.time || null;
+      payload.location = formData.location || null;
+      payload.description = formData.description || null;
+    } else {
+      payload.order = existingEventCount;
+      if (formData.time) payload.time = formData.time;
+      if (formData.location) payload.location = formData.location;
+      if (formData.description) payload.description = formData.description;
+    }
+
+    mutation.mutate(payload);
   };
 
   return (

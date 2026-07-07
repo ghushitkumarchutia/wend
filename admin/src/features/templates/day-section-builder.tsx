@@ -89,6 +89,7 @@ export function DaySectionBuilder({ templateId, day }: Props) {
                   <EventInlineForm
                     templateId={templateId}
                     dayId={day.id}
+                    existingEventCount={day.events.length}
                     event={ev}
                     onClose={() => setEditingEventId(null)}
                   />
@@ -144,6 +145,7 @@ export function DaySectionBuilder({ templateId, day }: Props) {
           <EventInlineForm
             templateId={templateId}
             dayId={day.id}
+            existingEventCount={day.events.length}
             onClose={() => setIsAddingEvent(false)}
           />
         ) : (
