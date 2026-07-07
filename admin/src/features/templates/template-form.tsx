@@ -4,6 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { TemplateGeneralInfo } from './template-general-info';
 import { TemplateMetadata } from './template-metadata';
 import { TemplateBudgetBreakdown } from './template-budget-breakdown';
+import { TemplateItineraryBuilder } from './template-itinerary-builder';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Save } from 'lucide-react';
 import type { Template } from '@/types/models';
@@ -27,10 +28,11 @@ export function TemplateForm({ onSave, isSaving }: Props) {
       </div>
 
       <Tabs defaultValue="general" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="general">General Info</TabsTrigger>
           <TabsTrigger value="metadata">Metadata</TabsTrigger>
           <TabsTrigger value="budget">Budget Breakdown</TabsTrigger>
+          <TabsTrigger value="itinerary" disabled={!(data as Template).id}>Itinerary</TabsTrigger>
         </TabsList>
         
         <div className="mt-6">
@@ -47,6 +49,9 @@ export function TemplateForm({ onSave, isSaving }: Props) {
               </TabsContent>
               <TabsContent value="budget" className="m-0">
                 <TemplateBudgetBreakdown />
+              </TabsContent>
+              <TabsContent value="itinerary" className="m-0">
+                {(data as Template).id ? <TemplateItineraryBuilder templateId={(data as Template).id!} /> : null}
               </TabsContent>
             </CardContent>
           </Card>
