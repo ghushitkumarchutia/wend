@@ -14,6 +14,9 @@ import { render } from '@react-email/render';
 import type { Job } from 'bullmq';
 import React from 'react';
 
+import dotenv from 'dotenv';
+dotenv.config({ path: '../.env' });
+
 const resendApiKey = process.env.RESEND_API_KEY;
 if (!resendApiKey) {
   throw new Error('RESEND_API_KEY is required');
