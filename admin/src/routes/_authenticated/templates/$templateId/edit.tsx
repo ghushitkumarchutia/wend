@@ -32,18 +32,19 @@ function EditTemplatePage() {
 
   const mutation = useMutation({
     mutationFn: async (updateData: Partial<Template>) => {
-      const response = await fetcher(`/admin/templates/${templateId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(updateData),
-      });
-      return response as ApiResponse<TemplateDetailResponse>;
+      return fetcher<ApiResponse<TemplateDetailResponse>>(
+        `/admin/templates/${templateId}`,
+        {
+          method: 'PATCH',
+          body: JSON.stringify(updateData),
+        },
+      );
     },
     onSuccess: (res) => {
-      if (res.error) throw new Error(res.error);
       toast.success('Template saved successfully');
       queryClient.invalidateQueries({ queryKey: ['template', templateId] });
       queryClient.invalidateQueries({ queryKey: ['templates'] });
+      queryClient.invalidateQueries({ queryKey: ['template-stats'] });
       if (res.data) hydrate(res.data);
     },
     onError: (err) => {
