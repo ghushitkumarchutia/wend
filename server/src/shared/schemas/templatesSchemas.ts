@@ -6,13 +6,13 @@ export const createTemplateSchema = z.object({
   title: z.string().min(1).max(MAX_TRIP_NAME_LENGTH),
   destination: z.string().min(1),
   description: z.string().min(1).max(2000),
-  coverImageUrl: z.string().optional(),
+  coverImageUrl: z.string().nullish(),
   visibility: z.enum(TemplateVisibility).default('draft'),
-  categories: z.array(z.string().min(1)).min(1),
-  recommendedGroupSizeMin: z.number().int().positive().optional(),
-  recommendedGroupSizeMax: z.number().int().positive().optional(),
-  bestSeason: z.array(z.enum(TemplateSeason)).optional(),
-  difficultyLevel: z.enum(TemplateDifficulty).optional(),
+  categories: z.array(z.string().min(1)).default([]),
+  recommendedGroupSizeMin: z.number().int().positive().nullish(),
+  recommendedGroupSizeMax: z.number().int().positive().nullish(),
+  bestSeason: z.array(z.enum(TemplateSeason)).nullish(),
+  difficultyLevel: z.enum(TemplateDifficulty).nullish(),
   estimatedBudgetBreakdown: z
     .object({
       accommodation: z.number().nonnegative(),
@@ -21,8 +21,8 @@ export const createTemplateSchema = z.object({
       activities: z.number().nonnegative(),
       miscellaneous: z.number().nonnegative(),
     })
-    .optional(),
-  estimatedBudgetCurrency: z.enum(CURRENCIES).optional(),
+    .nullish(),
+  estimatedBudgetCurrency: z.enum(CURRENCIES).nullish(),
 });
 
 export const updateTemplateSchema = createTemplateSchema
