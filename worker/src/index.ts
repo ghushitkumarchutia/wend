@@ -1,3 +1,6 @@
+import dotenv from 'dotenv';
+dotenv.config({ path: '../.env' });
+
 import { Worker } from 'bullmq';
 import { workerRedisUrl } from './redis.js';
 import { processEmailJob } from './processors/email.js';
