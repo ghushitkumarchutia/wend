@@ -32,13 +32,10 @@ function EditTemplatePage() {
 
   const mutation = useMutation({
     mutationFn: async (updateData: Partial<Template>) => {
-      return fetcher<ApiResponse<TemplateDetailResponse>>(
-        `/admin/templates/${templateId}`,
-        {
-          method: 'PATCH',
-          body: JSON.stringify(updateData),
-        },
-      );
+      return fetcher<ApiResponse<TemplateDetailResponse>>(`/admin/templates/${templateId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(updateData),
+      });
     },
     onSuccess: (res) => {
       toast.success('Template saved successfully');
@@ -53,7 +50,25 @@ function EditTemplatePage() {
   });
 
   const handleSave = (updateData: Partial<Template>) => {
-    mutation.mutate(updateData);
+    if (!data?.data) return;
+
+    const original = data.data as unknown as Record<string, unknown>;
+    const current = updateData as Record<string, unknown>;
+    const diff: Partial<Template> = {};
+
+    for (const key of Object.keys(current)) {
+      if (JSON.stringify(current[key]) !== JSON.stringify(original[key])) {
+        // @ts-expect-error dynamic assignment
+        diff[key] = current[key];
+      }
+    }
+
+    if (Object.keys(diff).length === 0) {
+      toast.info('No changes to save');
+      return;
+    }
+
+    mutation.mutate(diff);
   };
 
   if (isLoading) {
