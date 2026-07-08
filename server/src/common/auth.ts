@@ -18,7 +18,7 @@ export const auth = betterAuth({
     },
   }),
   secret: env.BETTER_AUTH_SECRET,
-  baseURL: env.WEB_ORIGIN,
+  baseURL: process.env.BETTER_AUTH_URL || `http://localhost:${env.PORT}`,
   basePath: '/api/auth',
   trustedOrigins: [env.WEB_ORIGIN, env.ADMIN_ORIGIN],
   emailAndPassword: {
@@ -27,20 +27,24 @@ export const auth = betterAuth({
     minPasswordLength: 10,
     maxPasswordLength: 128,
     sendResetPassword: async ({ user: resetUser, url }) => {
+      const token = new URL(url).searchParams.get('token');
+      const resetUrl = `${env.WEB_ORIGIN}/reset-password?token=${token}`;
       await emailQueue.add('password-reset', {
         to: resetUser.email,
         userName: resetUser.name,
-        url,
+        url: resetUrl,
         type: 'password-reset',
       });
     },
   },
   emailVerification: {
     sendVerificationEmail: async ({ user: verifyUser, url }) => {
+      const token = new URL(url).searchParams.get('token');
+      const verificationUrl = `${env.WEB_ORIGIN}/verify-email?token=${token}`;
       await emailQueue.add('email-verification', {
         to: verifyUser.email,
         userName: verifyUser.name,
-        url,
+        url: verificationUrl,
         type: 'email-verification',
       });
     },
