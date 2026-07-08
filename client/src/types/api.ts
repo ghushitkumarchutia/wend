@@ -10,6 +10,9 @@ import type {
   ItineraryEvent,
   EventCategory,
   EventStatus,
+  Expense,
+  ExpenseCategory,
+  SplitMethod,
 } from './models';
 
 export interface ApiErrorResponse {
@@ -192,4 +195,83 @@ export type ItineraryListResponse = ApiSuccessResponse<{
 
 export type EventDetailResponse = ApiSuccessResponse<{
   event: ItineraryEvent;
+}>;
+
+export interface LogExpenseRequest {
+  description: string;
+  amount: number;
+  category: ExpenseCategory;
+  paidByUserId: string;
+  splitMethod: SplitMethod;
+  incurredAt: string;
+  receiptUrl?: string;
+  participants: {
+    userId: string;
+    shareAmount: number;
+  }[];
+}
+
+export interface UpdateExpenseRequest {
+  description?: string;
+  amount?: number;
+  category?: ExpenseCategory;
+  paidByUserId?: string;
+  splitMethod?: SplitMethod;
+  incurredAt?: string;
+  receiptUrl?: string | null;
+  participants?: {
+    userId: string;
+    shareAmount: number;
+  }[];
+  version: number;
+}
+
+export interface SettleUpRequest {
+  fromUserId: string;
+  toUserId: string;
+  amount: number;
+}
+
+export type ExpensesListResponse = ApiSuccessResponse<{
+  expenses: Expense[];
+}>;
+
+export type ExpenseDetailResponse = ApiSuccessResponse<{
+  expense: Expense;
+}>;
+
+export interface MemberBalance {
+  userId: string;
+  balance: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}
+
+export type BalancesResponse = ApiSuccessResponse<{
+  balances: MemberBalance[];
+  currency: string;
+}>;
+
+export interface SettlementSuggestion {
+  fromUserId: string;
+  toUserId: string;
+  amount: string;
+  fromUser: { id: string; name: string | null; email: string; image: string | null };
+  toUser: { id: string; name: string | null; email: string; image: string | null };
+}
+
+export type SettlementSuggestionsResponse = ApiSuccessResponse<{
+  suggestions: SettlementSuggestion[];
+  currency: string;
+}>;
+
+export type BudgetOverviewResponse = ApiSuccessResponse<{
+  estimatedBudget: string | null;
+  totalSpent: string;
+  currency: string;
+  byCategory: Record<string, string>;
 }>;

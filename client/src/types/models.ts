@@ -128,3 +128,68 @@ export interface ItineraryEvent {
   updatedAt: string;
   flightDetails: ItineraryFlightDetails | null;
 }
+
+export interface ExpenseParticipant {
+  id: string;
+  expenseId: string;
+  userId: string;
+  shareAmount: string;
+  user?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}
+
+export interface Expense {
+  id: string;
+  tripId: string;
+  description: string;
+  amount: string;
+  currency: string;
+  category: ExpenseCategory;
+  paidByUserId: string;
+  splitMethod: SplitMethod;
+  receiptUrl: string | null;
+  incurredAt: string;
+  version: number;
+  archivedAt: string | null;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  paidBy?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  createdBy?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  participants?: ExpenseParticipant[];
+}
+
+export interface Settlement {
+  id: string;
+  tripId: string;
+  fromUserId: string;
+  toUserId: string;
+  amount: string;
+  createdAt: string;
+  fromUser?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  toUser?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}

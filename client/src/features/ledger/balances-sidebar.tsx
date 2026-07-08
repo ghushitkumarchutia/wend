@@ -1,0 +1,97 @@
+import { useQuery } from '@tanstack/react-query';
+import { ledgerApi } from '@/lib/api-client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { formatCurrency } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
+import { SettlementSuggestions } from './settlement-suggestions';
+import type { MemberBalance } from '@/types/api';
+
+interface BalancesSidebarProps {
+  tripId: string;
+  isOrganizerOrMember: boolean;
+}
+
+export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebarProps) {
+  const {
+    data: balancesData,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ['balances', tripId],
+    queryFn: () => ledgerApi.getBalances(tripId),
+  });
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Balances</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error || !balancesData) {
+    return (
+      <Card>
+        <CardContent className="p-6 text-sm text-destructive">Failed to load balances.</CardContent>
+      </Card>
+    );
+  }
+
+  const { balances, currency } = balancesData.data;
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Balances</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {balances.length === 0 ? (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No balances yet. Log an expense to get started.
+            </p>
+          ) : (
+            <div className="space-y-4">
+              {balances.map((mb: MemberBalance) => {
+                const balanceVal = parseFloat(mb.balance);
+                const isPositive = balanceVal > 0;
+                const isNegative = balanceVal < 0;
+
+                return (
+                  <div key={mb.userId} className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={mb.user.image || ''} />
+                        <AvatarFallback>
+                          {mb.user.name?.charAt(0) || mb.user.email.charAt(0)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div className="text-sm font-medium leading-none">
+                        {mb.user.name || mb.user.email}
+                      </div>
+                    </div>
+                    <div
+                      className={`text-sm font-semibold text-right ${isPositive ? 'text-green-500' : isNegative ? 'text-destructive' : 'text-muted-foreground'}`}
+                    >
+                      {isPositive ? '+' : ''}
+                      {formatCurrency(balanceVal, currency)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      <SettlementSuggestions tripId={tripId} isOrganizerOrMember={isOrganizerOrMember} />
+    </div>
+  );
+}

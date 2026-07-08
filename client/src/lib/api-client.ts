@@ -49,6 +49,14 @@ import type {
   ReorderEventsRequest,
   ItineraryListResponse,
   EventDetailResponse,
+  LogExpenseRequest,
+  UpdateExpenseRequest,
+  SettleUpRequest,
+  ExpensesListResponse,
+  ExpenseDetailResponse,
+  BalancesResponse,
+  SettlementSuggestionsResponse,
+  BudgetOverviewResponse,
 } from '@/types/api';
 
 export const dashboardApi = {
@@ -224,4 +232,44 @@ export const invitesApi = {
         method: 'PATCH',
         body: JSON.stringify(data),
       }),
+  };
+
+  export const ledgerApi = {
+    getExpenses: (tripId: string) =>
+      fetcher<ExpensesListResponse>(`/v1/trips/${tripId}/expenses`),
+      
+    getExpense: (tripId: string, expenseId: string) =>
+      fetcher<ExpenseDetailResponse>(`/v1/trips/${tripId}/expenses/${expenseId}`),
+
+    logExpense: (tripId: string, data: LogExpenseRequest) =>
+      fetcher<ExpenseDetailResponse>(`/v1/trips/${tripId}/expenses`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    updateExpense: (tripId: string, expenseId: string, data: UpdateExpenseRequest) =>
+      fetcher<ExpenseDetailResponse>(`/v1/trips/${tripId}/expenses/${expenseId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    deleteExpense: (tripId: string, expenseId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/expenses/${expenseId}`, {
+        method: 'DELETE',
+      }),
+
+    getBalances: (tripId: string) =>
+      fetcher<BalancesResponse>(`/v1/trips/${tripId}/balances`),
+
+    getSettlementSuggestions: (tripId: string) =>
+      fetcher<SettlementSuggestionsResponse>(`/v1/trips/${tripId}/settlements/suggestions`),
+
+    settleUp: (tripId: string, data: SettleUpRequest) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/settlements`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    getBudgetOverview: (tripId: string) =>
+      fetcher<BudgetOverviewResponse>(`/v1/trips/${tripId}/budget-overview`),
   };
