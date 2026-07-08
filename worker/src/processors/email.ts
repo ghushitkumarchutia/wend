@@ -1,4 +1,5 @@
 import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 import {
   Html,
   Head,
@@ -17,15 +18,36 @@ import React from 'react';
 import dotenv from 'dotenv';
 dotenv.config({ path: '../.env' });
 
-const resendApiKey = process.env.RESEND_API_KEY;
-if (!resendApiKey) {
-  throw new Error('RESEND_API_KEY is required');
+const smtpHost = process.env.SMTP_HOST;
+const smtpPort = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
+const smtpUser = process.env.SMTP_USER;
+const smtpPass = process.env.SMTP_PASS;
+const smtpSecure = process.env.SMTP_SECURE === 'true';
+
+let transporter: any = null;
+let resend: Resend | null = null;
+
+if (smtpHost) {
+  console.log(`[Email Worker] Initializing SMTP Transporter: host=${smtpHost}, port=${smtpPort}`);
+  transporter = nodemailer.createTransport({
+    host: smtpHost,
+    port: smtpPort,
+    secure: smtpSecure,
+    auth: smtpUser && smtpPass ? {
+      user: smtpUser,
+      pass: smtpPass,
+    } : undefined,
+  });
+} else {
+  const resendApiKey = process.env.RESEND_API_KEY;
+  if (!resendApiKey) {
+    throw new Error('Either SMTP_HOST or RESEND_API_KEY must be provided in .env');
+  }
+  console.log('[Email Worker] Initializing Resend Transporter');
+  resend = new Resend(resendApiKey);
 }
 
-const resend = new Resend(resendApiKey);
-const fromEmail = process.env.NODE_ENV === 'development'
-  ? 'onboarding@resend.dev'
-  : (process.env.FROM_EMAIL ?? 'Wend <noreply@wend.app>');
+const fromEmail = process.env.FROM_EMAIL ?? (smtpHost ? 'noreply@wend.app' : 'onboarding@resend.dev');
 
 interface EmailJobData {
   to: string;
@@ -290,22 +312,37 @@ export async function processEmailJob(job: Job<EmailJobData>): Promise<void> {
     console.log(`[Email Worker] Action URL: ${data.url}`);
   }
 
+  const to = data.to;
+  const subject = data.subject ?? subjectMap[data.type] ?? 'Notification from Wend';
+
   try {
-    const { data: resData, error: resError } = await resend.emails.send({
-      from: fromEmail,
-      to: data.to,
-      subject: data.subject ?? subjectMap[data.type] ?? 'Notification from Wend',
-      html,
-    });
-    
-    if (resError) {
-      console.error(`[Email Worker] Resend API Error for job ${job.id}:`, resError);
-      throw new Error(`Resend API Error: ${resError.message} (${resError.name})`);
+    if (transporter) {
+      console.log(`[Email Worker] Sending via SMTP...`);
+      const info = await transporter.sendMail({
+        from: fromEmail,
+        to,
+        subject,
+        html,
+      });
+      console.log(`[Email Worker] SMTP Success for job ${job.id}:`, info.messageId);
+    } else if (resend) {
+      console.log(`[Email Worker] Sending via Resend...`);
+      const { data: resData, error: resError } = await resend.emails.send({
+        from: fromEmail,
+        to,
+        subject,
+        html,
+      });
+      
+      if (resError) {
+        console.error(`[Email Worker] Resend API Error for job ${job.id}:`, resError);
+        throw new Error(`Resend API Error: ${resError.message} (${resError.name})`);
+      }
+      
+      console.log(`[Email Worker] Resend success for job ${job.id}:`, resData);
     }
-    
-    console.log(`[Email Worker] Resend success for job ${job.id}:`, resData);
   } catch (err) {
-    console.error(`[Email Worker] Error sending email via Resend for job ${job.id}:`, err);
+    console.error(`[Email Worker] Error sending email for job ${job.id}:`, err);
     throw err;
   }
 }
