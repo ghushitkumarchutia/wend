@@ -23,7 +23,9 @@ if (!resendApiKey) {
 }
 
 const resend = new Resend(resendApiKey);
-const fromEmail = process.env.FROM_EMAIL ?? 'Wend <noreply@wend.app>';
+const fromEmail = process.env.NODE_ENV === 'development'
+  ? 'onboarding@resend.dev'
+  : (process.env.FROM_EMAIL ?? 'Wend <noreply@wend.app>');
 
 interface EmailJobData {
   to: string;
@@ -289,13 +291,19 @@ export async function processEmailJob(job: Job<EmailJobData>): Promise<void> {
   }
 
   try {
-    const res = await resend.emails.send({
+    const { data: resData, error: resError } = await resend.emails.send({
       from: fromEmail,
       to: data.to,
       subject: data.subject ?? subjectMap[data.type] ?? 'Notification from Wend',
       html,
     });
-    console.log(`[Email Worker] Resend response for job ${job.id}:`, res);
+    
+    if (resError) {
+      console.error(`[Email Worker] Resend API Error for job ${job.id}:`, resError);
+      throw new Error(`Resend API Error: ${resError.message} (${resError.name})`);
+    }
+    
+    console.log(`[Email Worker] Resend success for job ${job.id}:`, resData);
   } catch (err) {
     console.error(`[Email Worker] Error sending email via Resend for job ${job.id}:`, err);
     throw err;
