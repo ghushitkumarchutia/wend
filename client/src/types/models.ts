@@ -1,6 +1,33 @@
-import type { TemplateVisibility, TemplateDifficulty } from './enums';
+import type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType } from './enums';
 
-export type { TemplateVisibility, TemplateDifficulty };
+export type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType };
+
+export interface TripWithRole {
+  id: string;
+  name: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  description: string | null;
+  baseCurrency: string;
+  estimatedBudget: string | null;
+  coverImageUrl: string | null;
+  archivedAt: string | null;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  role: TripMemberRole;
+  memberCount: number;
+  status: 'upcoming' | 'ongoing' | 'completed' | 'archived';
+}
+
+export interface DashboardStats {
+  upcomingTrips: number;
+  ongoingTrips: number;
+  completedTrips: number;
+  pendingInvites: number;
+}
+
 
 export interface Template {
   id: string;
