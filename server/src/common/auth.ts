@@ -18,7 +18,7 @@ export const auth = betterAuth({
     },
   }),
   secret: env.BETTER_AUTH_SECRET,
-  baseURL: `http://localhost:${env.PORT}`,
+  baseURL: env.WEB_ORIGIN,
   basePath: '/api/auth',
   trustedOrigins: [env.WEB_ORIGIN, env.ADMIN_ORIGIN],
   emailAndPassword: {

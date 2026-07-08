@@ -283,10 +283,21 @@ export async function processEmailJob(job: Job<EmailJobData>): Promise<void> {
   const element = renderEmailTemplate(data);
   const html = await render(element);
 
-  await resend.emails.send({
-    from: fromEmail,
-    to: data.to,
-    subject: data.subject ?? subjectMap[data.type] ?? 'Notification from Wend',
-    html,
-  });
+  console.log(`[Email Worker] Processing job ${job.id}: to=${data.to}, type=${data.type}`);
+  if (data.url) {
+    console.log(`[Email Worker] Action URL: ${data.url}`);
+  }
+
+  try {
+    const res = await resend.emails.send({
+      from: fromEmail,
+      to: data.to,
+      subject: data.subject ?? subjectMap[data.type] ?? 'Notification from Wend',
+      html,
+    });
+    console.log(`[Email Worker] Resend response for job ${job.id}:`, res);
+  } catch (err) {
+    console.error(`[Email Worker] Error sending email via Resend for job ${job.id}:`, err);
+    throw err;
+  }
 }
