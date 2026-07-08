@@ -4,7 +4,14 @@ import { useRouter, Link } from '@tanstack/react-router';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { GoogleSignInButton } from './google-sign-in-button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
@@ -19,23 +26,33 @@ export function SignUpForm() {
 
   const handleSubmit = async (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
+    console.log('[SignUpForm] Submit triggered!');
+    console.log('[SignUpForm] Payload:', { email, name, passwordLength: password.length });
+    
     setLoading(true);
     setError(null);
 
-    await signUp.email(
-      { email, password, name },
-      {
-        onSuccess: () => {
-          setSuccess(true);
-        },
-        onError: (ctx) => {
-          setError(ctx.error.message);
-          setLoading(false);
-        },
+    try {
+      console.log('[SignUpForm] Calling signUp.email...');
+      const response = await signUp.email({ email, password, name });
+      console.log('[SignUpForm] signUp.email response:', response);
+      
+      const { error: authError } = response;
+
+      if (authError) {
+        console.error('[SignUpForm] Auth Error:', authError);
+        setError(authError.message || 'An error occurred during sign up.');
+        setLoading(false);
+      } else {
+        console.log('[SignUpForm] Success!');
+        setSuccess(true);
       }
-    );
-
-
+    } catch (err) {
+      console.error('[SignUpForm] Caught Exception:', err);
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      setError(errorMessage);
+      setLoading(false);
+    }
   };
 
   if (success) {
@@ -51,7 +68,11 @@ export function SignUpForm() {
           <p className="text-sm text-muted-foreground mb-4">
             Please click the link in the email to verify your account before signing in.
           </p>
-          <Button variant="outline" className="w-full" onClick={() => router.navigate({ to: '/sign-in' })}>
+          <Button
+            variant="outline"
+            className="w-full"
+            onClick={() => router.navigate({ to: '/sign-in' })}
+          >
             Back to Sign In
           </Button>
         </CardContent>
@@ -103,9 +124,13 @@ export function SignUpForm() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <Button type="submit" className="w-full" disabled={loading} onClick={handleSubmit}>
+          <button
+            type="submit"
+            className="w-full inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 text-sm font-medium transition-all outline-none focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-50"
+            disabled={loading}
+          >
             {loading ? 'Creating account...' : 'Create account'}
-          </Button>
+          </button>
           <div className="relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t after:border-border">
             <span className="relative z-10 bg-background px-2 text-muted-foreground">Or</span>
           </div>

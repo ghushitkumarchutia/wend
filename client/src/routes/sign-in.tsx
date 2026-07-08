@@ -1,9 +1,8 @@
-/* eslint-disable react-refresh/only-export-components */
 import { createFileRoute } from '@tanstack/react-router';
 import { SignInForm } from '@/features/auth/sign-in-form';
 import { useAuth } from '@/hooks/use-auth';
 import { useRouter } from '@tanstack/react-router';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 export const Route = createFileRoute('/sign-in')({
   component: SignInRoute,
@@ -12,6 +11,11 @@ export const Route = createFileRoute('/sign-in')({
 function SignInRoute() {
   const { user, isPending } = useAuth();
   const router = useRouter();
+  const [initialLoadComplete, setInitialLoadComplete] = useState(!isPending);
+
+  if (!isPending && !initialLoadComplete) {
+    setInitialLoadComplete(true);
+  }
 
   useEffect(() => {
     if (!isPending && user) {
@@ -19,7 +23,7 @@ function SignInRoute() {
     }
   }, [user, isPending, router]);
 
-  if (isPending || user) {
+  if (isPending && !initialLoadComplete) {
     return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
   }
 

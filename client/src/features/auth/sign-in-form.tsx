@@ -27,18 +27,20 @@ export function SignInForm() {
     setLoading(true);
     setError(null);
 
-    await signIn.email(
-      { email, password },
-      {
-        onSuccess: () => {
-          router.navigate({ to: '/dashboard' });
-        },
-        onError: (ctx) => {
-          setError(ctx.error.message);
-          setLoading(false);
-        },
-      },
-    );
+    try {
+      const { error: authError } = await signIn.email({ email, password });
+      
+      if (authError) {
+        setError(authError.message || 'Invalid email or password.');
+        setLoading(false);
+      } else {
+        router.navigate({ to: '/dashboard' });
+      }
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An unexpected error occurred.';
+      setError(errorMessage);
+      setLoading(false);
+    }
   };
 
   return (
