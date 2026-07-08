@@ -1,6 +1,28 @@
-import type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType, DocumentCategory, DocumentVisibility } from './enums';
+import type {
+  TemplateVisibility,
+  TemplateDifficulty,
+  TripMemberRole,
+  EventCategory,
+  EventStatus,
+  SplitMethod,
+  ExpenseCategory,
+  NotificationType,
+  DocumentCategory,
+  DocumentVisibility,
+} from './enums';
 
-export type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType, DocumentCategory, DocumentVisibility };
+export type {
+  TemplateVisibility,
+  TemplateDifficulty,
+  TripMemberRole,
+  EventCategory,
+  EventStatus,
+  SplitMethod,
+  ExpenseCategory,
+  NotificationType,
+  DocumentCategory,
+  DocumentVisibility,
+};
 
 export interface TripWithRole {
   id: string;
@@ -27,7 +49,6 @@ export interface DashboardStats {
   completedTrips: number;
   pendingInvites: number;
 }
-
 
 export interface Template {
   id: string;
@@ -280,4 +301,26 @@ export interface ActivityEntry {
     email: string;
     image: string | null;
   };
+}
+
+export interface AppNotification {
+  id: string;
+  userId: string;
+  type: string;
+  tripId: string | null;
+  tripName: string | null;
+  referenceId: string | null;
+  referenceType: string | null;
+  actorName: string | null;
+  status: 'unread' | 'read' | 'archived';
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+}
+
+export interface NotificationPreference {
+  id: string;
+  userId: string;
+  type: string;
+  inApp: boolean;
+  email: boolean;
 }

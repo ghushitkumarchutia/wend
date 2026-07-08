@@ -2,6 +2,7 @@
 import { createFileRoute, Outlet, useRouter } from '@tanstack/react-router';
 import { TopNavbar } from '@/components/shared/top-navbar';
 import { useAuth } from '@/hooks/use-auth';
+import { SocketProvider } from '@/components/providers/socket-provider';
 import { useEffect } from 'react';
 
 export const Route = createFileRoute('/_authenticated')({
@@ -27,11 +28,13 @@ function AuthenticatedLayout() {
   }
 
   return (
-    <div className="flex min-h-screen flex-col bg-background">
-      <TopNavbar />
-      <main className="flex-1">
-        <Outlet />
-      </main>
-    </div>
+    <SocketProvider>
+      <div className="flex min-h-screen flex-col bg-background">
+        <TopNavbar />
+        <main className="flex-1">
+          <Outlet />
+        </main>
+      </div>
+    </SocketProvider>
   );
 }

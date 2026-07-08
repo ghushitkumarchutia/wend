@@ -19,6 +19,7 @@ import type {
   ChatMessage,
   Poll,
   ActivityEntry,
+  AppNotification,
 } from './models';
 
 export interface ApiErrorResponse {
@@ -342,3 +343,12 @@ export interface CloneTemplateRequest {
 }
 
 export type CloneTemplateResponse = ApiSuccessResponse<{ tripId: string }>;
+
+export type NotificationListResponse = ApiSuccessResponse<{
+  notifications: AppNotification[];
+  nextCursor: string | null;
+}>;
+
+export type UnreadCountResponse = ApiSuccessResponse<{
+  count: number;
+}>;

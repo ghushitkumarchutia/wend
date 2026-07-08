@@ -3,7 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { tripApi } from '@/lib/api-client';
 import { WorkspaceHeader } from '@/features/trips/workspace-header';
 import { WorkspaceTabs } from '@/features/trips/workspace-tabs';
-import { SocketProvider } from '@/components/providers/socket-provider';
+import { useSocket } from '@/components/providers/socket-provider';
+import { useEffect } from 'react';
 import { CommunicationPanel } from '@/features/communication/communication-panel';
 
 export const Route = createLazyFileRoute('/_authenticated/trips/$tripId')({
@@ -18,6 +19,18 @@ function TripWorkspaceLayout() {
     queryFn: () => tripApi.getTrip(tripId),
   });
 
+  const { socket } = useSocket();
+
+  useEffect(() => {
+    if (socket && tripId) {
+      socket.emit('trip:join', tripId);
+      
+      return () => {
+        // Optional: emit trip:leave if backend requires it, but joining a new trip is fine
+      };
+    }
+  }, [socket, tripId]);
+
   if (isLoading) {
     return <div className="p-8 text-center text-muted-foreground">Loading workspace...</div>;
   }
@@ -29,7 +42,7 @@ function TripWorkspaceLayout() {
   const trip = data.data.trip;
 
   return (
-    <SocketProvider tripId={trip.id}>
+    <>
       <div className="flex h-[calc(100vh-4rem)]">
         <div className="flex-1 flex flex-col overflow-y-auto">
           <WorkspaceHeader trip={trip} />
@@ -45,6 +58,6 @@ function TripWorkspaceLayout() {
           <CommunicationPanel tripId={trip.id} />
         </div>
       </div>
-    </SocketProvider>
+    </>
   );
 }

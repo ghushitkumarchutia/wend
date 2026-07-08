@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { LogOut, Settings, User } from 'lucide-react';
 
 import { MobileNavDrawer } from './mobile-nav-drawer';
+import { NotificationBell } from '@/features/notifications/notification-bell';
 
 export function TopNavbar() {
   const { user, signOut } = useAuth();
@@ -39,6 +40,7 @@ export function TopNavbar() {
           </nav>
         </div>
         <div className="flex items-center gap-4">
+          <NotificationBell />
           <DropdownMenu>
             <DropdownMenuTrigger className={buttonVariants({ variant: "ghost", className: "relative h-8 w-8 rounded-full" })}>
               <Avatar className="h-8 w-8">

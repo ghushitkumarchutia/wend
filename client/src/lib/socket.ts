@@ -2,7 +2,7 @@ import { io, Socket } from 'socket.io-client';
 
 let socketInstance: Socket | null = null;
 
-export const initSocket = (token: string, tripId: string): Socket => {
+export const initSocket = (token: string): Socket => {
   if (socketInstance) {
     socketInstance.disconnect();
   }
@@ -20,9 +20,7 @@ export const initSocket = (token: string, tripId: string): Socket => {
 
   socketInstance.connect();
 
-  socketInstance.on('connect', () => {
-    socketInstance?.emit('trip:join', tripId);
-  });
+  socketInstance.on('connect', () => {});
 
   return socketInstance;
 };

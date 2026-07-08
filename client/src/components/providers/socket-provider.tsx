@@ -15,11 +15,10 @@ const SocketContext = createContext<SocketContextType>({
 export const useSocket = () => useContext(SocketContext);
 
 interface SocketProviderProps {
-  tripId: string;
   children: React.ReactNode;
 }
 
-export function SocketProvider({ tripId, children }: SocketProviderProps) {
+export function SocketProvider({ children }: SocketProviderProps) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
@@ -42,7 +41,7 @@ export function SocketProvider({ tripId, children }: SocketProviderProps) {
 
         if (!mounted) return;
 
-        const s = initSocket(token, tripId);
+        const s = initSocket(token);
 
         s.on('connect', () => {
           setIsConnected(true);
@@ -64,7 +63,7 @@ export function SocketProvider({ tripId, children }: SocketProviderProps) {
       mounted = false;
       disconnectSocket();
     };
-  }, [tripId]);
+  }, []);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>{children}</SocketContext.Provider>

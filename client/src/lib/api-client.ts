@@ -72,6 +72,8 @@ import type {
   TemplateDetailResponse,
   CloneTemplateRequest,
   CloneTemplateResponse,
+  NotificationListResponse,
+  UnreadCountResponse,
 } from '@/types/api';
 
 export const dashboardApi = {
@@ -381,6 +383,44 @@ export const exploreApi = {
   cloneTemplate: (templateId: string, data: CloneTemplateRequest) =>
     fetcher<CloneTemplateResponse>(`/v1/templates/${templateId}/clone`, {
       method: 'POST',
+      body: JSON.stringify(data),
+    }),
+};
+
+export const notificationsApi = {
+  getNotifications: (cursor?: string, limit = 20) => {
+    const params = new URLSearchParams({ limit: limit.toString() });
+    if (cursor) params.append('cursor', cursor);
+    return fetcher<NotificationListResponse>(`/v1/notifications?${params.toString()}`);
+  },
+
+  getUnreadCount: () => fetcher<UnreadCountResponse>('/v1/notifications/unread-count'),
+
+  markAsRead: (notificationId: string) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/notifications/${notificationId}/read`, {
+      method: 'PATCH',
+    }),
+
+  markAllAsRead: () =>
+    fetcher<ApiSuccessResponse<void>>('/v1/notifications/mark-all-read', {
+      method: 'POST',
+    }),
+
+  archive: (notificationId: string) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/notifications/${notificationId}/archive`, {
+      method: 'PATCH',
+    }),
+
+  archiveAllRead: () =>
+    fetcher<ApiSuccessResponse<void>>('/v1/notifications/archive-all-read', {
+      method: 'POST',
+    }),
+
+  getPreferences: () => fetcher<NotificationPreferencesResponse>('/v1/notifications/preferences'),
+
+  updatePreferences: (data: Record<string, unknown>) =>
+    fetcher<NotificationPreferencesResponse>('/v1/notifications/preferences', {
+      method: 'PUT',
       body: JSON.stringify(data),
     }),
 };
