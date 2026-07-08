@@ -44,6 +44,11 @@ import type {
   MembersListResponse,
   PendingInvitesListResponse,
   TripDetailResponse,
+  CreateEventRequest,
+  UpdateEventRequest,
+  ReorderEventsRequest,
+  ItineraryListResponse,
+  EventDetailResponse,
 } from '@/types/api';
 
 export const dashboardApi = {
@@ -190,5 +195,33 @@ export const invitesApi = {
     resendInvite: (tripId: string, inviteId: string) =>
       fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/invites/${inviteId}/resend`, {
         method: 'POST',
+      }),
+  };
+
+  export const itineraryApi = {
+    getEvents: (tripId: string) =>
+      fetcher<ItineraryListResponse>(`/v1/trips/${tripId}/itinerary`),
+
+    createEvent: (tripId: string, data: CreateEventRequest) =>
+      fetcher<EventDetailResponse>(`/v1/trips/${tripId}/itinerary`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+
+    updateEvent: (tripId: string, eventId: string, data: UpdateEventRequest) =>
+      fetcher<EventDetailResponse>(`/v1/trips/${tripId}/itinerary/${eventId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+
+    deleteEvent: (tripId: string, eventId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/itinerary/${eventId}`, {
+        method: 'DELETE',
+      }),
+
+    reorderEvents: (tripId: string, data: ReorderEventsRequest) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/itinerary/reorder`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
       }),
   };

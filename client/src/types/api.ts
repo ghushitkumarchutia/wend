@@ -7,6 +7,9 @@ import type {
   TripMember,
   TripInvite,
   TripMemberRole,
+  ItineraryEvent,
+  EventCategory,
+  EventStatus,
 } from './models';
 
 export interface ApiErrorResponse {
@@ -139,4 +142,54 @@ export type PendingInvitesListResponse = ApiSuccessResponse<{
 
 export type TripDetailResponse = ApiSuccessResponse<{
   trip: TripWithRole;
+}>;
+
+export interface FlightDetailsInput {
+  airline?: string;
+  flightNumber?: string;
+  departureAirport?: string;
+  arrivalAirport?: string;
+  confirmationRef?: string;
+  terminal?: string;
+  gate?: string;
+  seat?: string;
+  baggageAllowance?: string;
+}
+
+export interface CreateEventRequest {
+  title: string;
+  category: EventCategory;
+  status?: EventStatus;
+  startAt: string;
+  endAt?: string;
+  location?: string;
+  notes?: string;
+  flightDetails?: FlightDetailsInput;
+}
+
+export interface UpdateEventRequest {
+  title?: string;
+  category?: EventCategory;
+  status?: EventStatus;
+  startAt?: string;
+  endAt?: string | null;
+  location?: string | null;
+  notes?: string | null;
+  flightDetails?: FlightDetailsInput | null;
+  version: number;
+}
+
+export interface ReorderEventsRequest {
+  events: {
+    id: string;
+    order: number;
+  }[];
+}
+
+export type ItineraryListResponse = ApiSuccessResponse<{
+  events: ItineraryEvent[];
+}>;
+
+export type EventDetailResponse = ApiSuccessResponse<{
+  event: ItineraryEvent;
 }>;

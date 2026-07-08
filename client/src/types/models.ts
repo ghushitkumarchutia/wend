@@ -96,3 +96,35 @@ export interface TripInvite {
     image: string | null;
   };
 }
+
+export interface ItineraryFlightDetails {
+  id: string;
+  eventId: string;
+  airline: string | null;
+  flightNumber: string | null;
+  departureAirport: string | null;
+  arrivalAirport: string | null;
+  confirmationRef: string | null;
+  terminal: string | null;
+  gate: string | null;
+  seat: string | null;
+  baggageAllowance: string | null;
+}
+
+export interface ItineraryEvent {
+  id: string;
+  tripId: string;
+  title: string;
+  category: EventCategory;
+  status: EventStatus;
+  startAt: string;
+  endAt: string | null;
+  location: string | null;
+  notes: string | null;
+  order: number;
+  version: number;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+  flightDetails: ItineraryFlightDetails | null;
+}
