@@ -25,6 +25,12 @@ export type SplitMethod = (typeof SplitMethod)[number];
 export const ExpenseCategory = ['accommodation', 'food_and_drinks', 'transport', 'activities', 'miscellaneous'] as const;
 export type ExpenseCategory = (typeof ExpenseCategory)[number];
 
+export const DocumentCategory = ['flight', 'hotel', 'visa', 'insurance', 'booking', 'other'] as const;
+export type DocumentCategory = (typeof DocumentCategory)[number];
+
+export const DocumentVisibility = ['shared', 'private'] as const;
+export type DocumentVisibility = (typeof DocumentVisibility)[number];
+
 export const NotificationType = [
   'trip_invite_received',
   'invite_accepted',

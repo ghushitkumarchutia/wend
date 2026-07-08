@@ -57,6 +57,10 @@ import type {
   BalancesResponse,
   SettlementSuggestionsResponse,
   BudgetOverviewResponse,
+  DocumentUploadRequest,
+  DocumentConfirmRequest,
+  DocumentListResponse,
+  PresignedUrlResponse,
 } from '@/types/api';
 
 export const dashboardApi = {
@@ -111,6 +115,31 @@ export const accountApi = {
     fetcher<NotificationPreferencesResponse>('/v1/notifications/preferences', {
       method: 'PUT',
       body: JSON.stringify(data),
+    }),
+};
+
+export const documentsApi = {
+  getDocuments: (tripId: string) =>
+    fetcher<DocumentListResponse>(`/v1/trips/${tripId}/documents`),
+
+  getUploadUrl: (tripId: string, data: DocumentUploadRequest) =>
+    fetcher<PresignedUrlResponse>(`/v1/trips/${tripId}/documents/upload-url`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  confirmUpload: (tripId: string, data: DocumentConfirmRequest) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/documents/confirm`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  getDownloadUrl: (tripId: string, docId: string) =>
+    fetcher<PresignedUrlResponse>(`/v1/trips/${tripId}/documents/${docId}/download-url`),
+
+  deleteDocument: (tripId: string, docId: string) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/documents/${docId}`, {
+      method: 'DELETE',
     }),
 };
 

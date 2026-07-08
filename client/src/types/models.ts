@@ -1,6 +1,6 @@
-import type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType } from './enums';
+import type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType, DocumentCategory, DocumentVisibility } from './enums';
 
-export type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType };
+export type { TemplateVisibility, TemplateDifficulty, TripMemberRole, EventCategory, EventStatus, SplitMethod, ExpenseCategory, NotificationType, DocumentCategory, DocumentVisibility };
 
 export interface TripWithRole {
   id: string;
@@ -187,6 +187,26 @@ export interface Settlement {
     image: string | null;
   };
   toUser?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}
+
+export interface TripDocument {
+  id: string;
+  tripId: string;
+  uploadedByUserId: string;
+  fileName: string;
+  fileType: string;
+  sizeBytes: number;
+  storageKey: string;
+  category: DocumentCategory | null;
+  visibility: DocumentVisibility;
+  archivedAt: string | null;
+  createdAt: string;
+  uploadedBy?: {
     id: string;
     name: string | null;
     email: string;

@@ -13,6 +13,9 @@ import type {
   Expense,
   ExpenseCategory,
   SplitMethod,
+  TripDocument,
+  DocumentCategory,
+  DocumentVisibility,
 } from './models';
 
 export interface ApiErrorResponse {
@@ -274,4 +277,28 @@ export type BudgetOverviewResponse = ApiSuccessResponse<{
   totalSpent: string;
   currency: string;
   byCategory: Record<string, string>;
+}>;
+
+// -- Phase 7: Documents --
+
+export interface DocumentUploadRequest {
+  fileType: string;
+}
+
+export interface DocumentConfirmRequest {
+  storageKey: string;
+  fileName: string;
+  fileType: string;
+  sizeBytes: number;
+  category?: DocumentCategory;
+  visibility?: DocumentVisibility;
+}
+
+export type DocumentListResponse = ApiSuccessResponse<{
+  documents: TripDocument[];
+}>;
+
+export type PresignedUrlResponse = ApiSuccessResponse<{
+  url: string;
+  storageKey: string; // Only returned on upload-url
 }>;
