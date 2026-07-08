@@ -16,6 +16,9 @@ import type {
   TripDocument,
   DocumentCategory,
   DocumentVisibility,
+  ChatMessage,
+  Poll,
+  ActivityEntry,
 } from './models';
 
 export interface ApiErrorResponse {
@@ -278,9 +281,6 @@ export type BudgetOverviewResponse = ApiSuccessResponse<{
   currency: string;
   byCategory: Record<string, string>;
 }>;
-
-// -- Phase 7: Documents --
-
 export interface DocumentUploadRequest {
   fileType: string;
 }
@@ -300,5 +300,37 @@ export type DocumentListResponse = ApiSuccessResponse<{
 
 export type PresignedUrlResponse = ApiSuccessResponse<{
   url: string;
-  storageKey: string; // Only returned on upload-url
+  storageKey: string;
+}>;
+
+export type ChatMessageListResponse = ApiSuccessResponse<{
+  messages: ChatMessage[];
+  nextCursor: string | null;
+}>;
+
+export interface SendMessageRequest {
+  body: string;
+}
+
+export interface EditMessageRequest {
+  body: string;
+}
+
+export type PollListResponse = ApiSuccessResponse<{
+  polls: Poll[];
+}>;
+
+export interface CreatePollRequest {
+  question: string;
+  options: string[];
+  deadline?: string;
+}
+
+export interface CastVoteRequest {
+  optionId: string;
+}
+
+export type ActivityListResponse = ApiSuccessResponse<{
+  activity: ActivityEntry[];
+  nextCursor: string | null;
 }>;

@@ -61,6 +61,13 @@ import type {
   DocumentConfirmRequest,
   DocumentListResponse,
   PresignedUrlResponse,
+  ChatMessageListResponse,
+  SendMessageRequest,
+  EditMessageRequest,
+  PollListResponse,
+  CreatePollRequest,
+  CastVoteRequest,
+  ActivityListResponse,
 } from '@/types/api';
 
 export const dashboardApi = {
@@ -141,6 +148,59 @@ export const documentsApi = {
     fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/documents/${docId}`, {
       method: 'DELETE',
     }),
+};
+
+export const chatApi = {
+  getMessages: (tripId: string, cursor?: string) => {
+    const params = cursor ? `?cursor=${cursor}` : '';
+    return fetcher<ChatMessageListResponse>(`/v1/trips/${tripId}/messages${params}`);
+  },
+
+  sendMessage: (tripId: string, data: SendMessageRequest) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/messages`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  editMessage: (tripId: string, messageId: string, data: EditMessageRequest) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/messages/${messageId}`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    }),
+
+  deleteMessage: (tripId: string, messageId: string) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/messages/${messageId}`, {
+      method: 'DELETE',
+    }),
+};
+
+export const pollsApi = {
+  getPolls: (tripId: string) =>
+    fetcher<PollListResponse>(`/v1/trips/${tripId}/polls`),
+
+  createPoll: (tripId: string, data: CreatePollRequest) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/polls`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  castVote: (tripId: string, pollId: string, data: CastVoteRequest) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/polls/${pollId}/votes`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  closePoll: (tripId: string, pollId: string) =>
+    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/polls/${pollId}/close`, {
+      method: 'PATCH',
+    }),
+};
+
+export const activityApi = {
+  getActivity: (tripId: string, cursor?: string) => {
+    const params = cursor ? `?cursor=${cursor}` : '';
+    return fetcher<ActivityListResponse>(`/v1/trips/${tripId}/activity${params}`);
+  },
 };
 
 export const invitesApi = {

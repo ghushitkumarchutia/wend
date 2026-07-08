@@ -213,3 +213,71 @@ export interface TripDocument {
     image: string | null;
   };
 }
+
+export interface ChatMessage {
+  id: string;
+  tripId: string;
+  userId: string;
+  body: string;
+  editedAt: string | null;
+  deletedAt: string | null;
+  createdAt: string;
+  user?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}
+
+export interface PollVote {
+  id: string;
+  pollId: string;
+  userId: string;
+  optionId: string;
+  votedAt: string;
+}
+
+export interface PollOption {
+  id: string;
+  pollId: string;
+  text: string;
+  order: number;
+  votes?: PollVote[];
+}
+
+export interface Poll {
+  id: string;
+  tripId: string;
+  question: string;
+  status: 'open' | 'closed';
+  deadline: string | null;
+  version: number;
+  createdByUserId: string;
+  closedAt: string | null;
+  createdAt: string;
+  createdBy?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  options?: PollOption[];
+}
+
+export interface ActivityEntry {
+  id: string;
+  tripId: string;
+  actorUserId: string;
+  type: string;
+  referenceId: string | null;
+  referenceType: string | null;
+  metadata: Record<string, unknown> | null;
+  createdAt: string;
+  actor?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}

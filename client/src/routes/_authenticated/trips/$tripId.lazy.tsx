@@ -3,6 +3,8 @@ import { useQuery } from '@tanstack/react-query';
 import { tripApi } from '@/lib/api-client';
 import { WorkspaceHeader } from '@/features/trips/workspace-header';
 import { WorkspaceTabs } from '@/features/trips/workspace-tabs';
+import { SocketProvider } from '@/components/providers/socket-provider';
+import { CommunicationPanel } from '@/features/communication/communication-panel';
 
 export const Route = createLazyFileRoute('/_authenticated/trips/$tripId')({
   component: TripWorkspaceLayout,
@@ -27,14 +29,22 @@ function TripWorkspaceLayout() {
   const trip = data.data.trip;
 
   return (
-    <div className="flex flex-col min-h-[calc(100vh-4rem)]">
-      <WorkspaceHeader trip={trip} />
-      <div className="flex-1 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <WorkspaceTabs tripId={trip.id} role={trip.role} />
-        <div className="mt-6">
-          <Outlet />
+    <SocketProvider tripId={trip.id}>
+      <div className="flex h-[calc(100vh-4rem)]">
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <WorkspaceHeader trip={trip} />
+          <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
+            <WorkspaceTabs tripId={trip.id} role={trip.role} />
+            <div className="mt-6">
+              <Outlet />
+            </div>
+          </div>
+        </div>
+
+        <div className="w-80 flex-shrink-0 border-l hidden lg:block bg-card">
+          <CommunicationPanel tripId={trip.id} />
         </div>
       </div>
-    </div>
+    </SocketProvider>
   );
 }
