@@ -14,6 +14,7 @@ export function SignUpForm() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -25,7 +26,7 @@ export function SignUpForm() {
       { email, password, name },
       {
         onSuccess: () => {
-          router.navigate({ to: '/dashboard' });
+          setSuccess(true);
         },
         onError: (ctx) => {
           setError(ctx.error.message);
@@ -33,7 +34,30 @@ export function SignUpForm() {
         },
       }
     );
+
+
   };
+
+  if (success) {
+    return (
+      <Card className="mx-auto w-full max-w-sm text-center">
+        <CardHeader>
+          <CardTitle className="text-2xl">Check your email</CardTitle>
+          <CardDescription>
+            We've sent a verification link to <strong>{email}</strong>.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            Please click the link in the email to verify your account before signing in.
+          </p>
+          <Button variant="outline" className="w-full" onClick={() => router.navigate({ to: '/sign-in' })}>
+            Back to Sign In
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="mx-auto w-full max-w-sm">

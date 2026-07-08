@@ -1,0 +1,1 @@
+import { db } from './src/common/db.js'; import { user } from './src/db/schema/auth.js'; async function run() { const users = await db.select().from(user); console.log('USERS:', users); process.exit(0); } run();
