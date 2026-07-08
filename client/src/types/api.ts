@@ -334,3 +334,11 @@ export type ActivityListResponse = ApiSuccessResponse<{
   activity: ActivityEntry[];
   nextCursor: string | null;
 }>;
+
+export interface CloneTemplateRequest {
+  tripName: string;
+  startDate: string;
+  endDate: string;
+}
+
+export type CloneTemplateResponse = ApiSuccessResponse<{ tripId: string }>;
