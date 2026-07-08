@@ -36,6 +36,14 @@ import type {
   NotificationPreferencesResponse,
   NotificationPreferences,
   ApiSuccessResponse,
+  CreateTripRequest,
+  UpdateTripRequest,
+  InviteMemberRequest,
+  ChangeMemberRoleRequest,
+  TransferOrganizerRequest,
+  MembersListResponse,
+  PendingInvitesListResponse,
+  TripDetailResponse,
 } from '@/types/api';
 
 export const dashboardApi = {
@@ -100,9 +108,87 @@ export const invitesApi = {
       body: JSON.stringify({ token }),
     }),
 
-  decline: (token: string) =>
-    fetcher<ApiSuccessResponse<void>>('/v1/invites/decline', {
-      method: 'POST',
-      body: JSON.stringify({ token }),
-    }),
-};
+    decline: (token: string) =>
+      fetcher<ApiSuccessResponse<void>>('/v1/invites/decline', {
+        method: 'POST',
+        body: JSON.stringify({ token }),
+      }),
+  };
+  
+  export const tripApi = {
+    createTrip: (data: CreateTripRequest) =>
+      fetcher<TripDetailResponse>('/v1/trips', {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  
+    getTrip: (tripId: string) =>
+      fetcher<TripDetailResponse>(`/v1/trips/${tripId}`),
+  
+    updateTrip: (tripId: string, data: UpdateTripRequest) =>
+      fetcher<TripDetailResponse>(`/v1/trips/${tripId}`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+  
+    deleteTrip: (tripId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}`, {
+        method: 'DELETE',
+      }),
+  
+    archiveTrip: (tripId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/archive`, {
+        method: 'POST',
+      }),
+  
+    restoreTrip: (tripId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/restore`, {
+        method: 'POST',
+      }),
+  };
+  
+  export const travelersApi = {
+    getMembers: (tripId: string) =>
+      fetcher<MembersListResponse>(`/v1/trips/${tripId}/members`),
+  
+    changeRole: (tripId: string, userId: string, data: ChangeMemberRoleRequest) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/members/${userId}/role`, {
+        method: 'PATCH',
+        body: JSON.stringify(data),
+      }),
+  
+    removeMember: (tripId: string, userId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/members/${userId}`, {
+        method: 'DELETE',
+      }),
+  
+    leaveTrip: (tripId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/members/leave`, {
+        method: 'POST',
+      }),
+  
+    transferOrganizer: (tripId: string, data: TransferOrganizerRequest) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/members/transfer`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  
+    getPendingInvites: (tripId: string) =>
+      fetcher<PendingInvitesListResponse>(`/v1/trips/${tripId}/invites`),
+  
+    sendInvite: (tripId: string, data: InviteMemberRequest) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/invites`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+      }),
+  
+    revokeInvite: (tripId: string, inviteId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/invites/${inviteId}/revoke`, {
+        method: 'POST',
+      }),
+  
+    resendInvite: (tripId: string, inviteId: string) =>
+      fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/invites/${inviteId}/resend`, {
+        method: 'POST',
+      }),
+  };

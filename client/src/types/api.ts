@@ -1,4 +1,13 @@
-import type { Template, TemplateDay, TemplateEvent, DashboardStats, TripWithRole } from './models';
+import type {
+  Template,
+  TemplateDay,
+  TemplateEvent,
+  DashboardStats,
+  TripWithRole,
+  TripMember,
+  TripInvite,
+  TripMemberRole,
+} from './models';
 
 export interface ApiErrorResponse {
   error: {
@@ -84,3 +93,50 @@ export interface NotificationPreferences {
 }
 
 export type NotificationPreferencesResponse = ApiSuccessResponse<NotificationPreferences>;
+
+export interface CreateTripRequest {
+  name: string;
+  destination: string;
+  startDate: string;
+  endDate: string;
+  description?: string;
+  baseCurrency?: string;
+  estimatedBudget?: number;
+}
+
+export interface UpdateTripRequest {
+  name?: string;
+  destination?: string;
+  startDate?: string;
+  endDate?: string;
+  description?: string | null;
+  baseCurrency?: string;
+  estimatedBudget?: number | null;
+  coverImageUrl?: string | null;
+}
+
+export interface InviteMemberRequest {
+  email: string;
+  role: TripMemberRole;
+  name?: string;
+}
+
+export interface ChangeMemberRoleRequest {
+  role: TripMemberRole;
+}
+
+export interface TransferOrganizerRequest {
+  userId: string;
+}
+
+export type MembersListResponse = ApiSuccessResponse<{
+  members: TripMember[];
+}>;
+
+export type PendingInvitesListResponse = ApiSuccessResponse<{
+  invites: TripInvite[];
+}>;
+
+export type TripDetailResponse = ApiSuccessResponse<{
+  trip: TripWithRole;
+}>;

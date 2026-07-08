@@ -1,9 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 
 export const Route = createFileRoute('/_authenticated/trips/$tripId')({
-  component: TripWorkspacePlaceholder,
+  loader: async ({ params: { tripId } }) => {
+    return { tripId };
+  },
 });
-
-function TripWorkspacePlaceholder() {
-  return <div>Trip Workspace Placeholder</div>;
-}

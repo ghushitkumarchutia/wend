@@ -64,3 +64,35 @@ export interface TemplateEvent {
   description: string | null;
   order: number;
 }
+
+export interface TripMember {
+  id: string;
+  tripId: string;
+  userId: string;
+  role: TripMemberRole;
+  joinedAt: string;
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}
+
+export interface TripInvite {
+  id: string;
+  tripId: string;
+  invitedEmail: string;
+  inviterUserId: string;
+  role: TripMemberRole;
+  status: 'pending' | 'accepted' | 'declined' | 'expired' | 'revoked';
+  name: string | null;
+  expiresAt: string;
+  createdAt: string;
+  inviter: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+}

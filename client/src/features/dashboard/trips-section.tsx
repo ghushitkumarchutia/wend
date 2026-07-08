@@ -4,6 +4,7 @@ import type { TripWithRole } from '@/types/models';
 import { Input } from '@/components/ui/input';
 import { Search } from 'lucide-react';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { CreateTripModal } from './create-trip-modal';
 
 interface TripsSectionProps {
   trips: TripWithRole[];
@@ -37,15 +38,18 @@ export function TripsSection({ trips }: TripsSectionProps) {
           </TabsList>
         </Tabs>
 
-        <div className="relative w-full sm:w-72">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search trips..."
-            className="w-full pl-8"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
+        <div className="flex w-full sm:w-auto items-center gap-4">
+          <div className="relative flex-1 sm:w-72">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="search"
+              placeholder="Search trips..."
+              className="w-full pl-8"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+          <CreateTripModal />
         </div>
       </div>
 
@@ -58,8 +62,9 @@ export function TripsSection({ trips }: TripsSectionProps) {
           <p className="mb-4 mt-2 text-sm text-muted-foreground">
             {searchQuery 
               ? "We couldn't find any trips matching your search."
-              : "You don't have any trips in this category."}
+              : "You don't have any trips in this category. Create one to get started!"}
           </p>
+          {!searchQuery && <CreateTripModal />}
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
