@@ -12,4 +12,4 @@ authRouter.use((req, res, next) => {
   return authLimiter(req, res, next);
 });
 
-authRouter.all('/*splat', toNodeHandler(auth));
+authRouter.all('*', toNodeHandler(auth));
