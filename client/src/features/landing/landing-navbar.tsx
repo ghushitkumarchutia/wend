@@ -8,12 +8,9 @@ export function LandingNavbar() {
 
   useEffect(() => {
     const handleScroll = () => {
-      const threshold = window.innerHeight - 80;
-      if (window.scrollY >= threshold) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
+      const isMobile = window.innerWidth < 768;
+      const threshold = isMobile ? 20 : window.innerHeight - 80;
+      setIsScrolled(window.scrollY >= threshold);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -124,14 +121,14 @@ export function LandingNavbar() {
 
             <button
               onClick={() => setIsOpen(true)}
-              className="md:hidden p-1.5 rounded-md text-white/95 hover:text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50"
+              className={`md:hidden p-1.5 rounded-md transition-colors duration-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 ${
+                isScrolled
+                  ? 'text-zinc-900 hover:text-zinc-700'
+                  : 'text-white/95 hover:text-white'
+              }`}
               aria-label="Toggle menu"
             >
-              <Menu
-                className={`h-6 w-6 transition-colors duration-500 ${
-                  isScrolled ? 'text-zinc-900' : 'text-white'
-                }`}
-              />
+              <Menu className="h-6 w-6" />
             </button>
           </div>
         </div>
