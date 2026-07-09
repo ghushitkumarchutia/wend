@@ -4,6 +4,7 @@ import { PartnersSection } from '@/features/landing/partners-section';
 import { TripsCarouselSection } from '@/features/landing/trips-carousel-section';
 import { PlacesSelectorSection } from '@/features/landing/places-selector-section';
 import { StatsHighlightsSection } from '@/features/landing/stats-highlights-section';
+import { FeaturesShowcaseSection } from '@/features/landing/features-showcase-section';
 import { LandingNavbar } from '@/features/landing/landing-navbar';
 import { LandingFooter } from '@/features/landing/landing-footer';
 
@@ -21,6 +22,7 @@ function LandingPageRoute() {
         <TripsCarouselSection />
         <PlacesSelectorSection />
         <StatsHighlightsSection />
+        <FeaturesShowcaseSection />
       </main>
       <LandingFooter />
     </div>
