@@ -1,6 +1,7 @@
 import { createFileRoute } from '@tanstack/react-router';
 import { HeroSection } from '@/features/landing/hero-section';
 import { PartnersSection } from '@/features/landing/partners-section';
+import { TripsCarouselSection } from '@/features/landing/trips-carousel-section';
 import { FeatureHighlightsSection } from '@/features/landing/feature-highlights-section';
 import { LandingNavbar } from '@/features/landing/landing-navbar';
 import { LandingFooter } from '@/features/landing/landing-footer';
@@ -16,6 +17,7 @@ function LandingPageRoute() {
       <main className="flex-1">
         <HeroSection />
         <PartnersSection />
+        <TripsCarouselSection />
         <FeatureHighlightsSection />
       </main>
       <LandingFooter />
