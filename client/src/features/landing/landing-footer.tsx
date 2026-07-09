@@ -1,17 +1,18 @@
 import { Link } from '@tanstack/react-router';
+import footerIllustration from '@/assets/svg/footer-illustration.svg';
 
 export function LandingFooter() {
   return (
     <footer className="relative bg-[#084d34] text-white pt-16 pb-8 overflow-hidden select-none border-t border-emerald-950/20">
       <div className="relative z-20 w-full max-w-[1280px] mx-auto px-6 sm:px-12 md:px-16 flex flex-col">
-        
         <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-8 pb-12 border-b border-emerald-800/40">
           <div className="text-left">
             <h3 className="text-lg sm:text-xl font-bold text-white tracking-tight">
               Get travel inspiration & tips
             </h3>
             <p className="mt-1.5 text-xs sm:text-sm text-emerald-100/70 font-light leading-relaxed max-w-lg">
-              Subscribe to our newsletter for hand-curated itineraries, local explorer guides, and early platform updates.
+              Subscribe to our newsletter for hand-curated itineraries, local explorer guides, and
+              early platform updates.
             </p>
           </div>
 
@@ -27,16 +28,14 @@ export function LandingFooter() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-12 gap-8 md:gap-12 py-16 text-left">
-          
+        <div className="grid grid-cols-2 md:grid-cols-12 gap-y-12 gap-x-8 md:gap-x-16 py-16 text-left">
           <div className="col-span-2 md:col-span-5 flex flex-col items-start pr-0 md:pr-12">
-            <span className="font-bold text-2xl tracking-tight text-white">
-              Wend.com
-            </span>
+            <span className="font-bold text-2xl tracking-tight text-white">Wend.com</span>
             <p className="mt-4 text-xs sm:text-sm text-emerald-100/70 font-light leading-relaxed max-w-sm">
-              Empowering groups to plan, coordinate, and experience travel together. Beautiful, unified workspaces designed with absolute precision.
+              Empowering groups to plan, coordinate, and experience travel together. Beautiful,
+              unified workspaces designed with absolute precision.
             </p>
-            
+
             <div className="flex items-center gap-3.5 mt-6">
               <a
                 href="https://instagram.com"
@@ -45,13 +44,21 @@ export function LandingFooter() {
                 className="w-8 h-8 rounded-full border border-emerald-700/50 flex items-center justify-center text-emerald-100/70 hover:text-white hover:border-white hover:bg-emerald-900/30 transition-all duration-300"
                 aria-label="Instagram"
               >
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <svg
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
                   <rect x={2} y={2} width={20} height={20} rx={5} ry={5} />
                   <path d="M16 11.37A4 4 0 1112.63 8 4 4 0 0116 11.37z" />
                   <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                 </svg>
               </a>
-              
+
               <a
                 href="https://twitter.com"
                 target="_blank"
@@ -90,72 +97,114 @@ export function LandingFooter() {
             </div>
           </div>
 
-          <div className="col-span-1 md:col-span-2.5 flex flex-col items-start gap-4">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80 mb-1">
+          <div className="col-span-1 md:col-span-2 flex flex-col items-start gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80 mb-1 whitespace-nowrap">
               Product
             </span>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Dynamic Timeline
             </Link>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Budget Ledger
             </Link>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Itinerary Cloner
             </Link>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Collaborative Polls
             </Link>
           </div>
 
-          <div className="col-span-1 md:col-span-2.5 flex flex-col items-start gap-4">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80 mb-1">
+          <div className="col-span-1 md:col-span-2 flex flex-col items-start gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80 mb-1 whitespace-nowrap">
               Company
             </span>
-            <a href="#about" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <a
+              href="#about"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               About Us
             </a>
-            <a href="#about" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <a
+              href="#about"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Our Story
             </a>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Careers
             </Link>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Contact Us
             </Link>
           </div>
 
-          <div className="col-span-1 md:col-span-2 flex flex-col items-start gap-4">
-            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80 mb-1">
+          <div className="col-span-2 md:col-span-3 flex flex-col items-start gap-4">
+            <span className="text-[10px] font-bold uppercase tracking-[0.18em] text-emerald-300/80 mb-1 whitespace-nowrap">
               Resources
             </span>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Backpacker Blogs
             </Link>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Help Center
             </Link>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               Planning Guides
             </Link>
-            <Link to="/" className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors">
+            <Link
+              to="/"
+              className="text-xs sm:text-sm text-emerald-100/70 hover:text-white transition-colors whitespace-nowrap"
+            >
               API Access
             </Link>
           </div>
-
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-8 border-t border-emerald-800/30 text-left relative z-20">
           <span className="text-[10px] sm:text-xs text-emerald-100/40 font-light">
-            © {new Date().getFullYear()} Wend.com. Built with absolute precision. All rights reserved.
+            © {new Date().getFullYear()} Wend.com. Built with absolute precision. All rights
+            reserved.
           </span>
 
           <div className="flex items-center gap-5 text-[10px] sm:text-xs">
-            <Link to="/" className="text-emerald-100/40 hover:text-white transition-colors font-light">
+            <Link
+              to="/"
+              className="text-emerald-100/40 hover:text-white transition-colors font-light"
+            >
               Privacy Policy
             </Link>
-            <Link to="/" className="text-emerald-100/40 hover:text-white transition-colors font-light">
+            <Link
+              to="/"
+              className="text-emerald-100/40 hover:text-white transition-colors font-light"
+            >
               Terms of Service
             </Link>
             <button className="text-emerald-100/40 hover:text-white transition-colors font-light cursor-pointer focus:outline-none">
@@ -163,46 +212,15 @@ export function LandingFooter() {
             </button>
           </div>
         </div>
-
       </div>
 
-      <div className="absolute bottom-0 left-0 right-0 w-full pointer-events-none z-10 select-none opacity-[0.06] flex items-end justify-center">
-        <svg
-          viewBox="0 0 1200 120"
-          className="w-full h-auto min-w-[1000px] fill-white"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path d="M 500 120 L 500 70 L 503 70 L 503 40 L 500 40 L 500 35 Q 502 30 500 25 L 500 120 Z" />
-          <path d="M 700 120 L 700 70 L 697 70 L 697 40 L 700 40 L 700 35 Q 698 30 700 25 L 700 120 Z" />
-          <path d="M 525 120 L 525 75 Q 525 50 550 50 C 555 50 560 55 565 55 Q 600 55 600 25 C 600 22 597 18 600 15 C 603 18 600 22 600 25 Q 600 55 635 55 C 640 55 645 50 650 50 Q 675 50 675 75 L 675 120 Z" />
-          <path d="M 565 120 L 565 80 L 575 80 L 575 60 Q 600 45 600 35 L 600 120 Z" />
-          <path d="M 635 120 L 635 80 L 625 80 L 625 60 Q 600 45 600 35 L 600 120 Z" />
-          
-          <path d="M 410 120 L 420 40 L 425 40 L 425 35 L 420 35 L 422 20 L 425 20 L 425 15 L 420 15 L 421 5 L 424 5 L 424 0 L 416 0 L 416 5 L 419 5 L 418 15 L 413 15 L 413 20 L 417 20 L 415 35 L 410 35 L 410 40 L 415 40 L 405 120 Z" />
-          
-          <path d="M 150 120 L 150 50 Q 155 45 160 50 L 160 120 Z" />
-          <path d="M 165 120 L 165 40 Q 175 30 185 40 L 185 120 Z" />
-          <path d="M 190 120 L 190 50 Q 195 45 200 50 L 200 120 Z" />
-          <path d="M 205 120 L 205 30 Q 220 15 235 30 L 235 120 Z" />
-          <path d="M 240 120 L 240 50 Q 245 45 250 50 L 250 120 Z" />
-          <path d="M 255 120 L 255 40 Q 265 30 275 40 L 275 120 Z" />
-          <path d="M 280 120 L 280 50 Q 285 45 290 50 L 290 120 Z" />
-          
-          <path d="M 850 120 L 850 60 L 845 60 L 845 20 Q 848 10 852 10 Q 856 10 859 20 L 859 60 L 855 60 L 855 120 Z" />
-          <path d="M 970 120 L 970 60 L 965 60 L 965 20 Q 968 10 972 10 Q 976 10 979 20 L 979 60 L 975 60 L 975 120 Z" />
-          <path d="M 859 120 L 859 70 L 965 70 L 965 120 Z" />
-          <path d="M 885 120 L 885 85 Q 912 60 939 85 L 939 120 Z" />
-          <path d="M 859 55 L 965 55 L 965 65 L 859 65 Z" />
-          
-          <path d="M 50 120 L 50 80 Q 75 60 100 80 L 100 120 Z" />
-          <path d="M 70 120 L 70 90 Q 75 85 80 90 L 80 120 Z" />
-
-          <path d="M 1040 120 L 1040 45 L 1045 45 L 1045 40 L 1095 40 L 1095 45 L 1100 45 L 1100 120 Z" />
-          <path d="M 1055 120 L 1055 80 Q 1070 60 1085 80 L 1085 120 Z" />
-          <path d="M 1045 52 L 1095 52 L 1095 56 L 1045 56 Z" />
-        </svg>
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[1250px] pointer-events-none z-10 select-none opacity-10 flex items-end justify-center">
+        <img
+          src={footerIllustration}
+          alt=""
+          className="w-full h-auto object-bottom object-contain"
+        />
       </div>
-
     </footer>
   );
 }
