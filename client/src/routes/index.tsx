@@ -3,7 +3,7 @@ import { HeroSection } from '@/features/landing/hero-section';
 import { PartnersSection } from '@/features/landing/partners-section';
 import { TripsCarouselSection } from '@/features/landing/trips-carousel-section';
 import { PlacesSelectorSection } from '@/features/landing/places-selector-section';
-import { FeatureHighlightsSection } from '@/features/landing/feature-highlights-section';
+import { StatsHighlightsSection } from '@/features/landing/stats-highlights-section';
 import { LandingNavbar } from '@/features/landing/landing-navbar';
 import { LandingFooter } from '@/features/landing/landing-footer';
 
@@ -20,7 +20,7 @@ function LandingPageRoute() {
         <PartnersSection />
         <TripsCarouselSection />
         <PlacesSelectorSection />
-        <FeatureHighlightsSection />
+        <StatsHighlightsSection />
       </main>
       <LandingFooter />
     </div>
