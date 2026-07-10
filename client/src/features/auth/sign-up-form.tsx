@@ -330,13 +330,13 @@ export function SignUpForm() {
                     </Alert>
                   )}
 
-                  <button
+                  <Button
                     type="submit"
                     className="w-full h-10 md:h-11 mt-2 inline-flex items-center justify-center rounded-xl bg-[#09a474] hover:bg-[#088f65] active:scale-[0.99] text-white font-semibold text-sm transition-all duration-200 shadow-md shadow-emerald-700/10 cursor-pointer border-none outline-none focus-visible:ring-2 focus-visible:ring-[#09a474]/55 disabled:opacity-60 disabled:cursor-not-allowed"
                     disabled={loading}
                   >
                     {loading ? 'Creating account...' : 'Create account'}
-                  </button>
+                  </Button>
 
                   <div className="relative my-2 flex items-center justify-center">
                     <div className="absolute inset-0 flex items-center">

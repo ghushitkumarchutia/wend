@@ -28,7 +28,7 @@ function SignInRoute() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="min-h-screen w-full bg-background">
       <SignInForm />
     </div>
   );
