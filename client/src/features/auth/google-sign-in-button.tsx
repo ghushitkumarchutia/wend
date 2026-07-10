@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { signIn } from '@/lib/auth-client';
 import { Button } from '@/components/ui/button';
 
-export function GoogleSignInButton({ disabled }: { disabled?: boolean }) {
+export function GoogleSignInButton({ disabled, className }: { disabled?: boolean; className?: string }) {
   const [loading, setLoading] = useState(false);
 
   const handleGoogleSignIn = async () => {
@@ -16,7 +16,7 @@ export function GoogleSignInButton({ disabled }: { disabled?: boolean }) {
   return (
     <Button
       variant="outline"
-      className="w-full"
+      className={className || "w-full"}
       onClick={handleGoogleSignIn}
       disabled={disabled || loading}
       type="button"
