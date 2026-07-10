@@ -26,8 +26,7 @@ export const auth = betterAuth({
     requireEmailVerification: true,
     minPasswordLength: 10,
     maxPasswordLength: 128,
-    sendResetPassword: async ({ user: resetUser, url }) => {
-      const token = new URL(url).searchParams.get('token');
+    sendResetPassword: async ({ user: resetUser, url, token }) => {
       const resetUrl = `${env.WEB_ORIGIN}/reset-password?token=${token}`;
       await emailQueue.add('password-reset', {
         to: resetUser.email,
@@ -38,8 +37,7 @@ export const auth = betterAuth({
     },
   },
   emailVerification: {
-    sendVerificationEmail: async ({ user: verifyUser, url }) => {
-      const token = new URL(url).searchParams.get('token');
+    sendVerificationEmail: async ({ user: verifyUser, url, token }) => {
       const verificationUrl = `${env.WEB_ORIGIN}/verify-email?token=${token}`;
       await emailQueue.add('email-verification', {
         to: verifyUser.email,
