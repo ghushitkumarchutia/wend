@@ -9,7 +9,7 @@ export function GoogleSignInButton({ disabled, className }: { disabled?: boolean
     setLoading(true);
     await signIn.social({
       provider: 'google',
-      callbackURL: '/dashboard',
+      callbackURL: `${window.location.origin}/dashboard`,
     });
   };
 
