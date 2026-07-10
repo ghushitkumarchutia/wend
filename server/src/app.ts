@@ -7,7 +7,7 @@ import { env } from './common/env.js';
 import { errorHandler } from './middleware/error-handler.js';
 import { enforceJsonContentType } from './middleware/content-type.js';
 import { sessionMiddleware, requireAuth } from './middleware/session.js';
-import { authRouter } from './modules/auth/auth.routes.js';
+import { authHandlers } from './modules/auth/auth.routes.js';
 import { tripsRouter } from './modules/trips/trips.routes.js';
 import { travelersRouter, invitesRouter } from './modules/travelers/travelers.routes.js';
 import { itineraryRouter } from './modules/itinerary/itinerary.routes.js';
@@ -21,9 +21,11 @@ import { accountRouter } from './modules/account/account.routes.js';
 import { templatesRouter } from './modules/templates/templates.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
 import { docsRouter } from './openapi/docs.routes.js';
+import morgan from 'morgan';
 
 export const app = express();
 
+app.use(morgan('dev'));
 app.use(helmet());
 app.use(
   cors({
@@ -35,7 +37,7 @@ app.use(cookieParser());
 app.use(express.json({ limit: '1mb' }));
 app.use(enforceJsonContentType);
 
-app.use('/api/auth', authRouter);
+app.all('/api/auth/{*any}', ...authHandlers);
 
 app.use('/api/v1', sessionMiddleware, requireAuth);
 app.use('/api/admin', sessionMiddleware, requireAuth);

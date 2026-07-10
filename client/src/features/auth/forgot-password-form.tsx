@@ -20,14 +20,13 @@ export function ForgotPasswordForm() {
     setError(null);
     setSuccess(false);
 
-    // @ts-expect-error better-auth plugin types not inferred
-    const { error: resetError } = await authClient.forgetPassword({
+    const { error: resetError } = await authClient.requestPasswordReset({
       email,
       redirectTo: '/reset-password',
     });
 
     if (resetError) {
-      setError(resetError.message);
+      setError(resetError.message || 'An error occurred while resetting the password.');
     } else {
       setSuccess(true);
     }
