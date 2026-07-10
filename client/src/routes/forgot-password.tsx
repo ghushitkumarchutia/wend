@@ -24,7 +24,7 @@ function ForgotPasswordRoute() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 p-4">
+    <div className="flex min-h-screen items-center justify-center bg-stone-100 p-4">
       <ForgotPasswordForm />
     </div>
   );
