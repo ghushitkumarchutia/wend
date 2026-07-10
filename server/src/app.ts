@@ -21,11 +21,11 @@ import { accountRouter } from './modules/account/account.routes.js';
 import { templatesRouter } from './modules/templates/templates.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
 import { docsRouter } from './openapi/docs.routes.js';
-import morgan from 'morgan';
+import { requestLogger } from './common/logger.js';
 
 export const app = express();
 
-app.use(morgan('dev'));
+app.use(requestLogger);
 app.use(helmet());
 app.use(
   cors({
