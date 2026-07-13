@@ -133,7 +133,10 @@ export const accountApi = {
 };
 
 export const documentsApi = {
-  getDocuments: (tripId: string) => fetcher<DocumentListResponse>(`/v1/trips/${tripId}/documents`),
+  getDocuments: async (tripId: string): Promise<DocumentListResponse> => {
+    const res = await fetcher<ApiSuccessResponse<unknown[]>>(`/v1/trips/${tripId}/documents`);
+    return { data: { documents: res.data } } as unknown as DocumentListResponse;
+  },
 
   getUploadUrl: (tripId: string, data: DocumentUploadRequest) =>
     fetcher<PresignedUrlResponse>(`/v1/trips/${tripId}/documents/upload-url`, {
@@ -157,9 +160,17 @@ export const documentsApi = {
 };
 
 export const chatApi = {
-  getMessages: (tripId: string, cursor?: string) => {
+  getMessages: async (tripId: string, cursor?: string): Promise<ChatMessageListResponse> => {
     const params = cursor ? `?cursor=${cursor}` : '';
-    return fetcher<ChatMessageListResponse>(`/v1/trips/${tripId}/messages${params}`);
+    const res = await fetcher<{ data: unknown[]; nextCursor: string | null }>(
+      `/v1/trips/${tripId}/messages${params}`,
+    );
+    return {
+      data: {
+        messages: res.data,
+        nextCursor: res.nextCursor,
+      },
+    } as unknown as ChatMessageListResponse;
   },
 
   sendMessage: (tripId: string, data: SendMessageRequest) =>
@@ -181,7 +192,10 @@ export const chatApi = {
 };
 
 export const pollsApi = {
-  getPolls: (tripId: string) => fetcher<PollListResponse>(`/v1/trips/${tripId}/polls`),
+  getPolls: async (tripId: string): Promise<PollListResponse> => {
+    const res = await fetcher<ApiSuccessResponse<unknown[]>>(`/v1/trips/${tripId}/polls`);
+    return { data: { polls: res.data } } as unknown as PollListResponse;
+  },
 
   createPoll: (tripId: string, data: CreatePollRequest) =>
     fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/polls`, {
@@ -202,9 +216,17 @@ export const pollsApi = {
 };
 
 export const activityApi = {
-  getActivity: (tripId: string, cursor?: string) => {
+  getActivity: async (tripId: string, cursor?: string): Promise<ActivityListResponse> => {
     const params = cursor ? `?cursor=${cursor}` : '';
-    return fetcher<ActivityListResponse>(`/v1/trips/${tripId}/activity${params}`);
+    const res = await fetcher<{ data: unknown[]; nextCursor: string | null }>(
+      `/v1/trips/${tripId}/activity${params}`,
+    );
+    return {
+      data: {
+        activity: res.data,
+        nextCursor: res.nextCursor,
+      },
+    } as unknown as ActivityListResponse;
   },
 };
 
@@ -261,7 +283,10 @@ export const tripApi = {
 };
 
 export const travelersApi = {
-  getMembers: (tripId: string) => fetcher<MembersListResponse>(`/v1/trips/${tripId}/members`),
+  getMembers: async (tripId: string): Promise<MembersListResponse> => {
+    const res = await fetcher<ApiSuccessResponse<unknown[]>>(`/v1/trips/${tripId}/members`);
+    return { data: { members: res.data } } as unknown as MembersListResponse;
+  },
 
   changeRole: (tripId: string, userId: string, data: ChangeMemberRoleRequest) =>
     fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/members/${userId}/role`, {
@@ -285,8 +310,10 @@ export const travelersApi = {
       body: JSON.stringify(data),
     }),
 
-  getPendingInvites: (tripId: string) =>
-    fetcher<PendingInvitesListResponse>(`/v1/trips/${tripId}/invites`),
+  getPendingInvites: async (tripId: string): Promise<PendingInvitesListResponse> => {
+    const res = await fetcher<ApiSuccessResponse<unknown[]>>(`/v1/trips/${tripId}/invites`);
+    return { data: { invites: res.data } } as unknown as PendingInvitesListResponse;
+  },
 
   sendInvite: (tripId: string, data: InviteMemberRequest) =>
     fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/invites`, {
@@ -306,7 +333,10 @@ export const travelersApi = {
 };
 
 export const itineraryApi = {
-  getEvents: (tripId: string) => fetcher<ItineraryListResponse>(`/v1/trips/${tripId}/itinerary`),
+  getEvents: async (tripId: string): Promise<ItineraryListResponse> => {
+    const res = await fetcher<ApiSuccessResponse<unknown[]>>(`/v1/trips/${tripId}/itinerary`);
+    return { data: { events: res.data } } as unknown as ItineraryListResponse;
+  },
 
   createEvent: (tripId: string, data: CreateEventRequest) =>
     fetcher<EventDetailResponse>(`/v1/trips/${tripId}/itinerary`, {
@@ -333,7 +363,10 @@ export const itineraryApi = {
 };
 
 export const ledgerApi = {
-  getExpenses: (tripId: string) => fetcher<ExpensesListResponse>(`/v1/trips/${tripId}/expenses`),
+  getExpenses: async (tripId: string): Promise<ExpensesListResponse> => {
+    const res = await fetcher<ApiSuccessResponse<unknown[]>>(`/v1/trips/${tripId}/expenses`);
+    return { data: { expenses: res.data } } as unknown as ExpensesListResponse;
+  },
 
   getExpense: (tripId: string, expenseId: string) =>
     fetcher<ExpenseDetailResponse>(`/v1/trips/${tripId}/expenses/${expenseId}`),
