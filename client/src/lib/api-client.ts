@@ -24,6 +24,7 @@ export const fetcher = async <T>(url: string, options?: RequestInit): Promise<T>
   return response.json();
 };
 
+import type { TripWithRole } from '@/types/models';
 import type {
   DashboardStatsResponse,
   TripsListResponse,
@@ -222,19 +223,26 @@ export const invitesApi = {
 };
 
 export const tripApi = {
-  createTrip: (data: CreateTripRequest) =>
-    fetcher<TripDetailResponse>('/v1/trips', {
+  createTrip: async (data: CreateTripRequest): Promise<TripDetailResponse> => {
+    const res = await fetcher<ApiSuccessResponse<TripWithRole>>('/v1/trips', {
       method: 'POST',
       body: JSON.stringify(data),
-    }),
+    });
+    return { data: { trip: res.data } };
+  },
 
-  getTrip: (tripId: string) => fetcher<TripDetailResponse>(`/v1/trips/${tripId}`),
+  getTrip: async (tripId: string): Promise<TripDetailResponse> => {
+    const res = await fetcher<ApiSuccessResponse<TripWithRole>>(`/v1/trips/${tripId}`);
+    return { data: { trip: res.data } };
+  },
 
-  updateTrip: (tripId: string, data: UpdateTripRequest) =>
-    fetcher<TripDetailResponse>(`/v1/trips/${tripId}`, {
+  updateTrip: async (tripId: string, data: UpdateTripRequest): Promise<TripDetailResponse> => {
+    const res = await fetcher<ApiSuccessResponse<TripWithRole>>(`/v1/trips/${tripId}`, {
       method: 'PATCH',
       body: JSON.stringify(data),
-    }),
+    });
+    return { data: { trip: res.data } };
+  },
 
   deleteTrip: (tripId: string) =>
     fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}`, {
