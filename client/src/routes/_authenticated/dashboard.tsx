@@ -20,14 +20,7 @@ function DashboardRoute() {
   });
 
   return (
-    <div className="flex flex-col gap-8 p-6 lg:p-10 w-full max-w-7xl mx-auto">
-      <div className="space-y-1">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Welcome back. Here is an overview of your trips and pending invites.
-        </p>
-      </div>
-
+    <div className="flex flex-col gap-6 pt-4 pb-6 px-6 lg:pt-6 lg:pb-10 lg:px-10 w-full max-w-7xl mx-auto">
       {!isLoadingStats && statsData?.data && <StatCardsRow stats={statsData.data} />}
 
       {!isLoadingTrips && tripsData?.data && <TripsSection trips={tripsData.data} />}

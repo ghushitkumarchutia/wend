@@ -103,39 +103,48 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
 
   return (
     <div className="flex flex-col h-[500px] w-full max-w-sm">
-      <div className="flex items-center justify-between px-4 py-3 border-b">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-neutral-200/50">
         <h2 className="font-semibold text-sm">Notifications</h2>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 text-xs px-2 text-muted-foreground hover:text-foreground"
+            className="h-8 text-xs px-2.5 rounded-lg text-neutral-500 hover:text-[#09a474] hover:bg-[#09a474]/10 transition-all duration-200 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent disabled:hover:text-neutral-50"
             onClick={() => markAllAsRead.mutate()}
             disabled={markAllAsRead.isPending || notifications.every(n => n.status !== 'unread')}
           >
-            <CheckCheck className="h-4 w-4 mr-1" />
-            Mark all read
+            <CheckCheck className="h-3.5 w-3.5 mr-1" />
+            <span>Mark all read</span>
           </Button>
         </div>
       </div>
 
-      <div className="flex items-center gap-2 px-4 py-2 border-b bg-muted/30">
-        <Button
-          variant={filter === 'all' ? 'secondary' : 'ghost'}
-          size="sm"
-          className="h-7 text-xs rounded-full px-3"
-          onClick={() => setFilter('all')}
-        >
-          All
-        </Button>
-        <Button
-          variant={filter === 'unread' ? 'secondary' : 'ghost'}
-          size="sm"
-          className="h-7 text-xs rounded-full px-3"
-          onClick={() => setFilter('unread')}
-        >
-          Unread
-        </Button>
+      <div className="px-4 py-2 border-b border-neutral-200/50 bg-neutral-50/20 flex justify-start">
+        <div className="relative flex bg-neutral-100/80 border border-neutral-200/40 rounded-full p-1 w-40 select-none h-8 items-center">
+          <div
+            className="absolute top-1 bottom-1 rounded-full bg-[#09a474] transition-all duration-300 ease-out shadow-sm"
+            style={{
+              width: 'calc(50% - 4px)',
+              left: filter === 'all' ? '4px' : '50%',
+            }}
+          />
+          <button
+            onClick={() => setFilter('all')}
+            className={`relative flex-1 h-full flex items-center justify-center text-center text-xs font-semibold transition-colors duration-300 z-10 focus:outline-none cursor-pointer ${
+              filter === 'all' ? 'text-white' : 'text-neutral-500 hover:text-neutral-900'
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setFilter('unread')}
+            className={`relative flex-1 h-full flex items-center justify-center text-center text-xs font-semibold transition-colors duration-300 z-10 focus:outline-none cursor-pointer ${
+              filter === 'unread' ? 'text-white' : 'text-neutral-500 hover:text-neutral-900'
+            }`}
+          >
+            Unread
+          </button>
+        </div>
       </div>
 
       <ScrollArea className="flex-1">
@@ -156,8 +165,8 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
             {filteredNotifications.map((notification) => (
               <div
                 key={notification.id}
-                className={`flex gap-3 p-4 border-b last:border-0 hover:bg-muted/50 transition-colors ${
-                  notification.status === 'unread' ? 'bg-primary/5' : ''
+                className={`flex gap-3 p-4 border-b border-neutral-200/50 last:border-0 hover:bg-neutral-100/50 transition-colors ${
+                  notification.status === 'unread' ? 'bg-[#09a474]/5' : ''
                 }`}
               >
                 <div className="mt-0.5 shrink-0">
@@ -197,7 +206,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-6 w-6 text-muted-foreground hover:text-primary"
+                      className="h-6 w-6 text-muted-foreground hover:text-[#09a474]"
                       onClick={() => markAsRead.mutate(notification.id)}
                       title="Mark as read"
                     >

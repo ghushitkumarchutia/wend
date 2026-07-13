@@ -39,14 +39,14 @@ export function NotificationBell() {
 
   return (
     <Popover>
-      <PopoverTrigger className="relative h-9 w-9 inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50">
+      <PopoverTrigger className="relative h-9 w-9 inline-flex items-center justify-center rounded-full text-sm font-medium transition-colors hover:bg-accent hover:text-accent-foreground focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50 cursor-pointer">
         <Bell className="h-5 w-5 text-muted-foreground" />
         {unreadCount > 0 && (
           <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-destructive border-2 border-background" />
         )}
         <span className="sr-only">Toggle notifications</span>
       </PopoverTrigger>
-      <PopoverContent className="w-auto p-0" align="end" sideOffset={8}>
+      <PopoverContent className="w-[360px] bg-white/85 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl p-0 gap-0 overflow-hidden ring-transparent" align="end" sideOffset={8}>
         <NotificationPanel />
       </PopoverContent>
     </Popover>
