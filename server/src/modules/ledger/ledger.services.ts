@@ -297,7 +297,7 @@ export async function softDeleteExpense(
 export async function computeBalances(tripId: string): Promise<BalanceEntry[]> {
   const members = await db.query.tripMembers.findMany({
     where: eq(tripMembers.tripId, tripId),
-    with: { user: { columns: { id: true, name: true, image: true } } },
+    with: { user: { columns: { id: true, name: true, email: true, image: true } } },
   });
 
   const paidTotals = await db
@@ -351,9 +351,15 @@ export async function computeBalances(tripId: string): Promise<BalanceEntry[]> {
 
     return {
       userId: m.user.id,
-      userName: m.user.name,
+      userName: m.user.name ?? 'Member',
       userImage: m.user.image,
       balance: balance.toFixed(2),
+      user: {
+        id: m.user.id,
+        name: m.user.name,
+        email: m.user.email,
+        image: m.user.image,
+      },
     };
   });
 }
@@ -361,17 +367,23 @@ export async function computeBalances(tripId: string): Promise<BalanceEntry[]> {
 export async function computeSettlementSuggestions(
   tripId: string,
 ): Promise<SettlementSuggestion[]> {
+  const members = await db.query.tripMembers.findMany({
+    where: eq(tripMembers.tripId, tripId),
+    with: { user: { columns: { id: true, name: true, email: true, image: true } } },
+  });
+  const memberMap = new Map(members.map((m) => [m.userId, m.user]));
+
   const balances = await computeBalances(tripId);
 
-  const debtors: Array<{ userId: string; userName: string; amount: number }> = [];
-  const creditors: Array<{ userId: string; userName: string; amount: number }> = [];
+  const debtors: Array<{ userId: string; amount: number }> = [];
+  const creditors: Array<{ userId: string; amount: number }> = [];
 
   for (const b of balances) {
     const amount = Number(b.balance);
     if (amount < -0.01) {
-      debtors.push({ userId: b.userId, userName: b.userName, amount: Math.abs(amount) });
+      debtors.push({ userId: b.userId, amount: Math.abs(amount) });
     } else if (amount > 0.01) {
-      creditors.push({ userId: b.userId, userName: b.userName, amount });
+      creditors.push({ userId: b.userId, amount });
     }
   }
 
@@ -384,13 +396,30 @@ export async function computeSettlementSuggestions(
 
   while (i < debtors.length && j < creditors.length) {
     const settleAmount = Math.min(debtors[i].amount, creditors[j].amount);
-    suggestions.push({
-      fromUserId: debtors[i].userId,
-      fromUserName: debtors[i].userName,
-      toUserId: creditors[j].userId,
-      toUserName: creditors[j].userName,
-      amount: settleAmount.toFixed(2),
-    });
+    const debtorUser = memberMap.get(debtors[i].userId);
+    const creditorUser = memberMap.get(creditors[j].userId);
+
+    if (debtorUser && creditorUser) {
+      suggestions.push({
+        fromUserId: debtors[i].userId,
+        fromUserName: debtorUser.name ?? 'Member',
+        toUserId: creditors[j].userId,
+        toUserName: creditorUser.name ?? 'Member',
+        amount: settleAmount.toFixed(2),
+        fromUser: {
+          id: debtorUser.id,
+          name: debtorUser.name,
+          email: debtorUser.email,
+          image: debtorUser.image,
+        },
+        toUser: {
+          id: creditorUser.id,
+          name: creditorUser.name,
+          email: creditorUser.email,
+          image: creditorUser.image,
+        },
+      });
+    }
     debtors[i].amount -= settleAmount;
     creditors[j].amount -= settleAmount;
     if (debtors[i].amount < 0.01) i++;
@@ -451,7 +480,7 @@ export async function recordSettlement(
 export async function getBudgetOverview(tripId: string): Promise<BudgetOverview> {
   const trip = await db.query.trips.findFirst({
     where: eq(trips.id, tripId),
-    columns: { estimatedBudget: true },
+    columns: { estimatedBudget: true, baseCurrency: true },
   });
 
   const [result] = await db
@@ -462,9 +491,27 @@ export async function getBudgetOverview(tripId: string): Promise<BudgetOverview>
     .from(expenses)
     .where(and(eq(expenses.tripId, tripId), isNull(expenses.archivedAt)));
 
+  const categoryRows = await db
+    .select({
+      category: expenses.category,
+      total: sum(expenses.amount),
+    })
+    .from(expenses)
+    .where(and(eq(expenses.tripId, tripId), isNull(expenses.archivedAt)))
+    .groupBy(expenses.category);
+
+  const byCategory: Record<string, number> = {};
+  for (const row of categoryRows) {
+    if (row.category) {
+      byCategory[row.category] = Number(row.total ?? 0);
+    }
+  }
+
   return {
     totalSpent: Number(result?.totalSpent ?? 0),
     expenseCount: result?.expenseCount ?? 0,
     estimatedBudget: trip?.estimatedBudget ? Number(trip.estimatedBudget) : null,
+    currency: trip?.baseCurrency ?? 'USD',
+    byCategory,
   };
 }

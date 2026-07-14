@@ -132,14 +132,32 @@ export interface BalanceEntry {
   userName: string;
   userImage: string | null;
   balance: string;
+  user?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
 }
 
 export interface SettlementSuggestion {
   fromUserId: string;
-  fromUserName: string;
+  fromUserName?: string;
   toUserId: string;
-  toUserName: string;
+  toUserName?: string;
   amount: string;
+  fromUser?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
+  toUser?: {
+    id: string;
+    name: string | null;
+    email: string;
+    image: string | null;
+  };
 }
 
 export interface NotificationWithMeta {
@@ -206,6 +224,8 @@ export interface BudgetOverview {
   totalSpent: number;
   expenseCount: number;
   estimatedBudget: number | null;
+  currency: string;
+  byCategory: Record<string, number>;
 }
 
 export interface DashboardStats {

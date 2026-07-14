@@ -1,4 +1,7 @@
 import type { Request, Response } from 'express';
+import { db } from '../../common/db.js';
+import { trips } from '../../db/index.js';
+import { eq } from 'drizzle-orm';
 import * as ledgerServices from './ledger.services.js';
 
 export async function getExpenses(req: Request, res: Response): Promise<void> {
@@ -42,15 +45,33 @@ export async function deleteExpense(req: Request, res: Response): Promise<void> 
 }
 
 export async function getBalances(req: Request, res: Response): Promise<void> {
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, req.params.tripId as string),
+    columns: { baseCurrency: true },
+  });
   const balances = await ledgerServices.computeBalances(req.params.tripId as string);
-  res.json({ data: balances });
+  res.json({
+    data: {
+      balances,
+      currency: trip?.baseCurrency ?? 'USD',
+    },
+  });
 }
 
 export async function getSettlementSuggestions(req: Request, res: Response): Promise<void> {
+  const trip = await db.query.trips.findFirst({
+    where: eq(trips.id, req.params.tripId as string),
+    columns: { baseCurrency: true },
+  });
   const suggestions = await ledgerServices.computeSettlementSuggestions(
     req.params.tripId as string,
   );
-  res.json({ data: suggestions });
+  res.json({
+    data: {
+      suggestions,
+      currency: trip?.baseCurrency ?? 'USD',
+    },
+  });
 }
 
 export async function settleUp(req: Request, res: Response): Promise<void> {

@@ -44,7 +44,13 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebar
     );
   }
 
-  const { balances, currency } = balancesData.data;
+  const rawData = balancesData.data;
+  const balances: MemberBalance[] = Array.isArray(rawData)
+    ? rawData
+    : Array.isArray(rawData?.balances)
+      ? rawData.balances
+      : [];
+  const currency = (!Array.isArray(rawData) && rawData?.currency) || 'USD';
 
   return (
     <div className="space-y-6">
@@ -64,18 +70,18 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebar
                 const isPositive = balanceVal > 0;
                 const isNegative = balanceVal < 0;
 
+                const name = mb.user?.name || mb.user?.email || 'User';
+                const image = mb.user?.image || '';
+                const fallbackChar = name.charAt(0);
+
                 return (
                   <div key={mb.userId} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={mb.user.image || ''} />
-                        <AvatarFallback>
-                          {mb.user.name?.charAt(0) || mb.user.email.charAt(0)}
-                        </AvatarFallback>
+                        <AvatarImage src={image} />
+                        <AvatarFallback>{fallbackChar}</AvatarFallback>
                       </Avatar>
-                      <div className="text-sm font-medium leading-none">
-                        {mb.user.name || mb.user.email}
-                      </div>
+                      <div className="text-sm font-medium leading-none">{name}</div>
                     </div>
                     <div
                       className={`text-sm font-semibold text-right ${isPositive ? 'text-green-500' : isNegative ? 'text-destructive' : 'text-muted-foreground'}`}

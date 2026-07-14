@@ -48,10 +48,16 @@ export function SettlementSuggestions({ tripId, isOrganizerOrMember }: Settlemen
     );
   }
 
-  const { suggestions, currency } = suggestionsData.data;
+  const rawData = suggestionsData.data;
+  const suggestions: SettlementSuggestion[] = Array.isArray(rawData)
+    ? rawData
+    : Array.isArray(rawData?.suggestions)
+      ? rawData.suggestions
+      : [];
+  const currency = (!Array.isArray(rawData) && rawData?.currency) || 'USD';
 
   if (suggestions.length === 0) {
-    return null; // Don't show if there's nothing to settle
+    return null;
   }
 
   return (
@@ -62,37 +68,38 @@ export function SettlementSuggestions({ tripId, isOrganizerOrMember }: Settlemen
           <CardDescription>Suggested payments to resolve all debts</CardDescription>
         </CardHeader>
         <CardContent className="space-y-3">
-          {suggestions.map((suggestion, i) => (
-            <div
-              key={i}
-              className="flex flex-col space-y-2 p-3 bg-muted/30 rounded-md border text-sm"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium">
-                  {suggestion.fromUser.name || suggestion.fromUser.email}
-                </span>
-                <span className="text-muted-foreground mx-2 text-xs">owes</span>
-                <span className="font-medium">
-                  {suggestion.toUser.name || suggestion.toUser.email}
-                </span>
+          {suggestions.map((suggestion, i) => {
+            const fromName = suggestion.fromUser?.name || suggestion.fromUser?.email || 'Member';
+            const toName = suggestion.toUser?.name || suggestion.toUser?.email || 'Member';
+
+            return (
+              <div
+                key={i}
+                className="flex flex-col space-y-2 p-3 bg-muted/30 rounded-md border text-sm"
+              >
+                <div className="flex items-center justify-between">
+                  <span className="font-medium">{fromName}</span>
+                  <span className="text-muted-foreground mx-2 text-xs">owes</span>
+                  <span className="font-medium">{toName}</span>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t">
+                  <span className="font-bold">
+                    {formatCurrency(parseFloat(suggestion.amount), currency)}
+                  </span>
+                  {isOrganizerOrMember && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      className="h-7 text-xs px-2"
+                      onClick={() => setSelectedSuggestion(suggestion)}
+                    >
+                      Record Payment
+                    </Button>
+                  )}
+                </div>
               </div>
-              <div className="flex items-center justify-between pt-1 border-t">
-                <span className="font-bold">
-                  {formatCurrency(parseFloat(suggestion.amount), currency)}
-                </span>
-                {isOrganizerOrMember && (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    className="h-7 text-xs px-2"
-                    onClick={() => setSelectedSuggestion(suggestion)}
-                  >
-                    Record Payment
-                  </Button>
-                )}
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
 

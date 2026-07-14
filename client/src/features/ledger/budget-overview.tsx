@@ -39,10 +39,10 @@ export function BudgetOverview({ tripId }: BudgetOverviewProps) {
     );
   }
 
-  const { estimatedBudget, totalSpent, currency, byCategory } = budgetData.data;
+  const { estimatedBudget, totalSpent, currency = 'USD', byCategory = {} } = budgetData.data;
   
-  const spent = parseFloat(totalSpent);
-  const budget = estimatedBudget ? parseFloat(estimatedBudget) : 0;
+  const spent = typeof totalSpent === 'number' ? totalSpent : parseFloat(totalSpent || '0');
+  const budget = estimatedBudget ? (typeof estimatedBudget === 'number' ? estimatedBudget : parseFloat(estimatedBudget)) : 0;
   
   const percentage = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
   const isOverBudget = budget > 0 && spent > budget;
@@ -79,14 +79,16 @@ export function BudgetOverview({ tripId }: BudgetOverviewProps) {
           </div>
         )}
 
-        {Object.keys(byCategory).length > 0 && (
+        {byCategory && Object.keys(byCategory).length > 0 && (
           <div className="pt-4 border-t space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">By Category</h4>
             <div className="grid grid-cols-2 gap-2 text-sm">
               {Object.entries(byCategory).map(([category, amount]) => (
                 <div key={category} className="flex justify-between">
                   <span className="capitalize text-muted-foreground">{category.replace(/_/g, ' ')}</span>
-                  <span className="font-medium">{formatCurrency(parseFloat(amount), currency)}</span>
+                  <span className="font-medium">
+                    {formatCurrency(typeof amount === 'number' ? amount : parseFloat(amount as unknown as string || '0'), currency)}
+                  </span>
                 </div>
               ))}
             </div>
