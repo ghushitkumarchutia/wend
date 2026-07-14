@@ -37,7 +37,7 @@ export function TripsSection({ trips }: TripsSectionProps) {
   }, [trips, searchQuery, activeTab]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="relative flex bg-[#f5f7f6] border border-neutral-200/50 rounded-xl p-1 w-full sm:w-[380px] select-none h-10 items-center">
           <div
@@ -98,7 +98,7 @@ export function TripsSection({ trips }: TripsSectionProps) {
           {!searchQuery && <CreateTripModal />}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredTrips.map((trip) => (
             <TripCard key={trip.id} trip={trip} />
           ))}
