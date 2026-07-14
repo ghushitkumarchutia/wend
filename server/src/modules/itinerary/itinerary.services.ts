@@ -143,9 +143,9 @@ export async function createEvent(
   const reminderDelay = Math.max(0, eventStart.getTime() - 60 * 60 * 1000 - Date.now());
   if (reminderDelay > 0) {
     await remindersQueue.add(
-      `reminder:event:${event.id}`,
+      `reminder-event-${event.id}`,
       { type: 'event', eventId: event.id },
-      { delay: reminderDelay, jobId: `reminder:event:${event.id}` },
+      { delay: reminderDelay, jobId: `reminder-event-${event.id}` },
     );
   }
 

@@ -40,33 +40,33 @@ export function TripCard({ trip }: TripCardProps) {
 
       <div className="relative z-20 h-full w-full p-5 flex flex-col justify-between">
         <div className="flex gap-2 justify-end">
-          <span className="px-3.5 py-1 text-xs font-semibold rounded-full bg-white/20 backdrop-blur-md text-white border border-white/10 shadow-[0_2px_10px_0_rgba(0,0,0,0.05)]">
+          <span className="px-3.5 py-1 text-xs font-light rounded-full bg-white/20 backdrop-blur-md text-white border border-white/10">
             {capitalize(trip.status)}
           </span>
-          <span className="px-3.5 py-1 text-xs font-semibold rounded-full bg-white/20 backdrop-blur-md text-white border border-white/10 shadow-[0_2px_10px_0_rgba(0,0,0,0.05)]">
+          <span className="px-3.5 py-1 text-xs font-light rounded-full bg-white/20 backdrop-blur-md text-white border border-white/10">
             {capitalize(trip.role)}
           </span>
         </div>
 
         <div className="flex flex-col text-left space-y-3">
           <div className="space-y-1">
-            <h3 className="text-[22px] font-semibold text-white tracking-tight leading-tight line-clamp-1 drop-shadow-sm font-sans">
+            <h3 className="text-[22px] font-medium text-white leading-tight line-clamp-1">
               {trip.name}
             </h3>
-            <p className="text-sm font-normal text-white/90 tracking-wide line-clamp-1 drop-shadow-sm font-sans">
+            <p className="text-sm font-normal text-white/90 tracking-wide line-clamp-1">
               {trip.destination}
             </p>
           </div>
 
           <div className="flex flex-col gap-2 pt-1">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[14px] bg-white/20 backdrop-blur-md text-white border border-white/10 text-[11px] font-medium tracking-wide w-max shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[14px] bg-white/20 backdrop-blur-md text-white border border-white/10 text-[11px] font-light tracking-wide w-max">
               <Calendar className="h-3.5 w-3.5 text-white/90" />
               <span>
                 {formattedStartDate} - {formattedEndDate}
               </span>
             </div>
 
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[14px] bg-white/20 backdrop-blur-md text-white border border-white/10 text-[11px] font-medium tracking-wide w-max shadow-sm">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-[14px] bg-white/20 backdrop-blur-md text-white border border-white/10 text-[11px] font-light tracking-wide w-max">
               <Users className="h-3.5 w-3.5 text-white/90" />
               <span>
                 {trip.memberCount} traveler{trip.memberCount !== 1 ? 's' : ''}

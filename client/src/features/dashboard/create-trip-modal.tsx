@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { useRouter } from '@tanstack/react-router';
+import { useQueryClient } from '@tanstack/react-query';
 import {
   Dialog,
   DialogContent,
@@ -27,7 +27,7 @@ import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
 
 export function CreateTripModal() {
-  const router = useRouter();
+  const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -96,6 +96,8 @@ export function CreateTripModal() {
     e.preventDefault();
     if (!name || !destination || !startDate || !endDate) return;
 
+    let createdTripId: string | undefined;
+
     try {
       setIsSubmitting(true);
       const payload = {
@@ -109,15 +111,18 @@ export function CreateTripModal() {
       };
 
       const res = await tripApi.createTrip(payload);
-      toast.success('Trip created successfully!');
-      setIsOpen(false);
-
-      router.navigate({ to: `/trips/${res.data.trip.id}` });
+      createdTripId = res.data.trip.id;
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Failed to create trip.';
       toast.error(msg);
     } finally {
       setIsSubmitting(false);
+      if (createdTripId) {
+        setIsOpen(false);
+        toast.success('Trip created successfully!');
+        queryClient.invalidateQueries({ queryKey: ['trips'] });
+        queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
+      }
     }
   };
 

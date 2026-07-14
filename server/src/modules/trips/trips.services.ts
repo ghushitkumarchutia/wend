@@ -99,9 +99,9 @@ export async function createTrip(
 
   if (delay > 0) {
     await remindersQueue.add(
-      `reminder:trip:${trip.id}:1d`,
+      `reminder-trip-${trip.id}-1d`,
       { type: 'trip-departure', tripId: trip.id },
-      { delay, jobId: `reminder:trip:${trip.id}:1d` },
+      { delay, jobId: `reminder-trip-${trip.id}-1d` },
     );
   }
 
