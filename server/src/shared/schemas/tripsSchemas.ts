@@ -10,6 +10,7 @@ export const createTripSchema = z.object({
   description: z.string().max(MAX_DESCRIPTION_LENGTH).optional(),
   baseCurrency: z.enum(CURRENCIES).default('USD'),
   estimatedBudget: z.number().positive().optional(),
+  coverImageUrl: z.string().url().optional(),
 });
 
 export const updateTripSchema = z

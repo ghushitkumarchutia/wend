@@ -83,6 +83,9 @@ export const dashboardApi = {
 
 export const tripsApi = {
   listTrips: () => fetcher<TripsListResponse>('/v1/trips'),
+
+  getPhotos: (query: string) =>
+    fetcher<ApiSuccessResponse<string[]>>(`/v1/trips/photos?query=${encodeURIComponent(query)}`),
 };
 
 export const accountApi = {

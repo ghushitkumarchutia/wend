@@ -59,6 +59,7 @@ export async function createTrip(
     description?: string;
     baseCurrency?: string;
     estimatedBudget?: number;
+    coverImageUrl?: string;
   },
 ) {
   const trip = await db.transaction(async (tx) => {
@@ -72,6 +73,7 @@ export async function createTrip(
         description: data.description ?? null,
         baseCurrency: data.baseCurrency ?? 'USD',
         estimatedBudget: data.estimatedBudget?.toString() ?? null,
+        coverImageUrl: data.coverImageUrl ?? null,
         createdByUserId: userId,
       })
       .returning();

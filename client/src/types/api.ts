@@ -115,6 +115,7 @@ export interface CreateTripRequest {
   description?: string;
   baseCurrency?: string;
   estimatedBudget?: number;
+  coverImageUrl?: string;
 }
 
 export interface UpdateTripRequest {

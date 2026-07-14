@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from '@tanstack/react-router';
 import {
   Dialog,
@@ -18,9 +18,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { tripApi } from '@/lib/api-client';
+import { tripApi, tripsApi } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { Plus, Calendar as CalendarIcon } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, ImageIcon, Loader2, Check } from 'lucide-react';
 import { CURRENCIES } from '@/types/enums';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -37,6 +37,10 @@ export function CreateTripModal() {
   const [endDate, setEndDate] = useState<Date | undefined>(undefined);
   const [baseCurrency, setBaseCurrency] = useState('USD');
   const [estimatedBudget, setEstimatedBudget] = useState('');
+  const [coverImageUrl, setCoverImageUrl] = useState('');
+  const [suggestedImages, setSuggestedImages] = useState<string[]>([]);
+  const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleOpenChange = (open: boolean) => {
     setIsOpen(open);
@@ -47,7 +51,38 @@ export function CreateTripModal() {
       setEndDate(undefined);
       setBaseCurrency('USD');
       setEstimatedBudget('');
+      setCoverImageUrl('');
+      setSuggestedImages([]);
     }
+  };
+
+  const handleDestinationChange = (value: string) => {
+    setDestination(value);
+
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+    }
+
+    if (!value.trim() || value.trim().length < 2) {
+      setSuggestedImages([]);
+      setIsLoadingPhotos(false);
+      return;
+    }
+
+    setIsLoadingPhotos(true);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await tripsApi.getPhotos(value.trim());
+        setSuggestedImages(res.data);
+        if (res.data.length > 0) {
+          setCoverImageUrl((prev) => prev || res.data[0]);
+        }
+      } catch {
+        setSuggestedImages([]);
+      } finally {
+        setIsLoadingPhotos(false);
+      }
+    }, 600);
   };
 
   const handleStartDateChange = (date: Date | undefined) => {
@@ -70,6 +105,7 @@ export function CreateTripModal() {
         endDate: endDate.toISOString(),
         baseCurrency,
         estimatedBudget: estimatedBudget ? parseFloat(estimatedBudget) : undefined,
+        coverImageUrl: coverImageUrl || undefined,
       };
 
       const res = await tripApi.createTrip(payload);
@@ -93,7 +129,7 @@ export function CreateTripModal() {
       </DialogTrigger>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[420px] rounded-[32px] bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
+        className="sm:max-w-[480px] rounded-[32px] bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
       >
         <form onSubmit={handleSubmit}>
           <DialogHeader className="text-center flex flex-col items-center justify-center gap-1">
@@ -133,12 +169,56 @@ export function CreateTripModal() {
                 id="destination"
                 placeholder="e.g. Tokyo, Kyoto, Osaka"
                 value={destination}
-                onChange={(e) => setDestination(e.target.value)}
+                onChange={(e) => handleDestinationChange(e.target.value)}
                 disabled={isSubmitting}
                 className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11 px-4 text-sm font-base transition-all duration-200"
                 required
               />
             </div>
+
+            {(suggestedImages.length > 0 || isLoadingPhotos) && (
+              <div className="flex flex-col gap-1.5">
+                <Label className="text-sm font-semibold text-neutral-900 tracking-wide select-none flex items-center gap-1.5">
+                  <ImageIcon className="h-3.5 w-3.5 text-neutral-500" />
+                  Cover Photo
+                </Label>
+                {isLoadingPhotos ? (
+                  <div className="flex items-center justify-center h-[56px] rounded-xl bg-[#F6F6F6] border border-neutral-200/60 w-full">
+                    <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-4 gap-2 w-full">
+                    {suggestedImages.slice(0, 4).map((url, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => setCoverImageUrl(url)}
+                        className={`relative w-full aspect-video rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer group ${
+                          coverImageUrl === url
+                            ? 'border-[#09a474] ring-2 ring-[#09a474]/20 shadow-sm'
+                            : 'border-neutral-200/60 hover:border-neutral-300'
+                        }`}
+                      >
+                        <img
+                          src={url}
+                          alt={`Cover option ${idx + 1}`}
+                          className="w-full h-full object-cover"
+                          loading="lazy"
+                        />
+                        {coverImageUrl === url && (
+                          <div className="absolute inset-0 bg-[#09a474]/20 flex items-center justify-center">
+                            <div className="w-4 h-4 rounded-full bg-[#09a474] flex items-center justify-center">
+                              <Check className="h-2.5 w-2.5 text-white" />
+                            </div>
+                          </div>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-4">
               <div className="flex flex-col gap-1">
                 <Label

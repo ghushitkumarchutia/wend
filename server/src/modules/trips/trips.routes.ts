@@ -16,6 +16,8 @@ tripsRouter.post(
   tripsController.createTrip,
 );
 
+tripsRouter.get('/photos', generalGetLimiter, tripsController.searchPhotos);
+
 tripsRouter.get('/:tripId', generalGetLimiter, requireTripRole('viewer'), tripsController.getTrip);
 
 tripsRouter.patch(
