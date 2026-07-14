@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { tripApi, tripsApi } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { Plus, Calendar as CalendarIcon, ImageIcon, Loader2, Check } from 'lucide-react';
+import { Plus, Calendar as CalendarIcon, ImageIcon, Loader2, Check, AlertCircle } from 'lucide-react';
 import { CURRENCIES } from '@/types/enums';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -40,6 +40,7 @@ export function CreateTripModal() {
   const [coverImageUrl, setCoverImageUrl] = useState('');
   const [suggestedImages, setSuggestedImages] = useState<string[]>([]);
   const [isLoadingPhotos, setIsLoadingPhotos] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const handleOpenChange = (open: boolean) => {
@@ -53,6 +54,7 @@ export function CreateTripModal() {
       setEstimatedBudget('');
       setCoverImageUrl('');
       setSuggestedImages([]);
+      setFormError(null);
     }
   };
 
@@ -63,7 +65,9 @@ export function CreateTripModal() {
       clearTimeout(debounceRef.current);
     }
 
-    if (!value.trim() || value.trim().length < 2) {
+    const queryValue = value.split(',')[0].trim();
+
+    if (!queryValue || queryValue.length < 2) {
       setSuggestedImages([]);
       setIsLoadingPhotos(false);
       return;
@@ -72,7 +76,7 @@ export function CreateTripModal() {
     setIsLoadingPhotos(true);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await tripsApi.getPhotos(value.trim());
+        const res = await tripsApi.getPhotos(queryValue);
         setSuggestedImages(res.data);
         if (res.data.length > 0) {
           setCoverImageUrl((prev) => prev || res.data[0]);
@@ -97,6 +101,7 @@ export function CreateTripModal() {
     if (!name || !destination || !startDate || !endDate) return;
 
     let createdTripId: string | undefined;
+    setFormError(null);
 
     try {
       setIsSubmitting(true);
@@ -115,6 +120,7 @@ export function CreateTripModal() {
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Failed to create trip.';
       toast.error(msg);
+      setFormError(msg);
     } finally {
       setIsSubmitting(false);
       if (createdTripId) {
@@ -345,6 +351,16 @@ export function CreateTripModal() {
               </div>
             </div>
           </div>
+          {formError && (
+            <div className="mt-4 p-3.5 bg-red-50/80 border border-red-200/60 rounded-xl flex items-start gap-2.5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-1 bg-white rounded-full shadow-sm border border-red-100">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+              </div>
+              <p className="text-[13.5px] leading-relaxed text-red-900/90 font-medium">
+                {formError}
+              </p>
+            </div>
+          )}
           <div className="flex gap-4 mt-6">
             <Button
               type="button"

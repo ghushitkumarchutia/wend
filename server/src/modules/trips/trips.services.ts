@@ -62,6 +62,57 @@ export async function createTrip(
     coverImageUrl?: string;
   },
 ) {
+  const newStart = new Date(data.startDate);
+  const newEnd = new Date(data.endDate);
+
+  const existingTrips = await db
+    .select({
+      id: trips.id,
+      name: trips.name,
+      startDate: trips.startDate,
+      endDate: trips.endDate,
+    })
+    .from(trips)
+    .innerJoin(tripMembers, eq(trips.id, tripMembers.tripId))
+    .where(and(eq(tripMembers.userId, userId), isNull(trips.archivedAt)));
+
+  const now = new Date();
+
+  for (const t of existingTrips) {
+    const isOngoing = now >= t.startDate && now <= t.endDate;
+    const isUpcoming = now < t.startDate;
+
+    if (isOngoing) {
+      if (newStart <= t.endDate) {
+        const err = new Error(
+          `You have an ongoing trip (${t.name}) until ${t.endDate.toLocaleDateString()}. You can only add new trips after this date.`,
+        ) as Error & { status: number };
+        err.status = 409;
+        throw err;
+      }
+    } else if (isUpcoming) {
+      const isEntirelyBefore = newEnd < t.startDate;
+      const isEntirelyAfter = newStart > t.endDate;
+      if (!isEntirelyBefore && !isEntirelyAfter) {
+        const err = new Error(
+          `Your new trip overlaps with an upcoming trip (${t.name}) from ${t.startDate.toLocaleDateString()} to ${t.endDate.toLocaleDateString()}. You must choose dates entirely before or entirely after this trip.`,
+        ) as Error & { status: number };
+        err.status = 409;
+        throw err;
+      }
+    } else {
+      const isEntirelyBefore = newEnd < t.startDate;
+      const isEntirelyAfter = newStart > t.endDate;
+      if (!isEntirelyBefore && !isEntirelyAfter) {
+        const err = new Error(
+          `Your new trip overlaps with an existing past trip (${t.name}).`,
+        ) as Error & { status: number };
+        err.status = 409;
+        throw err;
+      }
+    }
+  }
+
   const trip = await db.transaction(async (tx) => {
     const [newTrip] = await tx
       .insert(trips)

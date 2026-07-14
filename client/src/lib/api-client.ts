@@ -14,7 +14,8 @@ export const fetcher = async <T>(url: string, options?: RequestInit): Promise<T>
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => null);
-    throw new Error(errorData?.message || `API request failed with status ${response.status}`);
+    const apiMessage = errorData?.error?.message || errorData?.message;
+    throw new Error(apiMessage || `API request failed with status ${response.status}`);
   }
 
   if (response.status === 204) {
