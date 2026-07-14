@@ -64,16 +64,16 @@ export function WorkspaceHeader({ trip }: WorkspaceHeaderProps) {
                 Trip Settings
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onSelect={() => setIsEditModalOpen(true)}>
+                <DropdownMenuItem onClick={() => setIsEditModalOpen(true)}>
                   Edit Trip Details
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onSelect={() => setIsArchiveDialogOpen(true)}>
+                <DropdownMenuItem onClick={() => setIsArchiveDialogOpen(true)}>
                   Archive Trip
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
-                  onSelect={() => setIsDeleteDialogOpen(true)}
+                  onClick={() => setIsDeleteDialogOpen(true)}
                 >
                   Delete Trip
                 </DropdownMenuItem>

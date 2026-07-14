@@ -100,7 +100,7 @@ export function MemberRow({
               <DropdownMenuItem
                 className="text-destructive focus:text-destructive"
                 disabled={!canLeave}
-                onSelect={() => setIsLeaveDialogOpen(true)}
+                onClick={() => setIsLeaveDialogOpen(true)}
               >
                 <LogOut className="mr-2 h-4 w-4" />
                 Leave Trip
@@ -111,26 +111,26 @@ export function MemberRow({
               <>
                 <DropdownMenuItem
                   disabled={member.role === 'member'}
-                  onSelect={() => handleRoleChange('member')}
+                  onClick={() => handleRoleChange('member')}
                 >
                   <Shield className="mr-2 h-4 w-4" />
                   Make Member
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   disabled={member.role === 'viewer'}
-                  onSelect={() => handleRoleChange('viewer')}
+                  onClick={() => handleRoleChange('viewer')}
                 >
                   <ShieldAlert className="mr-2 h-4 w-4" />
                   Make Viewer
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={() => setIsTransferModalOpen(true)}>
+                <DropdownMenuItem onClick={() => setIsTransferModalOpen(true)}>
                   <Shield className="mr-2 h-4 w-4 text-primary" />
                   Transfer Organizer
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-destructive focus:text-destructive"
-                  onSelect={handleRemove}
+                  onClick={handleRemove}
                 >
                   <UserMinus className="mr-2 h-4 w-4" />
                   Remove from Trip

@@ -86,13 +86,13 @@ export function EventCard({
                   <MoreHorizontal className="h-4 w-4" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
-                  <DropdownMenuItem onSelect={onEdit}>
+                  <DropdownMenuItem onClick={onEdit}>
                     <Pencil className="mr-2 h-4 w-4" />
                     Edit Event
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     className="text-destructive focus:text-destructive"
-                    onSelect={onDelete}
+                    onClick={onDelete}
                   >
                     <Trash className="mr-2 h-4 w-4" />
                     Delete Event
