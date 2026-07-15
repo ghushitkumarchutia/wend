@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Check } from 'lucide-react';
 import { ledgerApi } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,9 +12,10 @@ import type { SettlementSuggestion } from '@/types/api';
 interface SettlementSuggestionsProps {
   tripId: string;
   isOrganizerOrMember: boolean;
+  currency?: string;
 }
 
-export function SettlementSuggestions({ tripId, isOrganizerOrMember }: SettlementSuggestionsProps) {
+export function SettlementSuggestions({ tripId, isOrganizerOrMember, currency: propCurrency }: SettlementSuggestionsProps) {
   const [selectedSuggestion, setSelectedSuggestion] = useState<SettlementSuggestion | null>(null);
 
   const {
@@ -32,7 +34,7 @@ export function SettlementSuggestions({ tripId, isOrganizerOrMember }: Settlemen
           <CardTitle>How to Settle Up</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full bg-neutral-100" />
         </CardContent>
       </Card>
     );
@@ -54,10 +56,26 @@ export function SettlementSuggestions({ tripId, isOrganizerOrMember }: Settlemen
     : Array.isArray(rawData?.suggestions)
       ? rawData.suggestions
       : [];
-  const currency = (!Array.isArray(rawData) && rawData?.currency) || 'USD';
+  const currency = propCurrency || (!Array.isArray(rawData) && rawData?.currency) || 'USD';
 
   if (suggestions.length === 0) {
-    return null;
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle>How to settle up</CardTitle>
+          <CardDescription>Suggested payments to resolve all debts</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-col items-center justify-center text-center py-6 px-4 bg-white border border-dashed border-neutral-200/80 rounded-xl">
+            <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-600 mb-2">
+              <Check className="w-5 h-5 stroke-[2.5]" />
+            </div>
+            <p className="text-sm font-semibold text-neutral-800">All settled up!</p>
+            <p className="text-xs text-neutral-400 font-light mt-0.5">No pending debts to resolve.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (

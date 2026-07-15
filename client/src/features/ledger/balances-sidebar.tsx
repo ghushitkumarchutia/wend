@@ -10,9 +10,10 @@ import type { MemberBalance } from '@/types/api';
 interface BalancesSidebarProps {
   tripId: string;
   isOrganizerOrMember: boolean;
+  currency: string;
 }
 
-export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebarProps) {
+export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: BalancesSidebarProps) {
   const {
     data: balancesData,
     isLoading,
@@ -29,8 +30,8 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebar
           <CardTitle>Balances</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full bg-neutral-100" />
+          <Skeleton className="h-10 w-full bg-neutral-100" />
         </CardContent>
       </Card>
     );
@@ -50,10 +51,10 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebar
     : Array.isArray(rawData?.balances)
       ? rawData.balances
       : [];
-  const currency = (!Array.isArray(rawData) && rawData?.currency) || 'USD';
+  const activeCurrency = currency || (!Array.isArray(rawData) && rawData?.currency) || 'USD';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       <Card>
         <CardHeader>
           <CardTitle>Balances</CardTitle>
@@ -87,7 +88,7 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebar
                       className={`text-sm font-semibold text-right ${isPositive ? 'text-green-500' : isNegative ? 'text-destructive' : 'text-muted-foreground'}`}
                     >
                       {isPositive ? '+' : ''}
-                      {formatCurrency(balanceVal, currency)}
+                      {formatCurrency(balanceVal, activeCurrency)}
                     </div>
                   </div>
                 );
@@ -97,7 +98,7 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember }: BalancesSidebar
         </CardContent>
       </Card>
 
-      <SettlementSuggestions tripId={tripId} isOrganizerOrMember={isOrganizerOrMember} />
+      <SettlementSuggestions tripId={tripId} isOrganizerOrMember={isOrganizerOrMember} currency={activeCurrency} />
     </div>
   );
 }

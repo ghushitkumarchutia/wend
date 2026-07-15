@@ -11,3 +11,16 @@ export function formatCurrency(amount: number, currency: string = 'USD') {
     currency: currency,
   }).format(amount);
 }
+
+export function getCurrencySymbol(currency: string = 'USD') {
+  try {
+    return (0).toLocaleString('en-US', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).replace(/\d/g, '').trim();
+  } catch {
+    return currency;
+  }
+}

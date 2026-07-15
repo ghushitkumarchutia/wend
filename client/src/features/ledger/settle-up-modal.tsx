@@ -11,7 +11,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import { ledgerApi } from '@/lib/api-client';
 import { toast } from 'sonner';
 import type { SettlementSuggestion } from '@/types/api';
@@ -85,8 +85,8 @@ export function SettleUpModal({ tripId, suggestion, open, onOpenChange, currency
           <div className="space-y-2">
             <Label htmlFor="settle-amount">Amount</Label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                {currency === 'USD' ? '$' : currency}
+              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-medium">
+                {getCurrencySymbol(currency)}
               </span>
               <Input
                 id="settle-amount"

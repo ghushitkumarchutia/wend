@@ -4,7 +4,7 @@ import { travelersApi } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
 import type { SplitMethod } from '@/types/models';
 
 export interface ParticipantShare {
@@ -21,6 +21,7 @@ interface SplitMethodFieldsProps {
   value: ParticipantShare[];
   onChange: (shares: ParticipantShare[]) => void;
   disabled?: boolean;
+  currency?: string;
 }
 
 export function SplitMethodFields({
@@ -30,6 +31,7 @@ export function SplitMethodFields({
   value,
   onChange,
   disabled,
+  currency = 'USD',
 }: SplitMethodFieldsProps) {
   const { data: membersData } = useQuery({
     queryKey: ['travelers', tripId],
@@ -131,8 +133,8 @@ export function SplitMethodFields({
         <span
           className={`text-xs font-medium ${isBalanced ? 'text-green-500' : 'text-destructive'}`}
         >
-          Total Assigned: {formatCurrency(currentTotal, 'USD')} /{' '}
-          {formatCurrency(totalAmount, 'USD')}
+          Total Assigned: {formatCurrency(currentTotal, currency)} /{' '}
+          {formatCurrency(totalAmount, currency)}
         </span>
       </div>
 
@@ -169,7 +171,7 @@ export function SplitMethodFields({
                           ? '%'
                           : splitMethod === 'custom'
                             ? 'shares'
-                            : '$'
+                            : getCurrencySymbol(currency)
                       }
                       value={share.inputValue}
                       onChange={(e) => handleInputChange(member.userId, e.target.value)}
@@ -182,7 +184,7 @@ export function SplitMethodFields({
                 )}
 
                 <div className="text-sm font-semibold min-w-[70px] text-right">
-                  {share.isSelected ? formatCurrency(share.shareAmount, 'USD') : '$0.00'}
+                  {share.isSelected ? formatCurrency(share.shareAmount, currency) : formatCurrency(0, currency)}
                 </div>
               </div>
             </div>
