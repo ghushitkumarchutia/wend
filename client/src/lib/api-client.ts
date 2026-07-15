@@ -142,11 +142,23 @@ export const documentsApi = {
     return { data: { documents: res.data } } as unknown as DocumentListResponse;
   },
 
-  getUploadUrl: (tripId: string, data: DocumentUploadRequest) =>
-    fetcher<PresignedUrlResponse>(`/v1/trips/${tripId}/documents/upload-url`, {
+  getUploadUrl: async (
+    tripId: string,
+    data: DocumentUploadRequest,
+  ): Promise<PresignedUrlResponse> => {
+    const res = await fetcher<
+      ApiSuccessResponse<{ uploadUrl: string; storageKey: string }>
+    >(`/v1/trips/${tripId}/documents/upload-url`, {
       method: 'POST',
       body: JSON.stringify(data),
-    }),
+    });
+    return {
+      data: {
+        url: res.data.uploadUrl,
+        storageKey: res.data.storageKey,
+      },
+    } as PresignedUrlResponse;
+  },
 
   confirmUpload: (tripId: string, data: DocumentConfirmRequest) =>
     fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/documents/confirm`, {
@@ -154,8 +166,17 @@ export const documentsApi = {
       body: JSON.stringify(data),
     }),
 
-  getDownloadUrl: (tripId: string, docId: string) =>
-    fetcher<PresignedUrlResponse>(`/v1/trips/${tripId}/documents/${docId}/download-url`),
+  getDownloadUrl: async (tripId: string, docId: string): Promise<PresignedUrlResponse> => {
+    const res = await fetcher<ApiSuccessResponse<{ downloadUrl: string }>>(
+      `/v1/trips/${tripId}/documents/${docId}/download-url`,
+    );
+    return {
+      data: {
+        url: res.data.downloadUrl,
+        storageKey: '',
+      },
+    } as PresignedUrlResponse;
+  },
 
   deleteDocument: (tripId: string, docId: string) =>
     fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/documents/${docId}`, {
