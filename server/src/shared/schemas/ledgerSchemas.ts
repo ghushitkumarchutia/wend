@@ -3,7 +3,7 @@ import { ExpenseCategory, SplitMethod } from '../enums.js';
 import { MAX_DESCRIPTION_LENGTH } from '../constants.js';
 
 const participantSchema = z.object({
-  userId: z.string().uuid(),
+  userId: z.string(),
   shareAmount: z.number().nonnegative(),
 });
 
@@ -11,7 +11,7 @@ export const logExpenseSchema = z.object({
   description: z.string().min(1).max(MAX_DESCRIPTION_LENGTH),
   amount: z.number().positive(),
   category: z.enum(ExpenseCategory),
-  paidByUserId: z.string().uuid(),
+  paidByUserId: z.string(),
   splitMethod: z.enum(SplitMethod).default('equal'),
   incurredAt: z.string().datetime(),
   participants: z.array(participantSchema).min(1),
@@ -23,7 +23,7 @@ export const updateExpenseSchema = z
     description: z.string().min(1).max(MAX_DESCRIPTION_LENGTH),
     amount: z.number().positive(),
     category: z.enum(ExpenseCategory),
-    paidByUserId: z.string().uuid(),
+    paidByUserId: z.string(),
     splitMethod: z.enum(SplitMethod),
     incurredAt: z.string().datetime(),
     participants: z.array(participantSchema).min(1),
@@ -35,7 +35,7 @@ export const updateExpenseSchema = z
   });
 
 export const settleUpSchema = z.object({
-  fromUserId: z.string().uuid(),
-  toUserId: z.string().uuid(),
+  fromUserId: z.string(),
+  toUserId: z.string(),
   amount: z.number().positive(),
 });
