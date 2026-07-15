@@ -47,7 +47,7 @@ function TripWorkspaceLayout() {
         <div className="flex-1 flex flex-col overflow-y-auto bg-[#F8F9FA]">
           <WorkspaceHeader trip={trip} />
           <WorkspaceTabs tripId={trip.id} role={trip.role} />
-          <div className="w-full px-4 sm:px-6 md:px-8 pt-4 pb-6 flex-1 space-y-6">
+          <div className="w-full px-4 sm:px-6 md:px-8 pt-6 pb-6 flex-1 space-y-6">
             <div>
               <Outlet />
             </div>
