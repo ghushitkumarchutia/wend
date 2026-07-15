@@ -6,16 +6,20 @@ import { ExpenseCard } from './expense-card';
 import { ledgerApi } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { LogExpenseModal } from './log-expense-modal';
+import { DeleteExpenseDialog } from './delete-expense-dialog';
+import type { Expense } from '@/types/models';
 
 interface ExpenseListProps {
   tripId: string;
   isOrganizerOrMember: boolean;
+  currency: string;
 }
 
-export function ExpenseList({ tripId, isOrganizerOrMember }: ExpenseListProps) {
+export function ExpenseList({ tripId, isOrganizerOrMember, currency }: ExpenseListProps) {
   const queryClient = useQueryClient();
   const [isLogExpenseModalOpen, setIsLogExpenseModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
+  const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
 
   const { data: expensesData, isLoading, error } = useQuery({
     queryKey: ['expenses', tripId],
@@ -23,19 +27,19 @@ export function ExpenseList({ tripId, isOrganizerOrMember }: ExpenseListProps) {
   });
 
   if (isLoading) {
-    return <div className="py-8 text-center text-muted-foreground">Loading expenses...</div>;
+    return <div className="py-8 text-center text-muted-foreground text-sm font-light">Loading expenses...</div>;
   }
 
   if (error || !expensesData) {
-    return <div className="py-8 text-center text-destructive">Failed to load expenses.</div>;
+    return <div className="py-8 text-center text-destructive text-sm font-medium">Failed to load expenses.</div>;
   }
 
   const expenses = expensesData.data.expenses;
 
-  const handleDelete = async (expenseId: string) => {
-    if (!confirm('Are you sure you want to delete this expense? This will recalculate all balances.')) return;
+  const handleDeleteConfirm = async () => {
+    if (!deletingExpense) return;
     try {
-      await ledgerApi.deleteExpense(tripId, expenseId);
+      await ledgerApi.deleteExpense(tripId, deletingExpense.id);
       toast.success('Expense deleted');
       queryClient.invalidateQueries({ queryKey: ['expenses', tripId] });
       queryClient.invalidateQueries({ queryKey: ['balances', tripId] });
@@ -44,27 +48,34 @@ export function ExpenseList({ tripId, isOrganizerOrMember }: ExpenseListProps) {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to delete expense';
       toast.error(msg);
+      throw err;
     }
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight">Expenses</h2>
+        <h2 className="text-xl font-bold tracking-tight text-neutral-900">Ledger</h2>
         {isOrganizerOrMember && (
-          <Button onClick={() => setIsLogExpenseModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button 
+            className="bg-[#2c6e49] hover:bg-[#23583a] text-white font-medium rounded-[12px] h-8.5 px-3.5 text-xs cursor-pointer shadow-xs transition-all duration-200 border-none flex items-center justify-center focus-visible:ring-0!"
+            onClick={() => setIsLogExpenseModalOpen(true)}
+          >
+            <Plus className="mr-1 h-3.5 w-3.5 stroke-[2.5]" />
             Add Expense
           </Button>
         )}
       </div>
 
       {expenses.length === 0 ? (
-        <div className="text-center py-12 bg-muted/20 rounded-lg border border-dashed">
-          <h3 className="text-lg font-medium">No expenses yet</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">Keep track of shared costs on this trip.</p>
+        <div className="flex flex-col items-center justify-center text-center py-12 px-6 bg-[#F8F9FA]/40 border border-dashed border-neutral-200/80 rounded-2xl">
+          <h3 className="text-sm font-semibold text-neutral-800">No expenses yet</h3>
+          <p className="text-xs text-neutral-400 font-light mt-1">Keep track of shared costs on this trip.</p>
           {isOrganizerOrMember && (
-            <Button variant="outline" onClick={() => setIsLogExpenseModalOpen(true)}>
+            <Button 
+              className="bg-[#2c6e49] hover:bg-[#23583a] text-white font-medium rounded-[12px] h-8.5 px-3.5 text-xs cursor-pointer shadow-xs transition-all duration-200 border-none flex items-center justify-center mt-4 focus-visible:ring-0!"
+              onClick={() => setIsLogExpenseModalOpen(true)}
+            >
               Log the first expense
             </Button>
           )}
@@ -77,7 +88,7 @@ export function ExpenseList({ tripId, isOrganizerOrMember }: ExpenseListProps) {
               expense={expense} 
               isOrganizerOrMember={isOrganizerOrMember}
               onEdit={() => setEditingExpenseId(expense.id)}
-              onDelete={() => handleDelete(expense.id)}
+              onDelete={() => setDeletingExpense(expense)}
             />
           ))}
         </div>
@@ -86,7 +97,8 @@ export function ExpenseList({ tripId, isOrganizerOrMember }: ExpenseListProps) {
       <LogExpenseModal 
         tripId={tripId} 
         open={isLogExpenseModalOpen} 
-        onOpenChange={setIsLogExpenseModalOpen} 
+        onOpenChange={setIsLogExpenseModalOpen}
+        currency={currency}
       />
       {editingExpenseId && (
         <LogExpenseModal
@@ -94,6 +106,15 @@ export function ExpenseList({ tripId, isOrganizerOrMember }: ExpenseListProps) {
           expense={expenses.find(e => e.id === editingExpenseId)}
           open={!!editingExpenseId}
           onOpenChange={(open) => !open && setEditingExpenseId(null)}
+          currency={currency}
+        />
+      )}
+      {deletingExpense && (
+        <DeleteExpenseDialog
+          open={!!deletingExpense}
+          onOpenChange={(open) => !open && setDeletingExpense(null)}
+          onConfirm={handleDeleteConfirm}
+          expenseDescription={deletingExpense.description}
         />
       )}
     </div>
