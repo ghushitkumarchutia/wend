@@ -5,6 +5,7 @@ import { itineraryApi } from '@/lib/api-client';
 import { toast } from 'sonner';
 import type { ItineraryEvent } from '@/types/models';
 import { AddEditEventModal } from './add-edit-event-modal';
+import { DeleteEventDialog } from './delete-event-dialog';
 
 interface SortableEventListProps {
   tripId: string;
@@ -18,6 +19,7 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
   const [draggedId, setDraggedId] = useState<string | null>(null);
 
   const [editingEventId, setEditingEventId] = useState<string | null>(null);
+  const [deletingEventId, setDeletingEventId] = useState<string | null>(null);
 
   if (
     localEvents.length > 0 &&
@@ -28,10 +30,33 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
     setLocalEvents(events);
   }
 
-  const handleDragStart = (e: React.DragEvent, id: string) => {
+  const handleDragStart = (e: React.DragEvent<HTMLDivElement>, id: string) => {
     if (!isOrganizerOrMember) return;
     setDraggedId(id);
     e.dataTransfer.effectAllowed = 'move';
+
+    const target = e.currentTarget;
+    const rect = target.getBoundingClientRect();
+    const offsetX = e.clientX - rect.left;
+    const offsetY = e.clientY - rect.top;
+
+    if (e.dataTransfer.setDragImage) {
+      const clone = target.cloneNode(true) as HTMLElement;
+      clone.style.position = 'absolute';
+      clone.style.top = '-9999px';
+      clone.style.left = '-9999px';
+      clone.style.width = `${rect.width}px`;
+      clone.style.borderRadius = '12px';
+      clone.style.opacity = '0.95';
+      clone.style.boxShadow = '0 12px 30px -10px rgba(0, 0, 0, 0.12)';
+      document.body.appendChild(clone);
+      e.dataTransfer.setDragImage(clone, offsetX, offsetY);
+      setTimeout(() => {
+        if (document.body.contains(clone)) {
+          document.body.removeChild(clone);
+        }
+      }, 0);
+    }
   };
 
   const handleDragOver = (e: React.DragEvent, targetId: string) => {
@@ -72,17 +97,20 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
     }
   };
 
-  const handleDelete = async (eventId: string) => {
-    if (!confirm('Are you sure you want to delete this event?')) return;
+  const handleConfirmDelete = async () => {
+    if (!deletingEventId) return;
     try {
-      await itineraryApi.deleteEvent(tripId, eventId);
+      await itineraryApi.deleteEvent(tripId, deletingEventId);
       toast.success('Event deleted');
       queryClient.invalidateQueries({ queryKey: ['itinerary', tripId] });
     } catch (error) {
       const msg = error instanceof Error ? error.message : 'Failed to delete event';
       toast.error(msg);
+      throw error;
     }
   };
+
+  const activeDeletingEvent = events.find((e) => e.id === deletingEventId);
 
   return (
     <div className="space-y-3">
@@ -93,13 +121,14 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
           onDragStart={(e) => handleDragStart(e, event.id)}
           onDragOver={(e) => handleDragOver(e, event.id)}
           onDragEnd={handleDragEnd}
+          className="transition-transform duration-150 ease-in-out"
         >
           <EventCard
             event={event}
             isOrganizerOrMember={isOrganizerOrMember}
             isDragging={draggedId === event.id}
             onEdit={() => setEditingEventId(event.id)}
-            onDelete={() => handleDelete(event.id)}
+            onDelete={() => setDeletingEventId(event.id)}
           />
         </div>
       ))}
@@ -111,6 +140,15 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
           open={!!editingEventId}
           onOpenChange={(open) => !open && setEditingEventId(null)}
           tripStartDate={events[0]?.startAt || ''}
+        />
+      )}
+
+      {deletingEventId && activeDeletingEvent && (
+        <DeleteEventDialog
+          eventTitle={activeDeletingEvent.title}
+          open={!!deletingEventId}
+          onOpenChange={(open) => !open && setDeletingEventId(null)}
+          onConfirm={handleConfirmDelete}
         />
       )}
     </div>
