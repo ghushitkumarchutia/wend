@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -97,65 +96,113 @@ export function UploadDocumentModal({ tripId, open, onOpenChange }: UploadDocume
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>Upload Document</DialogTitle>
-          <DialogDescription>
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-[440px] rounded-2xl bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
+      >
+        <DialogHeader className="text-center flex flex-col items-center justify-center gap-1">
+          <DialogTitle className="text-[22px] font-semibold text-[#09a474] font-heading text-center">
+            Upload Document
+          </DialogTitle>
+          <DialogDescription className="text-sm text-neutral-400 font-light text-center">
             Add a file to the trip workspace. Shared documents are visible to everyone.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 py-4">
+        <form onSubmit={handleSubmit} className="space-y-4 py-0 mt-4">
           <DocumentUploadArea onFileSelect={setFile} disabled={isSubmitting} />
 
           {file && (
             <div className="space-y-4 animate-in fade-in slide-in-from-bottom-2 duration-200">
-              <div className="space-y-2">
-                <Label htmlFor="doc-name">File Name (Optional)</Label>
+              <div className="space-y-1">
+                <Label
+                  htmlFor="doc-name"
+                  className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+                >
+                  File Name (Optional)
+                </Label>
                 <Input
                   id="doc-name"
                   placeholder={file.name}
                   value={customName}
                   onChange={(e) => setCustomName(e.target.value)}
                   disabled={isSubmitting}
+                  className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11 px-4 text-sm font-base transition-all duration-200"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="doc-category">Category</Label>
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="doc-category"
+                    className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+                  >
+                    Category
+                  </Label>
                   <Select
                     value={category}
                     onValueChange={(val) => setCategory(val as DocumentCategory)}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger id="doc-category">
+                    <SelectTrigger
+                      id="doc-category"
+                      className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11! px-4 text-sm font-base transition-all duration-200 w-full cursor-pointer!"
+                    >
                       <SelectValue placeholder="None" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="flight">Flight</SelectItem>
-                      <SelectItem value="hotel">Hotel</SelectItem>
-                      <SelectItem value="booking">Booking</SelectItem>
-                      <SelectItem value="visa">Visa</SelectItem>
-                      <SelectItem value="insurance">Insurance</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
+                    <SelectContent className="bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl p-1 overflow-hidden ring-transparent">
+                      {['flight', 'hotel', 'booking', 'visa', 'insurance', 'other'].map((cat) => (
+                        <SelectItem
+                          key={cat}
+                          value={cat}
+                          className={`rounded-lg transition-colors cursor-pointer px-4! pr-10! capitalize ${
+                            cat === category
+                              ? 'bg-[#09a474]! hover:bg-[#088f65]! focus:bg-[#088f65]! **:text-white! font-semibold'
+                              : 'hover:bg-[#09a474]/10! focus:bg-[#09a474]/10! hover:text-[#09a474]! focus:text-[#09a474]! text-neutral-800'
+                          }`}
+                        >
+                          {cat}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="doc-visibility">Visibility</Label>
+                <div className="space-y-1">
+                  <Label
+                    htmlFor="doc-visibility"
+                    className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+                  >
+                    Visibility
+                  </Label>
                   <Select
                     value={visibility}
                     onValueChange={(val) => setVisibility(val as DocumentVisibility)}
                     disabled={isSubmitting}
                   >
-                    <SelectTrigger id="doc-visibility">
+                    <SelectTrigger
+                      id="doc-visibility"
+                      className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11! px-4 text-sm font-base transition-all duration-200 w-full cursor-pointer!"
+                    >
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="shared">Shared</SelectItem>
-                      <SelectItem value="private">Private</SelectItem>
+                    <SelectContent className="bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl p-1 overflow-hidden ring-transparent">
+                      {[
+                        { label: 'Shared', value: 'shared' },
+                        { label: 'Private', value: 'private' },
+                      ].map((vis) => (
+                        <SelectItem
+                          key={vis.value}
+                          value={vis.value}
+                          className={`rounded-lg transition-colors cursor-pointer px-4! pr-10! ${
+                            vis.value === visibility
+                              ? 'bg-[#09a474]! hover:bg-[#088f65]! focus:bg-[#088f65]! **:text-white! font-semibold'
+                              : 'hover:bg-[#09a474]/10! focus:bg-[#09a474]/10! hover:text-[#09a474]! focus:text-[#09a474]! text-neutral-800'
+                          }`}
+                        >
+                          {vis.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -163,14 +210,23 @@ export function UploadDocumentModal({ tripId, open, onOpenChange }: UploadDocume
             </div>
           )}
 
-          <DialogFooter className="pt-4 mt-2">
-            <Button variant="outline" type="button" onClick={handleClose} disabled={isSubmitting}>
+          <div className="flex gap-4 mt-6">
+            <Button
+              type="button"
+              disabled={isSubmitting}
+              onClick={handleClose}
+              className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#ff5d62] hover:bg-[#e04f53] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!file || isSubmitting}>
+            <Button
+              type="submit"
+              disabled={!file || isSubmitting}
+              className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#09a474] hover:bg-[#088f65] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+            >
               {isSubmitting ? 'Uploading...' : 'Upload'}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

@@ -75,12 +75,12 @@ export function DocumentUploadArea({ onFileSelect, disabled }: DocumentUploadAre
 
   if (selectedFile) {
     return (
-      <div className="flex items-center justify-between p-4 border rounded-md bg-muted/30">
+      <div className="flex items-center justify-between p-4 border border-neutral-200/60 rounded-xl bg-neutral-50/50">
         <div className="flex items-center space-x-3 truncate">
-          <FileIcon className="h-6 w-6 text-primary shrink-0" />
+          <FileIcon className="h-6 w-6 text-[#09a474] shrink-0 stroke-1.5" />
           <div className="truncate">
-            <p className="text-sm font-medium truncate">{selectedFile.name}</p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm font-medium text-neutral-900 truncate">{selectedFile.name}</p>
+            <p className="text-xs text-neutral-400 font-light mt-0.5">
               {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
             </p>
           </div>
@@ -91,7 +91,7 @@ export function DocumentUploadArea({ onFileSelect, disabled }: DocumentUploadAre
           size="sm"
           onClick={clearFile}
           disabled={disabled}
-          className="text-muted-foreground hover:text-destructive"
+          className="text-neutral-400 hover:text-red-500 hover:bg-neutral-100/60 rounded-lg p-1.5"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -101,8 +101,10 @@ export function DocumentUploadArea({ onFileSelect, disabled }: DocumentUploadAre
 
   return (
     <div
-      className={`relative border-2 border-dashed rounded-lg p-8 transition-colors ${
-        dragActive ? 'border-primary bg-primary/5' : 'border-muted-foreground/25 hover:bg-muted/50'
+      className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-200 ${
+        dragActive
+          ? 'border-[#09a474] bg-[#09a474]/5'
+          : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/40'
       } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
       onDragEnter={handleDrag}
       onDragLeave={handleDrag}
@@ -119,12 +121,12 @@ export function DocumentUploadArea({ onFileSelect, disabled }: DocumentUploadAre
       />
 
       <div className="flex flex-col items-center justify-center text-center space-y-3 pointer-events-none">
-        <div className="p-3 bg-primary/10 rounded-full">
-          <UploadCloud className="h-6 w-6 text-primary" />
+        <div className="p-3 bg-[#09a474]/10 rounded-full">
+          <UploadCloud className="h-6 w-6 text-[#09a474] stroke-1.5" />
         </div>
         <div>
-          <p className="text-sm font-medium">Click to upload or drag and drop</p>
-          <p className="text-xs text-muted-foreground mt-1">PDF, JPG, PNG, DOC (max. 5MB)</p>
+          <p className="text-sm font-medium text-neutral-800">Click to upload or drag and drop</p>
+          <p className="text-xs text-neutral-400 font-light mt-1">PDF, JPG, PNG, DOC (max. 5MB)</p>
         </div>
       </div>
     </div>
