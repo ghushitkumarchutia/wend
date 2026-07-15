@@ -24,7 +24,7 @@ function TripWorkspaceLayout() {
   useEffect(() => {
     if (socket && tripId) {
       socket.emit('trip:join', tripId);
-      
+
       return () => {
         // Optional: emit trip:leave if backend requires it, but joining a new trip is fine
       };
@@ -43,18 +43,18 @@ function TripWorkspaceLayout() {
 
   return (
     <>
-      <div className="flex h-[calc(100vh-4rem)]">
-        <div className="flex-1 flex flex-col overflow-y-auto">
+      <div className="flex h-screen w-full overflow-hidden">
+        <div className="flex-1 flex flex-col overflow-y-auto bg-[#F8F9FA]">
           <WorkspaceHeader trip={trip} />
-          <div className="w-full max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1">
-            <WorkspaceTabs tripId={trip.id} role={trip.role} />
-            <div className="mt-6">
+          <WorkspaceTabs tripId={trip.id} role={trip.role} />
+          <div className="w-full px-4 sm:px-6 md:px-8 pt-4 pb-6 flex-1 space-y-6">
+            <div>
               <Outlet />
             </div>
           </div>
         </div>
 
-        <div className="w-80 flex-shrink-0 border-l hidden lg:block bg-card">
+        <div className="w-96 shrink-0 border-l hidden lg:block bg-card">
           <CommunicationPanel tripId={trip.id} />
         </div>
       </div>
