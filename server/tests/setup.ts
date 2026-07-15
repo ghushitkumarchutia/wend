@@ -159,6 +159,11 @@ const CLEANUP_TABLES = [
 ];
 
 export async function cleanup() {
+  const isSupabase = process.env.DATABASE_URL?.includes('supabase') || process.env.DATABASE_URL?.includes('pooler');
+  if (isSupabase || process.env.NODE_ENV === 'production') {
+    console.warn('⚠️ Prevented database cleanup truncate on production/Supabase database.');
+    return;
+  }
   for (const table of CLEANUP_TABLES) {
     try {
       await db.execute(sql.raw(`TRUNCATE TABLE ${table} CASCADE`));

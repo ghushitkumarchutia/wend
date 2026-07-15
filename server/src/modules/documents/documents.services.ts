@@ -23,6 +23,13 @@ export async function listDocuments(tripId: string, userId: string) {
       archivedAt: true,
       createdAt: true,
     },
+    with: {
+      uploadedBy: {
+        columns: {
+          name: true,
+        },
+      },
+    },
   });
 }
 
