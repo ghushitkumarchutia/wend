@@ -140,7 +140,7 @@ export function CreateTripModal() {
       </DialogTrigger>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[480px] rounded-[32px] bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
+        className="sm:max-w-[480px] rounded-2xl bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
       >
         <form onSubmit={handleSubmit}>
           <DialogHeader className="text-center flex flex-col items-center justify-center gap-1">

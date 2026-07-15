@@ -80,12 +80,15 @@ export function ItineraryTimeline({ tripId }: ItineraryTimelineProps) {
   const isOrganizerOrMember = trip.role === 'organizer' || trip.role === 'member';
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-2xl font-semibold tracking-tight">Itinerary</h2>
+        <h2 className="text-xl font-bold tracking-tight text-neutral-900">Itinerary</h2>
         {isOrganizerOrMember && (
-          <Button onClick={() => setIsAddEventModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
+          <Button
+            onClick={() => setIsAddEventModalOpen(true)}
+            className="bg-[#2c6e49] hover:bg-[#23583a] text-white font-medium rounded-[12px] h-8.5 px-3.5 text-xs cursor-pointer shadow-xs transition-all duration-200 border-none flex items-center justify-center"
+          >
+            <Plus className="mr-1 h-3.5 w-3.5 stroke-[2.5]" />
             Add Event
           </Button>
         )}
@@ -97,7 +100,7 @@ export function ItineraryTimeline({ tripId }: ItineraryTimelineProps) {
         tripEndDate={trip.endDate}
       />
 
-      <div className="space-y-8">
+      <div className="space-y-5">
         {sortedDateKeys.map((dateStr) => {
           const dayEvents = groupedEvents.get(dateStr)!;
           const dateObj = new Date(dateStr);
@@ -118,10 +121,10 @@ export function ItineraryTimeline({ tripId }: ItineraryTimelineProps) {
         })}
       </div>
 
-      <AddEditEventModal 
-        tripId={tripId} 
-        open={isAddEventModalOpen} 
-        onOpenChange={setIsAddEventModalOpen} 
+      <AddEditEventModal
+        tripId={tripId}
+        open={isAddEventModalOpen}
+        onOpenChange={setIsAddEventModalOpen}
         tripStartDate={trip.startDate}
       />
     </div>

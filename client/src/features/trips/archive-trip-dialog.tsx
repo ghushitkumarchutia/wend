@@ -6,7 +6,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { tripApi } from '@/lib/api-client';
@@ -39,22 +38,38 @@ export function ArchiveTripDialog({ tripId, open, onOpenChange }: ArchiveTripDia
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Archive Trip</DialogTitle>
-          <DialogDescription>
-            Archiving a trip will move it out of your active trips list and set it to read-only mode.
-            You can restore it later if you need to.
+      <DialogContent
+        showCloseButton={false}
+        className="sm:max-w-[440px] rounded-2xl bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
+      >
+        <DialogHeader className="text-center flex flex-col items-center justify-center gap-1.5">
+          <DialogTitle className="text-[22px] font-semibold text-[#09a474] font-heading text-center">
+            Archive Trip
+          </DialogTitle>
+          <DialogDescription className="text-sm text-neutral-400 font-light text-center leading-relaxed">
+            Archiving a trip will move it out of your active trips list and set it to read-only
+            mode. You can restore it later if you need to.
           </DialogDescription>
         </DialogHeader>
-        <DialogFooter className="mt-4">
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isArchiving}>
+
+        <div className="flex gap-4 mt-6">
+          <Button
+            type="button"
+            disabled={isArchiving}
+            onClick={() => onOpenChange(false)}
+            className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#ff5d62] hover:bg-[#e04f53] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+          >
             Cancel
           </Button>
-          <Button onClick={handleArchive} disabled={isArchiving}>
+          <Button
+            type="button"
+            onClick={handleArchive}
+            disabled={isArchiving}
+            className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#09a474] hover:bg-[#088f65] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+          >
             {isArchiving ? 'Archiving...' : 'Archive Trip'}
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );
