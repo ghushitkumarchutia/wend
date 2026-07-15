@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ledgerApi } from '@/lib/api-client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
 import { formatCurrency, cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
 
@@ -53,11 +52,12 @@ export function BudgetOverview({ tripId, currency }: BudgetOverviewProps) {
       : parseFloat(estimatedBudget)
     : 0;
 
-  const percentage = budget > 0 ? Math.min(100, Math.round((spent / budget) * 100)) : 0;
+  const displayPercentage = budget > 0 ? Math.round((spent / budget) * 100) : 0;
+  const barPercentage = Math.min(100, displayPercentage);
   const isOverBudget = budget > 0 && spent > budget;
 
   return (
-    <div className="bg-[#2c6e49] text-white rounded-2xl pt-5 pb-6 px-6">
+    <div className="bg-[#2c6e49] text-white rounded-2xl pt-5 pb-6 px-[26px]">
       <div className="pb-2">
         <h3 className="text-xl font-medium tracking-wide text-white/90">Budget Overview</h3>
       </div>
@@ -80,17 +80,35 @@ export function BudgetOverview({ tripId, currency }: BudgetOverviewProps) {
         </div>
 
         {budget > 0 && (
-          <div className="space-y-1.5">
-            <Progress
-              value={percentage}
-              className={cn(
-                'h-2 rounded-full',
-                isOverBudget
-                  ? 'bg-red-500/20 **:data-[slot=progress-track]:bg-red-500/20 **:data-[slot=progress-indicator]:bg-red-500'
-                  : 'bg-white/20 **:data-[slot=progress-track]:bg-white/20 **:data-[slot=progress-indicator]:bg-white',
-              )}
-            />
-            <p className="text-xs text-white/80 text-right font-medium">{percentage}% used</p>
+          <div className="space-y-2">
+            <div className="flex justify-between items-center text-xs font-medium text-white/80">
+              <span>Budget Progress</span>
+              <span className={cn(
+                "px-1.5 py-0.5 rounded text-[10px] font-bold",
+                isOverBudget ? "bg-red-500/20 text-red-300" : "bg-white/10 text-white/90"
+              )}>
+                {displayPercentage}% used
+              </span>
+            </div>
+            
+            <div className="flex gap-[3px] w-full">
+              {Array.from({ length: 35 }).map((_, i) => {
+                const isActive = i < Math.round((barPercentage / 100) * 35);
+                return (
+                  <div
+                    key={i}
+                    className={cn(
+                      "h-4.5 flex-1 rounded-[3px] transition-colors duration-300",
+                      isActive
+                        ? isOverBudget
+                          ? "bg-red-400"
+                          : "bg-[#5BE49B]"
+                        : "bg-white/10"
+                    )}
+                  />
+                );
+              })}
+            </div>
           </div>
         )}
 
