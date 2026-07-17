@@ -15,7 +15,7 @@ export const logExpenseSchema = z.object({
   splitMethod: z.enum(SplitMethod).default('equal'),
   incurredAt: z.string().datetime(),
   participants: z.array(participantSchema).min(1),
-  receiptUrl: z.string().optional(),
+  receiptUrl: z.string().nullable().optional(),
 });
 
 export const updateExpenseSchema = z
