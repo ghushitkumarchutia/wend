@@ -212,7 +212,7 @@ export interface LogExpenseRequest {
   paidByUserId: string;
   splitMethod: SplitMethod;
   incurredAt: string;
-  receiptUrl?: string;
+  receiptUrl?: string | null;
   participants: {
     userId: string;
     shareAmount: number;

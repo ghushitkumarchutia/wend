@@ -25,7 +25,7 @@ export const fetcher = async <T>(url: string, options?: RequestInit): Promise<T>
   return response.json();
 };
 
-import type { TripWithRole } from '@/types/models';
+import type { TripWithRole, TripDocument } from '@/types/models';
 import type {
   DashboardStatsResponse,
   TripsListResponse,
@@ -161,7 +161,7 @@ export const documentsApi = {
   },
 
   confirmUpload: (tripId: string, data: DocumentConfirmRequest) =>
-    fetcher<ApiSuccessResponse<void>>(`/v1/trips/${tripId}/documents/confirm`, {
+    fetcher<ApiSuccessResponse<TripDocument>>(`/v1/trips/${tripId}/documents/confirm`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),

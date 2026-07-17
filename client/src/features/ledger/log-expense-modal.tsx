@@ -19,9 +19,9 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
 import { format } from 'date-fns';
-import { Calendar as CalendarIcon, AlertCircle } from 'lucide-react';
+import { Calendar as CalendarIcon, AlertCircle, UploadCloud, X, File as FileIcon } from 'lucide-react';
 import { SplitMethodFields, type ParticipantShare } from './split-method-fields';
-import { ledgerApi, travelersApi } from '@/lib/api-client';
+import { ledgerApi, travelersApi, documentsApi } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { getCurrencySymbol } from '@/lib/utils';
 import type { Expense, ExpenseCategory, SplitMethod } from '@/types/models';
@@ -93,6 +93,9 @@ function ExpenseForm({ tripId, expense, onClose, currency }: ExpenseFormProps) {
   const [category, setCategory] = useState<ExpenseCategory>(expense?.category || 'food_and_drinks');
   const [paidByUserId, setPaidByUserId] = useState(expense?.paidByUserId || '');
 
+  const [receiptFile, setReceiptFile] = useState<File | null>(null);
+  const [existingReceiptUrl, setExistingReceiptUrl] = useState<string | null>(expense?.receiptUrl || null);
+
   const [incurredAt, setIncurredAt] = useState<Date>(() => {
     if (expense?.incurredAt) {
       return new Date(expense.incurredAt);
@@ -151,7 +154,42 @@ function ExpenseForm({ tripId, expense, onClose, currency }: ExpenseFormProps) {
     try {
       setIsSubmitting(true);
 
-      const payload = {
+      let finalReceiptUrl = existingReceiptUrl;
+
+      if (receiptFile) {
+        // Step 1: Request S3 presigned URL
+        const urlRes = await documentsApi.getUploadUrl(tripId, {
+          fileType: receiptFile.type,
+        });
+        const { url, storageKey } = urlRes.data;
+
+        // Step 2: Upload file to storage bucket
+        const uploadRes = await fetch(url, {
+          method: 'PUT',
+          body: receiptFile,
+          headers: {
+            'Content-Type': receiptFile.type,
+          },
+        });
+
+        if (!uploadRes.ok) {
+          throw new Error('Failed to upload receipt file');
+        }
+
+        // Step 3: Confirm document upload with backend
+        const confirmRes = await documentsApi.confirmUpload(tripId, {
+          storageKey,
+          fileName: receiptFile.name,
+          fileType: receiptFile.type,
+          sizeBytes: receiptFile.size,
+          category: 'other',
+          visibility: 'shared',
+        });
+
+        finalReceiptUrl = confirmRes.data.id;
+      }
+
+      const commonPayload = {
         description,
         amount: totalAmount,
         category,
@@ -163,12 +201,16 @@ function ExpenseForm({ tripId, expense, onClose, currency }: ExpenseFormProps) {
 
       if (expense) {
         await ledgerApi.updateExpense(tripId, expense.id, {
-          ...payload,
+          ...commonPayload,
+          receiptUrl: finalReceiptUrl,
           version: expense.version,
         });
         toast.success('Expense updated');
       } else {
-        await ledgerApi.logExpense(tripId, payload);
+        await ledgerApi.logExpense(tripId, {
+          ...commonPayload,
+          receiptUrl: finalReceiptUrl,
+        });
         toast.success('Expense logged');
       }
       queryClient.invalidateQueries({ queryKey: ['expenses', tripId] });
@@ -390,6 +432,69 @@ function ExpenseForm({ tripId, expense, onClose, currency }: ExpenseFormProps) {
             </PopoverContent>
           </Popover>
         </div>
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <Label className="text-sm font-semibold text-neutral-900 tracking-wide select-none">
+          Receipt (Optional)
+        </Label>
+        
+        {receiptFile ? (
+          <div className="flex items-center justify-between border border-neutral-200/60 bg-[#F6F6F6] rounded-xl px-4 py-2.5 text-xs animate-in fade-in slide-in-from-bottom-1 duration-200">
+            <div className="flex items-center gap-2 truncate">
+              <FileIcon className="h-4 w-4 text-[#09a474] shrink-0" />
+              <span className="font-semibold text-neutral-800 truncate">{receiptFile.name}</span>
+              <span className="text-neutral-400 font-light shrink-0">({(receiptFile.size / 1024).toFixed(1)} KB)</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setReceiptFile(null)}
+              className="text-red-500 hover:text-red-600 transition-colors p-1 cursor-pointer border-none bg-transparent"
+              disabled={isSubmitting}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : existingReceiptUrl ? (
+          <div className="flex items-center justify-between border border-neutral-200/60 bg-[#F6F6F6] rounded-xl px-4 py-2.5 text-xs animate-in fade-in slide-in-from-bottom-1 duration-200">
+            <div className="flex items-center gap-2 truncate">
+              <FileIcon className="h-4 w-4 text-[#09a474] shrink-0" />
+              <span className="font-semibold text-neutral-800 truncate">Current Receipt Attached</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setExistingReceiptUrl(null)}
+              className="text-red-500 hover:text-red-600 transition-colors p-1 cursor-pointer border-none bg-transparent"
+              disabled={isSubmitting}
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
+        ) : (
+          <div className="relative">
+            <input
+              type="file"
+              id="receipt-file-input"
+              className="hidden"
+              accept="image/*,application/pdf"
+              onChange={(e) => {
+                const files = e.target.files;
+                if (files && files[0]) {
+                  setReceiptFile(files[0]);
+                  setExistingReceiptUrl(null);
+                }
+              }}
+              disabled={isSubmitting}
+            />
+            <label
+              htmlFor="receipt-file-input"
+              className="flex items-center justify-center gap-2 border border-dashed border-neutral-300 hover:border-[#09a474] rounded-xl py-3 px-4 text-xs font-semibold text-neutral-500 hover:text-[#09a474] bg-[#F6F6F6] hover:bg-[#F6F6F6]/60 cursor-pointer transition-all duration-200 select-none"
+            >
+              <UploadCloud className="h-4 w-4 text-neutral-400" />
+              <span>Choose Receipt (Image or PDF)</span>
+            </label>
+          </div>
+        )}
       </div>
 
       <div className="flex flex-col gap-1">
