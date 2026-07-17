@@ -1,6 +1,5 @@
 import { useQuery } from '@tanstack/react-query';
 import { ledgerApi } from '@/lib/api-client';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { formatCurrency } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -25,23 +24,21 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Balances</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-10 w-full bg-neutral-100" />
-          <Skeleton className="h-10 w-full bg-neutral-100" />
-        </CardContent>
-      </Card>
+      <div className="bg-white rounded-[24px] border-[0.5px] border-neutral-200/40 p-5 shadow-2xs space-y-4">
+        <div className="pb-2">
+          <Skeleton className="h-6 w-24 bg-neutral-100" />
+        </div>
+        <Skeleton className="h-10 w-full bg-neutral-100" />
+        <Skeleton className="h-10 w-full bg-neutral-100" />
+      </div>
     );
   }
 
   if (error || !balancesData) {
     return (
-      <Card>
-        <CardContent className="p-6 text-sm text-destructive">Failed to load balances.</CardContent>
-      </Card>
+      <div className="bg-white rounded-[24px] border-[0.5px] border-[#D11A2A]/20 p-5 shadow-2xs text-sm text-[#D11A2A] font-medium">
+        Failed to load balances.
+      </div>
     );
   }
 
@@ -55,17 +52,18 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
 
   return (
     <div className="space-y-5">
-      <Card>
-        <CardHeader>
-          <CardTitle>Balances</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="relative rounded-[20px] border-[0.5px] border-neutral-200/40 shadow-[0_10px_30px_rgba(0,0,0,0.04),0_2px_8px_rgba(0,0,0,0.02)] flex flex-col bg-[#1E293B] select-none">
+        <div className="pt-3.5 pb-3.5 px-5 text-white rounded-t-[20px]">
+          <span className="text-[13px] md:text-[14px] font-semibold tracking-wider text-white">BALANCES</span>
+        </div>
+        
+        <div className="bg-white rounded-t-[20px] rounded-b-[19px] p-5 flex-1 flex flex-col justify-between shadow-[0_-4px_12px_rgba(0,0,0,0.03)] border-t border-neutral-100/50">
           {balances.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">
+            <p className="text-xs text-neutral-400 text-center py-4 font-light select-none">
               No balances yet. Log an expense to get started.
             </p>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3.5">
               {balances.map((mb: MemberBalance) => {
                 const balanceVal = parseFloat(mb.balance);
                 const isPositive = balanceVal > 0;
@@ -78,14 +76,14 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
                 return (
                   <div key={mb.userId} className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <Avatar className="h-8 w-8">
+                      <Avatar className="h-8.5 w-8.5 border border-neutral-100/60 shadow-3xs">
                         <AvatarImage src={image} />
-                        <AvatarFallback>{fallbackChar}</AvatarFallback>
+                        <AvatarFallback className="bg-neutral-50 text-neutral-500 font-semibold text-xs">{fallbackChar}</AvatarFallback>
                       </Avatar>
-                      <div className="text-sm font-medium leading-none">{name}</div>
+                      <div className="text-sm font-semibold text-neutral-800">{name}</div>
                     </div>
                     <div
-                      className={`text-sm font-semibold text-right ${isPositive ? 'text-green-500' : isNegative ? 'text-destructive' : 'text-muted-foreground'}`}
+                      className={`text-[14px] font-bold text-right ${isPositive ? 'text-[#2c6e49]' : isNegative ? 'text-[#D11A2A]' : 'text-neutral-400'}`}
                     >
                       {isPositive ? '+' : ''}
                       {formatCurrency(balanceVal, activeCurrency)}
@@ -95,8 +93,8 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
               })}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <SettlementSuggestions tripId={tripId} isOrganizerOrMember={isOrganizerOrMember} currency={activeCurrency} />
     </div>
