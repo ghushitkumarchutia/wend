@@ -3,6 +3,6 @@ import postgres from 'postgres';
 import { env } from './env.js';
 import * as schema from '../db/index.js';
 
-const queryClient = postgres(env.DATABASE_URL);
+const queryClient = postgres(env.DATABASE_URL, { prepare: false });
 
 export const db = drizzle(queryClient, { schema });
