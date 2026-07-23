@@ -20,10 +20,12 @@ function DashboardRoute() {
   });
 
   return (
-    <div className="flex flex-col gap-6 pt-4 pb-6 px-6 lg:pt-6 lg:pb-10 lg:px-10 w-full max-w-7xl mx-auto">
-      {!isLoadingStats && statsData?.data && <StatCardsRow stats={statsData.data} />}
+    <div className="min-h-[calc(100vh-56px)] bg-[#F5F5F7] w-full">
+      <div className="flex flex-col gap-6 pt-4 pb-6 px-6 lg:pt-6 lg:pb-10 lg:px-10 w-full max-w-7xl mx-auto">
+        {!isLoadingStats && statsData?.data && <StatCardsRow stats={statsData.data} />}
 
-      {!isLoadingTrips && tripsData?.data && <TripsSection trips={tripsData.data} />}
+        {!isLoadingTrips && tripsData?.data && <TripsSection trips={tripsData.data} />}
+      </div>
     </div>
   );
 }
