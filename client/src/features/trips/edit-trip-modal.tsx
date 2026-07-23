@@ -19,7 +19,9 @@ import {
 } from '@/components/ui/select';
 import { tripApi, tripsApi } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { Calendar as CalendarIcon, ImageIcon, Loader2, Check, AlertCircle } from 'lucide-react';
+import { Loader2, Check, AlertCircle } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Image01Icon, Calendar02Icon } from '@hugeicons/core-free-icons';
 import { CURRENCIES } from '@/types/enums';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
@@ -37,7 +39,7 @@ export function EditTripModal({ trip, open, onOpenChange }: EditTripModalProps) 
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[480px] rounded-2xl bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
+        className="md:max-w-120 rounded-3xl md:rounded-[32px] bg-white pt-5 pb-6 px-6 md:pt-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 max-h-[90vh] overflow-y-auto font-manrope"
       >
         {open && <EditTripForm trip={trip} onClose={() => onOpenChange(false)} />}
       </DialogContent>
@@ -169,18 +171,18 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <DialogHeader className="text-center flex flex-col items-center justify-center gap-1">
-        <DialogTitle className="text-[22px] font-semibold text-[#09a474] font-heading text-center">
+        <DialogTitle className="text-xl md:text-2xl font-bold text-[#10b981] font-syne text-center tracking-tight">
           Edit Trip Details
         </DialogTitle>
-        <DialogDescription className="text-sm text-neutral-400 font-light text-center">
+        <DialogDescription className="text-xs md:text-sm text-neutral-500 font-manrope text-center leading-relaxed">
           Update your trip's name, dates, budget, or cover photo.
         </DialogDescription>
       </DialogHeader>
-      <div className="grid gap-2 py-0 mt-3">
-        <div className="flex flex-col gap-1">
+      <div className="grid gap-3.5 py-0 mt-4">
+        <div className="flex flex-col gap-1.5">
           <Label
             htmlFor="edit-name"
-            className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+            className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
           >
             Trip Name
           </Label>
@@ -190,14 +192,14 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isSubmitting}
-            className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11 px-4 text-sm font-base transition-all duration-200"
+            className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-neutral-900 placeholder:text-neutral-400 transition-all duration-200"
             required
           />
         </div>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col gap-1.5">
           <Label
             htmlFor="edit-destination"
-            className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+            className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
           >
             Destination
           </Label>
@@ -207,23 +209,27 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
             value={destination}
             onChange={(e) => handleDestinationChange(e.target.value)}
             disabled={isSubmitting}
-            className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11 px-4 text-sm font-base transition-all duration-200"
+            className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-neutral-900 placeholder:text-neutral-400 transition-all duration-200"
             required
           />
         </div>
 
         {(suggestedImages.length > 0 || isLoadingPhotos) && (
           <div className="flex flex-col gap-1.5">
-            <Label className="text-sm font-semibold text-neutral-900 tracking-wide select-none flex items-center gap-1.5">
-              <ImageIcon className="h-3.5 w-3.5 text-neutral-500" />
+            <Label className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none flex items-center gap-1.5">
+              <HugeiconsIcon
+                icon={Image01Icon}
+                className="size-4 text-neutral-500 shrink-0"
+                strokeWidth={1.75}
+              />
               Cover Photo
             </Label>
             {isLoadingPhotos ? (
-              <div className="flex items-center justify-center h-[56px] rounded-xl bg-[#F6F6F6] border border-neutral-200/60 w-full">
+              <div className="flex items-center justify-center h-14 rounded-xl bg-[#F5F5F7] border border-neutral-200/80 w-full">
                 <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
               </div>
             ) : (
-              <div className="grid grid-cols-4 gap-2 w-full">
+              <div className="grid grid-cols-4 gap-1.5 md:gap-2 w-full">
                 {suggestedImages.slice(0, 4).map((url, idx) => (
                   <button
                     key={idx}
@@ -231,8 +237,8 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
                     onClick={() => setCoverImageUrl(url)}
                     className={`relative w-full aspect-video rounded-xl overflow-hidden border-2 transition-all duration-200 cursor-pointer group ${
                       coverImageUrl === url
-                        ? 'border-[#09a474] ring-2 ring-[#09a474]/20 shadow-sm'
-                        : 'border-neutral-200/60 hover:border-neutral-300'
+                        ? 'border-[#10b981] ring-2 ring-[#10b981]/20 shadow-xs'
+                        : 'border-neutral-200/80 hover:border-neutral-300'
                     }`}
                   >
                     <img
@@ -242,8 +248,8 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
                       loading="lazy"
                     />
                     {coverImageUrl === url && (
-                      <div className="absolute inset-0 bg-[#09a474]/20 flex items-center justify-center">
-                        <div className="w-4 h-4 rounded-full bg-[#09a474] flex items-center justify-center">
+                      <div className="absolute inset-0 bg-[#10b981]/20 flex items-center justify-center">
+                        <div className="w-4 h-4 rounded-full bg-[#10b981] flex items-center justify-center">
                           <Check className="h-2.5 w-2.5 text-white" />
                         </div>
                       </div>
@@ -255,58 +261,66 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
           </div>
         )}
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
+        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+          <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="edit-startDate"
-              className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+              className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
             >
               Start Date
             </Label>
             <Popover>
-              <PopoverTrigger className="w-full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full bg-[#F6F6F6] hover:bg-[#f1f3f5] border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11! px-4 text-sm font-base transition-all duration-200 text-left flex items-center justify-between cursor-pointer!"
+              <PopoverTrigger
+                type="button"
+                className="w-full bg-[#F5F5F7] hover:bg-[#EEEEEF] border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-3 md:px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 text-left flex items-center justify-between cursor-pointer!"
+              >
+                <span
+                  className={`truncate pr-1 ${
+                    startDate ? 'text-neutral-900 font-medium' : 'text-neutral-400'
+                  }`}
                 >
-                  <span className={startDate ? 'text-neutral-900' : 'text-neutral-400'}>
-                    {startDate ? format(startDate, 'MMM d, yyyy') : 'Select date'}
-                  </span>
-                  <CalendarIcon className="h-4 w-4 text-neutral-400" />
-                </Button>
+                  {startDate ? format(startDate, 'MMM d, yyyy') : 'Select date'}
+                </span>
+                <HugeiconsIcon
+                  icon={Calendar02Icon}
+                  className="size-4 text-neutral-400 shrink-0"
+                  strokeWidth={1.75}
+                />
               </PopoverTrigger>
               <PopoverContent
-                className="w-auto p-0 bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl overflow-hidden ring-transparent"
+                className="w-auto p-0 bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl overflow-hidden ring-transparent z-50 font-manrope"
                 align="start"
               >
                 <Calendar mode="single" selected={startDate} onSelect={handleStartDateChange} />
               </PopoverContent>
             </Popover>
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="edit-endDate"
-              className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+              className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
             >
               End Date
             </Label>
             <Popover>
-              <PopoverTrigger className="w-full">
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={!startDate}
-                  className="w-full bg-[#F6F6F6] hover:bg-[#f1f3f5] border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11! px-4 text-sm font-base transition-all duration-200 text-left flex items-center justify-between cursor-pointer! disabled:opacity-50 disabled:cursor-not-allowed"
+              <PopoverTrigger
+                type="button"
+                disabled={!startDate}
+                className="w-full bg-[#F5F5F7] hover:bg-[#EEEEEF] border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-3 md:px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 text-left flex items-center justify-between cursor-pointer! disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <span
+                  className={`truncate pr-1 ${endDate ? 'text-neutral-900 font-medium' : 'text-neutral-400'}`}
                 >
-                  <span className={endDate ? 'text-neutral-900' : 'text-neutral-400'}>
-                    {endDate ? format(endDate, 'MMM d, yyyy') : 'Select date'}
-                  </span>
-                  <CalendarIcon className="h-4 w-4 text-neutral-400" />
-                </Button>
+                  {endDate ? format(endDate, 'MMM d, yyyy') : 'Select date'}
+                </span>
+                <HugeiconsIcon
+                  icon={Calendar02Icon}
+                  className="size-4 text-neutral-400 shrink-0"
+                  strokeWidth={1.75}
+                />
               </PopoverTrigger>
               <PopoverContent
-                className="w-auto p-0 bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl overflow-hidden ring-transparent"
+                className="w-auto p-0 bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl overflow-hidden ring-transparent z-50 font-manrope"
                 align="start"
               >
                 <Calendar
@@ -319,11 +333,11 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
             </Popover>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <div className="flex flex-col gap-1">
+        <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+          <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="edit-baseCurrency"
-              className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+              className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
             >
               Base Currency
             </Label>
@@ -334,31 +348,52 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
             >
               <SelectTrigger
                 id="edit-baseCurrency"
-                className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11! px-4 text-sm font-base transition-all duration-200 w-full cursor-pointer!"
+                className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5! md:h-11! px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 w-full cursor-pointer! flex items-center justify-between"
               >
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
-              <SelectContent className="bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl p-1 overflow-hidden ring-transparent">
-                {CURRENCIES.map((currency) => (
-                  <SelectItem
-                    key={currency}
-                    value={currency}
-                    className={`rounded-lg transition-colors cursor-pointer px-4! pr-10! ${
-                      currency === baseCurrency
-                        ? 'bg-[#09a474]! hover:bg-[#088f65]! focus:bg-[#088f65]! **:text-white! font-semibold'
-                        : 'hover:bg-[#09a474]/10! focus:bg-[#09a474]/10! hover:text-[#09a474]! focus:text-[#09a474]! text-neutral-800'
-                    }`}
-                  >
-                    {currency}
-                  </SelectItem>
-                ))}
+              <SelectContent
+                side="bottom"
+                sideOffset={8}
+                align="start"
+                alignItemWithTrigger={false}
+                className="w-full min-w-(--radix-select-trigger-width) bg-white/95 backdrop-blur-md border border-black/5 rounded-2xl shadow-2xl p-2 overflow-y-auto ring-transparent z-50 mt-1 max-h-56 font-manrope"
+              >
+                {CURRENCIES.map((currency) => {
+                  const isSelected = currency === baseCurrency;
+                  return (
+                    <SelectItem
+                      key={currency}
+                      value={currency}
+                      className={`rounded-lg transition-all cursor-pointer py-2.25! px-3.5! pr-9! my-0.5 font-manrope text-sm font-medium ${
+                        isSelected
+                          ? 'text-white! hover:text-white! focus:text-white! focus:bg-[#059669]! hover:bg-[#059669]! **:text-white! hover:**:text-white! focus:**:text-white! font-semibold border border-white/30'
+                          : 'hover:bg-[#09a474]/10! focus:bg-[#09a474]/10! hover:text-[#09a474]! focus:text-[#09a474]! text-neutral-800'
+                      }`}
+                      style={
+                        isSelected
+                          ? {
+                              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                              boxShadow: `
+                                inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.4),
+                                inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2),
+                                0 3px 10px -1px rgba(16, 185, 129, 0.35)
+                              `,
+                            }
+                          : undefined
+                      }
+                    >
+                      {currency}
+                    </SelectItem>
+                  );
+                })}
               </SelectContent>
             </Select>
           </div>
-          <div className="flex flex-col gap-1">
+          <div className="flex flex-col gap-1.5">
             <Label
               htmlFor="edit-estimatedBudget"
-              className="text-sm font-semibold text-neutral-900 tracking-wide select-none"
+              className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
             >
               Budget (Optional)
             </Label>
@@ -367,36 +402,58 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
               type="number"
               min="0"
               step="0.01"
-              placeholder="e.g. $2000"
+              placeholder="e.g. 2000"
               value={estimatedBudget}
               onChange={(e) => setEstimatedBudget(e.target.value)}
               disabled={isSubmitting}
-              className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11 px-4 text-sm font-base transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
         </div>
       </div>
       {formError && (
         <div className="mt-4 p-3.5 bg-red-50/80 border border-red-200/60 rounded-xl flex items-start gap-2.5 animate-in fade-in zoom-in-95 duration-200">
-          <div className="p-1 bg-white rounded-full shadow-sm border border-red-100">
+          <div className="p-1 bg-white rounded-full shadow-xs border border-red-100">
             <AlertCircle className="h-4 w-4 text-red-600" />
           </div>
-          <p className="text-[13.5px] leading-relaxed text-red-900/90 font-medium">{formError}</p>
+          <p className="text-xs md:text-[13.5px] leading-relaxed text-red-900/90 font-medium font-manrope">
+            {formError}
+          </p>
         </div>
       )}
-      <div className="flex gap-4 mt-6">
+      <div className="flex gap-2.5 md:gap-3 mt-6">
         <Button
           type="button"
+          variant="waterdrop"
           disabled={isSubmitting}
           onClick={onClose}
-          className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#ff5d62] hover:bg-[#e04f53] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+          className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer"
+          style={{
+            background: 'linear-gradient(135deg, #F85252 0%, #E63946 100%)',
+            boxShadow: `
+              inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+              inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+              0 4px 14px -2px rgba(230, 57, 70, 0.4),
+              0 1px 3px 0 rgba(0, 0, 0, 0.08)
+            `,
+          }}
         >
           Cancel
         </Button>
         <Button
           type="submit"
+          variant="waterdrop"
           disabled={isSubmitting || !name || !destination || !startDate || !endDate}
-          className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#09a474] hover:bg-[#088f65] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+          className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+          style={{
+            background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
+            boxShadow: `
+              inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+              inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+              0 4px 14px -2px rgba(16, 185, 129, 0.4),
+              0 1px 3px 0 rgba(0, 0, 0, 0.08)
+            `,
+          }}
         >
           {isSubmitting ? 'Saving...' : 'Save Changes'}
         </Button>

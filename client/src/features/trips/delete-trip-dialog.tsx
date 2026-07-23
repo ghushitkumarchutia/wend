@@ -44,24 +44,24 @@ export function DeleteTripDialog({ tripId, open, onOpenChange }: DeleteTripDialo
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[440px] rounded-2xl bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
+        className="max-w-[92vw] md:max-w-105 rounded-3xl md:rounded-[32px] ring-0 bg-white p-6 md:p-7 border border-black/5 shadow-2xl gap-0 font-manrope"
       >
-        <DialogHeader className="text-center flex flex-col items-center justify-center gap-1.5">
-          <DialogTitle className="text-[22px] font-semibold text-red-500 font-heading text-center">
+        <DialogHeader className="text-center flex flex-col items-center justify-center">
+          <DialogTitle className="text-xl md:text-2xl font-bold text-rose-500 font-syne text-center tracking-tight">
             Delete Trip
           </DialogTitle>
-          <DialogDescription className="text-sm text-neutral-400 font-light text-center leading-relaxed">
+          <DialogDescription className="text-xs md:text-sm text-neutral-500 font-manrope text-center leading-relaxed mt-2">
             This action cannot be undone. This will permanently delete your trip and remove all
             associated itinerary events, expenses, and documents.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex flex-col gap-1.5 mt-4">
+        <div className="flex flex-col gap-1.5 mt-5">
           <Label
             htmlFor="delete-confirmation"
-            className="text-xs font-medium text-neutral-700 select-none text-center"
+            className="text-xs md:text-sm font-medium font-manrope text-neutral-700 select-none text-center"
           >
-            Type <span className="font-bold text-red-500">delete trip</span> to confirm
+            Type <span className="font-bold text-rose-500">delete trip</span> to confirm
           </Label>
           <Input
             id="delete-confirmation"
@@ -69,24 +69,45 @@ export function DeleteTripDialog({ tripId, open, onOpenChange }: DeleteTripDialo
             onChange={(e) => setConfirmationText(e.target.value)}
             disabled={isDeleting}
             placeholder="delete trip"
-            className="bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-red-500! rounded-xl h-11 px-4 text-sm font-base text-center transition-all duration-200"
+            className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-rose-500! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-center text-neutral-900 placeholder:text-neutral-400 transition-all duration-200"
           />
         </div>
 
-        <div className="flex gap-4 mt-6">
+        <div className="flex gap-2.5 md:gap-3 mt-6">
           <Button
             type="button"
+            variant="waterdrop"
             disabled={isDeleting}
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-12 text-sm font-medium tracking-wide bg-neutral-100 hover:bg-neutral-200 text-neutral-800 rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-neutral-800 border border-white/90 cursor-pointer"
+            style={{
+              background: 'linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)',
+              boxShadow: `
+                inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95),
+                inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.08),
+                0 4px 12px -2px rgba(0, 0, 0, 0.08),
+                0 1px 3px 0 rgba(0, 0, 0, 0.05)
+              `,
+            }}
           >
             Cancel
           </Button>
+
           <Button
             type="button"
+            variant="waterdrop"
             onClick={handleDelete}
             disabled={isDeleting || confirmationText !== 'delete trip'}
-            className="flex-1 h-12 text-sm font-medium tracking-wide bg-red-500 hover:bg-red-600 disabled:opacity-50 text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background: 'linear-gradient(135deg, #F85252 0%, #E63946 100%)',
+              boxShadow: `
+                inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+                0 4px 14px -2px rgba(230, 57, 70, 0.4),
+                0 1px 3px 0 rgba(0, 0, 0, 0.08)
+              `,
+            }}
           >
             {isDeleting ? 'Deleting...' : 'Delete Trip'}
           </Button>
