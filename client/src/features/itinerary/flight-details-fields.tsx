@@ -1,6 +1,7 @@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Plane } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { AirplaneTakeOff01Icon } from '@hugeicons/core-free-icons';
 
 export interface FlightDetailsFormValues {
   airline?: string;
@@ -26,13 +27,13 @@ export function FlightDetailsFields({ value, onChange, disabled }: FlightDetails
   };
 
   const inputClass =
-    'bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11 px-4 text-sm font-base transition-all duration-200';
-  const labelClass = 'text-sm font-semibold text-neutral-900 tracking-wide select-none';
+    'flex items-center bg-[#F6F6F6] hover:bg-[#f1f3f5] focus:bg-white border border-neutral-200/60 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#09a474]! rounded-xl h-11! px-4 text-sm font-manrope leading-normal transition-all duration-200 shadow-2xs';
+  const labelClass = 'text-sm font-semibold text-neutral-800 tracking-wide select-none font-manrope';
 
   return (
     <div className="space-y-3 pt-3 border-t border-neutral-200/60 mt-3">
       <h4 className="text-xs font-semibold text-[#09a474] uppercase tracking-wider flex items-center gap-1.5">
-        <Plane className="h-3.5 w-3.5 stroke-1" />
+        <HugeiconsIcon icon={AirplaneTakeOff01Icon} className="size-4 stroke-1.5 text-[#09a474]" />
         Flight Details
       </h4>
 

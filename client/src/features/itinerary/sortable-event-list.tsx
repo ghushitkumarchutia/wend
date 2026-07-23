@@ -59,32 +59,28 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
     }
   };
 
-  const handleDragOver = (e: React.DragEvent, targetId: string) => {
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>, targetId: string) => {
     e.preventDefault();
-    if (!draggedId || draggedId === targetId || !isOrganizerOrMember) return;
+    if (!draggedId || draggedId === targetId) return;
 
-    const draggedIndex = localEvents.findIndex((ev) => ev.id === draggedId);
-    const targetIndex = localEvents.findIndex((ev) => ev.id === targetId);
+    const draggedIndex = localEvents.findIndex((item) => item.id === draggedId);
+    const targetIndex = localEvents.findIndex((item) => item.id === targetId);
 
     if (draggedIndex === -1 || targetIndex === -1) return;
 
     const newEvents = [...localEvents];
     const [removed] = newEvents.splice(draggedIndex, 1);
     newEvents.splice(targetIndex, 0, removed);
-
     setLocalEvents(newEvents);
   };
 
   const handleDragEnd = async () => {
-    if (!draggedId || !isOrganizerOrMember) return;
+    if (!draggedId) return;
     setDraggedId(null);
 
-    const isChanged = localEvents.some((ev, idx) => ev.id !== events[idx]?.id);
-    if (!isChanged) return;
-
-    const reorderedPayload = localEvents.map((ev, index) => ({
-      id: ev.id,
-      order: index * 10,
+    const reorderedPayload = localEvents.map((item, index) => ({
+      id: item.id,
+      order: index,
     }));
 
     try {
@@ -113,25 +109,27 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
   const activeDeletingEvent = events.find((e) => e.id === deletingEventId);
 
   return (
-    <div className="space-y-3">
-      {localEvents.map((event) => (
-        <div
-          key={event.id}
-          draggable={isOrganizerOrMember}
-          onDragStart={(e) => handleDragStart(e, event.id)}
-          onDragOver={(e) => handleDragOver(e, event.id)}
-          onDragEnd={handleDragEnd}
-          className="transition-transform duration-150 ease-in-out"
-        >
-          <EventCard
-            event={event}
-            isOrganizerOrMember={isOrganizerOrMember}
-            isDragging={draggedId === event.id}
-            onEdit={() => setEditingEventId(event.id)}
-            onDelete={() => setDeletingEventId(event.id)}
-          />
-        </div>
-      ))}
+    <>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-x-4 gap-y-3.5 items-start">
+        {localEvents.map((event) => (
+          <div
+            key={event.id}
+            draggable={isOrganizerOrMember}
+            onDragStart={(e) => handleDragStart(e, event.id)}
+            onDragOver={(e) => handleDragOver(e, event.id)}
+            onDragEnd={handleDragEnd}
+            className="transition-transform duration-150 ease-in-out h-auto"
+          >
+            <EventCard
+              event={event}
+              isOrganizerOrMember={isOrganizerOrMember}
+              isDragging={draggedId === event.id}
+              onEdit={() => setEditingEventId(event.id)}
+              onDelete={() => setDeletingEventId(event.id)}
+            />
+          </div>
+        ))}
+      </div>
 
       {editingEventId && (
         <AddEditEventModal
@@ -151,6 +149,6 @@ export function SortableEventList({ tripId, events, isOrganizerOrMember }: Sorta
           onConfirm={handleConfirmDelete}
         />
       )}
-    </div>
+    </>
   );
 }
