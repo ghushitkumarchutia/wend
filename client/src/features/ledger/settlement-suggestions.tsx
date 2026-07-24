@@ -32,19 +32,48 @@ export function SettlementSuggestions({
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-[24px] border-[0.5px] border-neutral-200/40 p-5 shadow-2xs space-y-4">
-        <div className="pb-2">
-          <Skeleton className="h-6 w-28 bg-neutral-100" />
+      <div
+        className="relative rounded-3xl overflow-hidden border border-white/25 font-manrope select-none"
+        style={{
+          background: 'linear-gradient(145deg, #4f46e5 0%, #3730a3 100%)',
+          boxShadow: `
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.35),
+            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.3),
+            0 6px 16px -2px rgba(79, 70, 229, 0.4),
+            0 3px 6px 0 rgba(0, 0, 0, 0.12)
+          `,
+        }}
+      >
+        <div className="absolute inset-x-4 top-0.5 h-2 rounded-t-full bg-linear-to-b from-white/35 via-white/10 to-transparent pointer-events-none" />
+        <div className="pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6">
+          <div className="pb-3">
+            <h3 className="text-lg md:text-xl font-semibold tracking-wide text-white/90 font-syne">
+              How to Settle Up
+            </h3>
+          </div>
+          <Skeleton className="h-12 w-full bg-white/15 rounded-2xl" />
         </div>
-        <Skeleton className="h-12 w-full bg-neutral-100" />
       </div>
     );
   }
 
   if (error || !suggestionsData) {
     return (
-      <div className="bg-white rounded-[24px] border-[0.5px] border-[#D11A2A]/20 p-5 shadow-2xs text-sm text-[#D11A2A] font-medium">
-        Failed to load settlement suggestions.
+      <div
+        className="relative rounded-3xl overflow-hidden border border-white/25 font-manrope select-none"
+        style={{
+          background: 'linear-gradient(145deg, #4f46e5 0%, #3730a3 100%)',
+          boxShadow: `
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.35),
+            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.3),
+            0 6px 16px -2px rgba(79, 70, 229, 0.4),
+            0 3px 6px 0 rgba(0, 0, 0, 0.12)
+          `,
+        }}
+      >
+        <div className="pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6 text-sm text-red-200 font-manrope">
+          Failed to load settlement suggestions.
+        </div>
       </div>
     );
   }
@@ -57,84 +86,92 @@ export function SettlementSuggestions({
       : [];
   const currency = propCurrency || (!Array.isArray(rawData) && rawData?.currency) || 'USD';
 
-  if (suggestions.length === 0) {
-    return (
-      <div className="relative rounded-[20px] border-[0.5px] border-neutral-200/40 shadow-[0_10px_30px_rgba(0,0,0,0.04),0_2px_8px_rgba(0,0,0,0.02)] flex flex-col bg-[#334155]">
-        <div className="pt-3.5 pb-3.5 px-5 text-neutral-900 flex flex-col justify-center rounded-t-[20px]">
-          <span className="text-[13px] md:text-[14px] font-semibold tracking-wider text-white">
-            HOW TO SETTLE UP
-          </span>
-          <span className="text-[10px] text-neutral-200 font-light tracking-wide mt-0.5">
-            Suggested payments to resolve all debts
-          </span>
-        </div>
-        <div className="bg-white rounded-t-[20px] rounded-b-[19px] p-5 flex-1 flex flex-col justify-between shadow-[0_-4px_12px_rgba(0,0,0,0.03)] border-t border-neutral-100/50">
-          <div className="flex flex-col items-center justify-center text-center py-6 px-4 bg-white border border-dashed border-neutral-300 rounded-2xl">
-            <div className="w-10 h-10 bg-[#D1FAE5]/60 rounded-xl flex items-center justify-center text-[#047857] mb-2.5 shadow-3xs">
-              <Check className="w-5 h-5 stroke-[2.8]" />
-            </div>
-            <p className="text-sm font-bold text-neutral-800">All settled up!</p>
-            <p className="text-xs text-neutral-400 font-light mt-0.5 select-none">
-              No pending debts to resolve.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
-      <div className="relative rounded-[20px] border-[0.5px] border-neutral-200/40 shadow-[0_10px_30px_rgba(0,0,0,0.04),0_2px_8px_rgba(0,0,0,0.02)] flex flex-col bg-[#B0E454] select-none">
-        <div className="pt-3.5 pb-3.5 px-5 text-neutral-900 flex flex-col justify-center rounded-t-[20px]">
-          <span className="text-[13px] md:text-[14px] font-bold tracking-wider text-neutral-900">
-            HOW TO SETTLE UP
-          </span>
-          <span className="text-[10px] text-neutral-700 font-medium mt-0.5">
-            Suggested payments to resolve all debts
-          </span>
-        </div>
-
-        <div className="bg-white rounded-t-[20px] rounded-b-[19px] p-5 flex-1 flex flex-col justify-between shadow-[0_-4px_12px_rgba(0,0,0,0.03)] border-t border-neutral-100/50">
-          <div className="space-y-2.5">
-            {suggestions.map((suggestion, i) => {
-              const fromName = suggestion.fromUser?.name || suggestion.fromUser?.email || 'Member';
-              const toName = suggestion.toUser?.name || suggestion.toUser?.email || 'Member';
-
-              return (
-                <div
-                  key={i}
-                  className="flex items-center justify-between p-3 bg-neutral-50/50 rounded-2xl border border-neutral-100/80 text-sm"
-                >
-                  <div className="flex items-center gap-1.5 truncate">
-                    <span className="font-semibold text-neutral-800 truncate text-[13px]">
-                      {fromName}
-                    </span>
-                    <span className="text-[9px] text-neutral-400 font-semibold px-1.5 py-0.5 bg-neutral-100 rounded-full shrink-0 select-none">
-                      owes
-                    </span>
-                    <span className="font-semibold text-neutral-800 truncate text-[13px]">
-                      {toName}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2.5 shrink-0 ml-2">
-                    <span className="font-bold text-neutral-900 text-xs">
-                      {formatCurrency(parseFloat(suggestion.amount), currency)}
-                    </span>
-                    {isOrganizerOrMember && (
-                      <Button
-                        size="sm"
-                        className="bg-[#2c6e49] hover:bg-[#23583a] text-white text-[10.5px] font-semibold px-2.5 py-1 h-7.5 rounded-[10px] border-none cursor-pointer shadow-3xs transition-colors focus-visible:ring-0!"
-                        onClick={() => setSelectedSuggestion(suggestion)}
-                      >
-                        Record Payment
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+      <div
+        className="relative rounded-3xl overflow-hidden border border-white/25 font-manrope select-none"
+        style={{
+          background: 'linear-gradient(145deg, #4f46e5 0%, #3730a3 100%)',
+          boxShadow: `
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.35),
+            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.3),
+            0 6px 16px -2px rgba(79, 70, 229, 0.4),
+            0 3px 6px 0 rgba(0, 0, 0, 0.12)
+          `,
+        }}
+      >
+        <div className="absolute inset-x-4 top-0.5 h-2 rounded-t-full bg-linear-to-b from-white/35 via-white/10 to-transparent pointer-events-none" />
+        <div className="text-white pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6">
+          <div className="pb-3">
+            <h3 className="text-lg md:text-xl font-semibold tracking-wide text-white/90 font-syne">
+              How to Settle Up
+            </h3>
+            <p className="text-[11px] md:text-xs text-white/70 font-manrope mt-0.5">
+              Suggested payments to resolve all debts
+            </p>
           </div>
+
+          {suggestions.length === 0 ? (
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/15 p-4 text-center flex flex-col items-center justify-center">
+              <div className="w-9 h-9 rounded-full bg-white/20 text-[#4ade80] flex items-center justify-center mb-2 shadow-xs">
+                <Check className="w-5 h-5 stroke-[2.75]" />
+              </div>
+              <p className="text-xs md:text-sm font-bold font-syne text-white">All settled up!</p>
+              <p className="text-[11px] md:text-xs text-white/70 font-manrope mt-0.5 select-none">
+                No pending debts to resolve.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2.5">
+              {suggestions.map((suggestion, i) => {
+                const fromName = suggestion.fromUser?.name || suggestion.fromUser?.email || 'Member';
+                const toName = suggestion.toUser?.name || suggestion.toUser?.email || 'Member';
+
+                return (
+                  <div
+                    key={i}
+                    className="flex flex-col gap-2 p-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/15 text-xs md:text-sm"
+                  >
+                    <div className="flex items-center gap-1.5 min-w-0">
+                      <span className="font-semibold text-white font-manrope truncate text-xs md:text-sm">
+                        {fromName}
+                      </span>
+                      <span className="text-[9px] font-bold font-manrope px-1.5 py-0.5 bg-white/20 text-white/90 rounded-full shrink-0 select-none">
+                        owes
+                      </span>
+                      <span className="font-semibold text-white font-manrope truncate text-xs md:text-sm">
+                        {toName}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between gap-2 pt-0.5">
+                      <span className="font-bold text-white font-syne text-xs md:text-sm">
+                        {formatCurrency(parseFloat(suggestion.amount), currency)}
+                      </span>
+                      {isOrganizerOrMember && (
+                        <Button
+                          size="sm"
+                          variant="waterdrop"
+                          className="h-7.5 px-3.5 text-[11px] md:text-xs font-semibold font-manrope text-white border border-white/35 rounded-full! cursor-pointer select-none"
+                          style={{
+                            background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
+                            boxShadow: `
+                              inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+                              inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+                              0 4px 12px -2px rgba(16, 185, 129, 0.4),
+                              0 1px 3px 0 rgba(0, 0, 0, 0.08)
+                            `,
+                          }}
+                          onClick={() => setSelectedSuggestion(suggestion)}
+                        >
+                          Record Payment
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
 

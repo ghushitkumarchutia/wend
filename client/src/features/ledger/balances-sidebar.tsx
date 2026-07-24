@@ -24,20 +24,51 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
 
   if (isLoading) {
     return (
-      <div className="bg-white rounded-[24px] border-[0.5px] border-neutral-200/40 p-5 shadow-2xs space-y-4">
-        <div className="pb-2">
-          <Skeleton className="h-6 w-24 bg-neutral-100" />
+      <div
+        className="relative rounded-3xl overflow-hidden border border-white/20 font-manrope"
+        style={{
+          background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+          boxShadow: `
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.25),
+            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.4),
+            0 6px 16px -2px rgba(15, 23, 42, 0.4),
+            0 3px 6px 0 rgba(0, 0, 0, 0.12)
+          `,
+        }}
+      >
+        <div className="absolute inset-x-4 top-0.5 h-2 rounded-t-full bg-linear-to-b from-white/30 via-white/10 to-transparent pointer-events-none" />
+        <div className="pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6">
+          <div className="pb-3">
+            <h3 className="text-lg md:text-xl font-semibold tracking-wide text-white/90 font-syne">
+              Balances
+            </h3>
+          </div>
+          <div className="space-y-2.5">
+            <Skeleton className="h-11 w-full bg-white/15 rounded-2xl" />
+            <Skeleton className="h-11 w-full bg-white/15 rounded-2xl" />
+          </div>
         </div>
-        <Skeleton className="h-10 w-full bg-neutral-100" />
-        <Skeleton className="h-10 w-full bg-neutral-100" />
       </div>
     );
   }
 
   if (error || !balancesData) {
     return (
-      <div className="bg-white rounded-[24px] border-[0.5px] border-[#D11A2A]/20 p-5 shadow-2xs text-sm text-[#D11A2A] font-medium">
-        Failed to load balances.
+      <div
+        className="relative rounded-3xl overflow-hidden border border-white/20 font-manrope"
+        style={{
+          background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+          boxShadow: `
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.25),
+            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.4),
+            0 6px 16px -2px rgba(15, 23, 42, 0.4),
+            0 3px 6px 0 rgba(0, 0, 0, 0.12)
+          `,
+        }}
+      >
+        <div className="pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6 text-sm text-red-300 font-manrope">
+          Failed to load balances.
+        </div>
       </div>
     );
   }
@@ -52,18 +83,34 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
 
   return (
     <div className="space-y-5">
-      <div className="relative rounded-[20px] border-[0.5px] border-neutral-200/40 shadow-[0_10px_30px_rgba(0,0,0,0.04),0_2px_8px_rgba(0,0,0,0.02)] flex flex-col bg-[#1E293B] select-none">
-        <div className="pt-3.5 pb-3.5 px-5 text-white rounded-t-[20px]">
-          <span className="text-[13px] md:text-[14px] font-semibold tracking-wider text-white">BALANCES</span>
-        </div>
-        
-        <div className="bg-white rounded-t-[20px] rounded-b-[19px] p-5 flex-1 flex flex-col justify-between shadow-[0_-4px_12px_rgba(0,0,0,0.03)] border-t border-neutral-100/50">
+      <div
+        className="relative rounded-3xl overflow-hidden border border-white/20 font-manrope select-none"
+        style={{
+          background: 'linear-gradient(145deg, #1e293b 0%, #0f172a 100%)',
+          boxShadow: `
+            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.25),
+            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.4),
+            0 6px 16px -2px rgba(15, 23, 42, 0.4),
+            0 3px 6px 0 rgba(0, 0, 0, 0.12)
+          `,
+        }}
+      >
+        <div className="absolute inset-x-4 top-0.5 h-2 rounded-t-full bg-linear-to-b from-white/30 via-white/10 to-transparent pointer-events-none" />
+        <div className="text-white pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6">
+          <div className="pb-3">
+            <h3 className="text-lg md:text-xl font-semibold tracking-wide text-white/90 font-syne">
+              Balances
+            </h3>
+          </div>
+
           {balances.length === 0 ? (
-            <p className="text-xs text-neutral-400 text-center py-4 font-light select-none">
-              No balances yet. Log an expense to get started.
-            </p>
+            <div className="bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 p-4 text-center">
+              <p className="text-xs text-white/70 font-manrope">
+                No balances yet. Log an expense to get started.
+              </p>
+            </div>
           ) : (
-            <div className="space-y-3.5">
+            <div className="space-y-2.5">
               {balances.map((mb: MemberBalance) => {
                 const balanceVal = parseFloat(mb.balance);
                 const isPositive = balanceVal > 0;
@@ -71,19 +118,32 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
 
                 const name = mb.user?.name || mb.user?.email || 'User';
                 const image = mb.user?.image || '';
-                const fallbackChar = name.charAt(0);
+                const fallbackChar = name.charAt(0).toUpperCase();
 
                 return (
-                  <div key={mb.userId} className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-8.5 w-8.5 border border-neutral-100/60 shadow-3xs">
+                  <div
+                    key={mb.userId}
+                    className="flex items-center justify-between py-2 px-3 bg-white/10 backdrop-blur-md rounded-xl border border-white/10 gap-3"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0 pr-1">
+                      <Avatar className="h-8 w-8 border border-white/20 shrink-0">
                         <AvatarImage src={image} />
-                        <AvatarFallback className="bg-neutral-50 text-neutral-500 font-semibold text-xs">{fallbackChar}</AvatarFallback>
+                        <AvatarFallback className="bg-white/20 text-white font-semibold text-xs font-syne">
+                          {fallbackChar}
+                        </AvatarFallback>
                       </Avatar>
-                      <div className="text-sm font-semibold text-neutral-800">{name}</div>
+                      <span className="text-xs md:text-sm font-semibold font-manrope text-white truncate">
+                        {name}
+                      </span>
                     </div>
                     <div
-                      className={`text-[14px] font-bold text-right ${isPositive ? 'text-[#2c6e49]' : isNegative ? 'text-[#D11A2A]' : 'text-neutral-400'}`}
+                      className={`text-xs md:text-sm font-bold font-syne text-right shrink-0 ${
+                        isPositive
+                          ? 'text-[#4ade80] drop-shadow-[0_0_6px_rgba(74,222,128,0.3)]'
+                          : isNegative
+                            ? 'text-[#f87171] drop-shadow-[0_0_6px_rgba(248,113,113,0.3)]'
+                            : 'text-white/50'
+                      }`}
                     >
                       {isPositive ? '+' : ''}
                       {formatCurrency(balanceVal, activeCurrency)}
@@ -96,7 +156,11 @@ export function BalancesSidebar({ tripId, isOrganizerOrMember, currency }: Balan
         </div>
       </div>
 
-      <SettlementSuggestions tripId={tripId} isOrganizerOrMember={isOrganizerOrMember} currency={activeCurrency} />
+      <SettlementSuggestions
+        tripId={tripId}
+        isOrganizerOrMember={isOrganizerOrMember}
+        currency={activeCurrency}
+      />
     </div>
   );
 }
