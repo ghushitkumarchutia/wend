@@ -83,7 +83,15 @@ export const dashboardApi = {
 };
 
 export const tripsApi = {
-  listTrips: () => fetcher<TripsListResponse>('/v1/trips'),
+  listTrips: (params?: { cursor?: string; limit?: number; status?: string; search?: string }) => {
+    const searchParams = new URLSearchParams();
+    if (params?.cursor) searchParams.append('cursor', params.cursor);
+    if (params?.limit) searchParams.append('limit', params.limit.toString());
+    if (params?.status) searchParams.append('status', params.status);
+    if (params?.search) searchParams.append('search', params.search);
+    const qs = searchParams.toString();
+    return fetcher<TripsListResponse>(`/v1/trips${qs ? `?${qs}` : ''}`);
+  },
 
   getPhotos: (query: string) =>
     fetcher<ApiSuccessResponse<string[]>>(`/v1/trips/photos?query=${encodeURIComponent(query)}`),

@@ -58,7 +58,11 @@ export interface TemplateDetailResponse extends Template {
 }
 
 export type DashboardStatsResponse = ApiSuccessResponse<DashboardStats>;
-export type TripsListResponse = ApiSuccessResponse<TripWithRole[]>;
+export interface TripsListResponse {
+  data: TripWithRole[];
+  nextCursor: string | null;
+  hasMore: boolean;
+}
 
 export interface UpdateProfileRequest {
   name: string;
