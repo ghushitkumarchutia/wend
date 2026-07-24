@@ -1,17 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useInfiniteQuery } from '@tanstack/react-query';
+import { tripsApi } from '@/lib/api-client';
+import { useDebounce } from '@/hooks/use-debounce';
+import { useIntersectionObserver } from '@/hooks/use-intersection-observer';
 import { TripCard } from './trip-card';
-import type { TripWithRole } from '@/types/models';
 import { Input } from '@/components/ui/input';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Search02Icon, Cancel01Icon, Backpack03Icon } from '@hugeicons/core-free-icons';
 import { CreateTripModal } from './create-trip-modal';
 
-interface TripsSectionProps {
-  trips: TripWithRole[];
-}
-
-export function TripsSection({ trips }: TripsSectionProps) {
+export function TripsSection() {
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebounce(searchQuery, 400);
   const [activeTab, setActiveTab] = useState('all');
 
   const tabs = [
@@ -21,22 +21,37 @@ export function TripsSection({ trips }: TripsSectionProps) {
     { id: 'completed', label: 'Completed' },
   ];
 
-  const filteredTrips = useMemo(() => {
-    return trips.filter((trip) => {
-      const matchesSearch =
-        trip.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        trip.destination.toLowerCase().includes(searchQuery.toLowerCase());
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading } = useInfiniteQuery({
+    queryKey: ['trips', activeTab, debouncedSearch],
+    queryFn: ({ pageParam }) =>
+      tripsApi.listTrips({
+        cursor: pageParam as string | undefined,
+        limit: 4,
+        status: activeTab,
+        search: debouncedSearch,
+      }),
+    initialPageParam: undefined as string | undefined,
+    getNextPageParam: (lastPage) => lastPage.nextCursor || undefined,
+  });
 
-      if (!matchesSearch) return false;
+  const { ref, isIntersecting } = useIntersectionObserver({
+    threshold: 0.1,
+  });
 
-      if (activeTab === 'all') return true;
-      return trip.status === activeTab;
-    });
-  }, [trips, searchQuery, activeTab]);
+  useEffect(() => {
+    if (isIntersecting && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }, [isIntersecting, hasNextPage, isFetchingNextPage, fetchNextPage]);
+
+  const trips = useMemo(() => {
+    if (!data) return [];
+    return data.pages.flatMap((page) => page.data);
+  }, [data]);
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <nav
           className="w-full md:w-auto inline-flex items-center justify-between md:justify-start gap-0.5 md:gap-1 p-1 rounded-full bg-white border border-black/5 shadow-[0_8px_30px_rgb(0,0,0,0.08)] max-w-full overflow-x-auto no-scrollbar font-manrope select-none h-10 md:h-11"
           aria-label="Filter Trips"
@@ -84,7 +99,7 @@ export function TripsSection({ trips }: TripsSectionProps) {
           })}
         </nav>
 
-        <div className="flex w-full md:w-auto items-center gap-3">
+        <div className="flex w-full md:w-auto items-center gap-4">
           <div className="relative flex-1 md:w-72">
             <HugeiconsIcon
               icon={Search02Icon}
@@ -111,7 +126,7 @@ export function TripsSection({ trips }: TripsSectionProps) {
         </div>
       </div>
 
-      {filteredTrips.length === 0 ? (
+      {!isLoading && trips.length === 0 ? (
         <div
           className="flex flex-col items-center justify-center bg-white/70 backdrop-blur-md border border-dashed border-neutral-200/90 rounded-2xl md:rounded-3xl p-12 text-center shadow-2xs"
           style={{
@@ -134,10 +149,18 @@ export function TripsSection({ trips }: TripsSectionProps) {
           {!searchQuery && <CreateTripModal />}
         </div>
       ) : (
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredTrips.map((trip) => (
+        <div className="grid gap-4 md:gap-5 grid-cols-1 md:grid-cols-2">
+          {trips.map((trip) => (
             <TripCard key={trip.id} trip={trip} />
           ))}
+        </div>
+      )}
+
+      {hasNextPage && (
+        <div ref={ref} className="w-full h-20 flex items-center justify-center">
+          {isFetchingNextPage && (
+            <div className="w-6 h-6 border-2 border-[#10b981] border-t-transparent rounded-full animate-spin" />
+          )}
         </div>
       )}
     </div>

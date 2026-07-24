@@ -12,9 +12,10 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
         queryKey: ['dashboard-stats'],
         queryFn: dashboardApi.getStats,
       }),
-      queryClient.prefetchQuery({
-        queryKey: ['trips'],
-        queryFn: tripsApi.listTrips,
+      queryClient.prefetchInfiniteQuery({
+        queryKey: ['trips', 'all', ''],
+        queryFn: ({ pageParam }) => tripsApi.listTrips({ cursor: pageParam as string | undefined, limit: 4, status: 'all', search: '' }),
+        initialPageParam: undefined,
       }),
     ]);
   },
@@ -27,10 +28,6 @@ function DashboardRoute() {
     queryFn: dashboardApi.getStats,
   });
 
-  const { data: tripsData } = useQuery({
-    queryKey: ['trips'],
-    queryFn: tripsApi.listTrips,
-  });
 
   const defaultStats = {
     upcomingTrips: 0,
@@ -41,9 +38,9 @@ function DashboardRoute() {
 
   return (
     <div className="min-h-[calc(100vh-56px)] bg-[#F5F5F7] w-full">
-      <div className="flex flex-col gap-6 pt-4 pb-6 px-6 lg:pt-6 lg:pb-10 lg:px-10 w-full max-w-7xl mx-auto">
+      <div className="flex flex-col gap-6 pt-4 pb-6 px-4 md:px-6 lg:pt-6 lg:pb-10 lg:px-10 w-full max-w-7xl mx-auto">
         <StatCardsRow stats={statsData?.data || defaultStats} />
-        {tripsData?.data && <TripsSection trips={tripsData.data} />}
+        <TripsSection />
       </div>
     </div>
   );

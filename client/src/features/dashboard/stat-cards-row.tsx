@@ -1,7 +1,7 @@
 import { useAuth } from '@/hooks/use-auth';
 import { cn } from '@/lib/utils';
 import type { DashboardStats } from '@/types/models';
-import dashboardBg from '@/assets/images/dashboard.jpg';
+import dashboardBg from '@/assets/images/dashboard.webp';
 
 interface StatCardsRowProps {
   stats: DashboardStats;
@@ -52,9 +52,16 @@ export function StatCardsRow({ stats }: StatCardsRowProps) {
 
   return (
     <div
-      className="relative w-full rounded-[22px] md:rounded-[30px] overflow-hidden bg-cover bg-center p-6 md:p-10 lg:p-12 text-white flex flex-col md:flex-row md:items-start justify-between gap-8 md:gap-12 min-h-57.5 md:min-h-70 shadow-lg shadow-neutral-200/50"
-      style={{ backgroundImage: `url(${dashboardBg})` }}
+      className="relative w-full rounded-[22px] md:rounded-[30px] overflow-hidden p-6 md:p-10 lg:p-12 text-white flex flex-col md:flex-row md:items-start justify-between gap-8 md:gap-12 min-h-57.5 md:min-h-70 shadow-lg shadow-neutral-200/50"
+      style={{
+        background: 'linear-gradient(135deg, #1b2c22 0%, #283a31 100%)',
+      }}
     >
+      <div
+        className="absolute inset-0 bg-cover bg-center z-0"
+        style={{ backgroundImage: `url(${dashboardBg})` }}
+      />
+
       <div className="absolute inset-0 bg-black/20 z-0" />
 
       <div className="relative z-10 flex flex-col max-w-sm text-left mb-6 md:mb-0">
@@ -91,7 +98,7 @@ export function StatCardsRow({ stats }: StatCardsRowProps) {
                 </div>
 
                 <div className={cn('w-full flex justify-center mt-auto', card.statRotateClass)}>
-                  <span className="text-xl md:text-3xl lg:text-4xl xl:text-5xl font-light tracking-tight text-white font-syne">
+                  <span className="text-3xl lg:text-4xl xl:text-5xl font-light tracking-tight text-white font-syne">
                     {card.value}
                   </span>
                 </div>
