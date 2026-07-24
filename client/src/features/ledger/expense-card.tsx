@@ -1,16 +1,69 @@
 import { format } from 'date-fns';
-import { Pencil, Trash, Receipt } from 'lucide-react';
-import { formatCurrency, cn } from '@/lib/utils';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  ReceiptTextIcon,
+  MoreHorizontalCircle01Icon,
+  PencilEdit02Icon,
+  Delete01Icon,
+} from '@hugeicons/core-free-icons';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { formatCurrency } from '@/lib/utils';
 import type { Expense, ExpenseCategory } from '@/types/models';
 import { documentsApi } from '@/lib/api-client';
 import { toast } from 'sonner';
-import receiptFrame from '@/assets/images/receiptframe.png';
+import tabSvg from '@/assets/svg/tab.svg';
 
 interface ExpenseCardProps {
   expense: Expense;
   isOrganizerOrMember: boolean;
   onEdit: () => void;
   onDelete: () => void;
+}
+
+function getExpenseCategoryTheme(category: ExpenseCategory) {
+  switch (category) {
+    case 'accommodation':
+      return {
+        label: 'Accommodation',
+        categoryBg: '#F0E9FF',
+        pillBorder: 'rgba(109, 40, 217, 0.25)',
+        accent: '#6D28D9',
+      };
+    case 'food_and_drinks':
+      return {
+        label: 'Food & Drinks',
+        categoryBg: '#FFEAD9',
+        pillBorder: 'rgba(234, 88, 12, 0.25)',
+        accent: '#EA580C',
+      };
+    case 'transport':
+      return {
+        label: 'Transport',
+        categoryBg: '#E2F0FF',
+        pillBorder: 'rgba(37, 99, 235, 0.25)',
+        accent: '#2563EB',
+      };
+    case 'activities':
+      return {
+        label: 'Activities',
+        categoryBg: '#E0F5EA',
+        pillBorder: 'rgba(21, 128, 61, 0.25)',
+        accent: '#059669',
+      };
+    case 'miscellaneous':
+    default:
+      return {
+        label: 'Miscellaneous',
+        categoryBg: '#ECECF0',
+        pillBorder: 'rgba(100, 116, 139, 0.25)',
+        accent: '#4B5563',
+      };
+  }
 }
 
 export function ExpenseCard({ expense, isOrganizerOrMember, onEdit, onDelete }: ExpenseCardProps) {
@@ -32,45 +85,17 @@ export function ExpenseCard({ expense, isOrganizerOrMember, onEdit, onDelete }: 
     }
   };
 
-  const getCategoryConfig = (category: ExpenseCategory) => {
-    switch (category) {
-      case 'accommodation':
-        return {
-          label: 'ACCOMMODATION',
-          bgClass: 'bg-[#FB6376]',
-        };
-      case 'food_and_drinks':
-        return {
-          label: 'FOOD & DRINKS',
-          bgClass: 'bg-[#FF6F59]',
-        };
-      case 'transport':
-        return {
-          label: 'TRANSPORT',
-          bgClass: 'bg-[#788CE3]',
-        };
-      case 'activities':
-        return {
-          label: 'ACTIVITIES',
-          bgClass: 'bg-[#10B981]',
-        };
-      case 'miscellaneous':
-      default:
-        return {
-          label: 'MISCELLANEOUS',
-          bgClass: 'bg-[#19297C]',
-        };
-    }
-  };
-
   const getSplitMethodLabel = (method: string) => {
     switch (method) {
       case 'equal':
         return 'EQUAL SPLIT';
       case 'exact':
+      case 'unequal':
         return 'EXACT SPLIT';
       case 'percentage':
         return 'PERCENTAGE SPLIT';
+      case 'custom':
+        return 'CUSTOM SHARES';
       default:
         return `${method.toUpperCase()} SPLIT`;
     }
@@ -89,107 +114,143 @@ export function ExpenseCard({ expense, isOrganizerOrMember, onEdit, onDelete }: 
     expense.paidBy?.name ||
     'Unknown';
   const payerName = rawPayerName !== 'Unknown' ? getFirstName(rawPayerName) : 'Unknown';
-  const categoryConfig = getCategoryConfig(expense.category);
+  const theme = getExpenseCategoryTheme(expense.category);
   const splitLabel = getSplitMethodLabel(expense.splitMethod);
 
   return (
-    <div
-      className="relative w-full flex flex-col bg-transparent drop-shadow-[0_8px_16px_rgba(0,0,0,0.04)]"
-      style={{ backgroundColor: 'transparent' }}
-    >
+    <div className="relative w-full h-full mt-5 md:mt-6.75 font-manrope">
       <div
-        className={cn(
-          'relative z-10 h-[60px] px-5 pt-3.5 flex items-start justify-between rounded-t-[14px]',
-          categoryConfig.bgClass,
-        )}
-      >
-        <div className="flex flex-col justify-center min-w-0">
-          <span className="text-[12px] md:text-[13px] tracking-wide text-white uppercase truncate">
-            {categoryConfig.label}
-          </span>
-          <span className="text-[11px] text-white/80 font-normal tracking-wide truncate w-[160px]">
-            {expense.description}
+        aria-hidden="true"
+        className="absolute -top-5.5 md:-top-6.75 left-0 h-6.25 md:h-7.5 w-48 md:w-58.75 max-w-[70%] pointer-events-none z-10"
+        style={{
+          backgroundColor: '#FFFFFF',
+          WebkitMaskImage: `url(${tabSvg})`,
+          maskImage: `url(${tabSvg})`,
+          WebkitMaskSize: 'contain',
+          maskSize: 'contain',
+          WebkitMaskPosition: 'left top',
+          maskPosition: 'left top',
+          WebkitMaskRepeat: 'no-repeat',
+          maskRepeat: 'no-repeat',
+        }}
+      />
+
+      <div className="absolute -top-3.75 md:-top-4.5 left-2.5 md:left-3.5 z-20 pointer-events-none select-none">
+        <div
+          className="relative inline-flex items-center justify-center px-2.5 md:px-3 py-1 rounded-full border border-white/90 backdrop-blur-md transition-all"
+          style={{
+            background: `linear-gradient(135deg, rgba(255, 255, 255, 0.98) 0%, ${theme.categoryBg} 100%)`,
+            boxShadow: `
+              inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95),
+              inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.05),
+              0 4px 12px -2px rgba(0, 0, 0, 0.08),
+              0 1px 3px 0 ${theme.pillBorder}
+            `,
+          }}
+        >
+          <div className="absolute inset-x-2 top-0.5 h-1.5 rounded-t-full bg-linear-to-b from-white/90 via-white/40 to-transparent pointer-events-none" />
+
+          <span
+            className="font-syne text-[8.5px] md:text-[9.5px] font-semibold uppercase tracking-wider leading-none relative z-10 drop-shadow-[0_1px_1px_rgba(255,255,255,0.8)]"
+            style={{ color: theme.accent }}
+          >
+            {theme.label}
           </span>
         </div>
-
-        {isOrganizerOrMember && (
-          <div className="flex items-center gap-2 shrink-0">
-            <button
-              type="button"
-              onClick={onEdit}
-              className="h-7 w-7 bg-white/15 hover:bg-white/25 text-white rounded-full flex items-center justify-center transition-colors cursor-pointer border-none"
-              title="Edit Expense"
-            >
-              <Pencil className="h-3 w-3 stroke-[2.2]" />
-            </button>
-            <button
-              type="button"
-              onClick={onDelete}
-              className="h-7 w-7 bg-white/10 hover:bg-white/20 text-white rounded-full flex items-center justify-center transition-colors cursor-pointer border-none"
-              title="Delete Expense"
-            >
-              <Trash className="h-3 w-3 stroke-[2.2]" />
-            </button>
-          </div>
-        )}
       </div>
 
-      <div className="relative w-full -mt-4">
-        <img
-          src={receiptFrame}
-          alt="Receipt Frame"
-          className="w-full h-auto block pointer-events-none"
-        />
+      <div className="relative w-full rounded-3xl rounded-tl-none p-1 bg-white shadow-2xs flex flex-col justify-between select-none">
+        <div
+          className="w-full rounded-2xl px-3.5 md:px-4 pt-3.5 md:pt-4 pb-3.5 md:pb-4 space-y-2.5 flex flex-col justify-between transition-colors"
+          style={{
+            background: `linear-gradient(to top, ${theme.categoryBg} 0%, #FFFFFF 100%)`,
+          }}
+        >
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <h4 className="font-syne font-semibold text-neutral-900 text-sm md:text-[15px] tracking-tight truncate leading-snug">
+                {expense.description || 'Untitled Expense'}
+              </h4>
+            </div>
 
-        <div className="absolute inset-0 flex flex-col justify-between z-10">
-          <div className="px-6 pt-7 flex flex-col justify-start space-y-3">
-            <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-neutral-500">Total Amount:</span>
-              <span className="text-neutral-900 font-bold text-sm tracking-normal">
-                {formatCurrency(amount, expense.currency)}
-              </span>
+            {isOrganizerOrMember && (
+              <DropdownMenu>
+                <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-black/5 transition-colors focus-visible:outline-none h-6 w-6 md:h-7 md:w-7 p-0 shrink-0 cursor-pointer mt-[-2.5px]">
+                  <span className="sr-only">Open menu</span>
+                  <HugeiconsIcon
+                    icon={MoreHorizontalCircle01Icon}
+                    className="size-4 md:size-4.5 block"
+                    strokeWidth={1.5}
+                  />
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-auto min-w-0 bg-white/95 backdrop-blur-md border border-black/5 shadow-[0_4px_16px_rgba(0,0,0,0.06)] rounded-full p-1 z-50 flex items-center gap-0.5"
+                >
+                  <DropdownMenuItem
+                    onClick={onEdit}
+                    className="rounded-full px-1.5 py-1 text-neutral-600 hover:text-neutral-900 hover:bg-black/5 focus:bg-black/5 focus:text-neutral-900 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                    title="Edit Expense"
+                  >
+                    <HugeiconsIcon
+                      icon={PencilEdit02Icon}
+                      className="size-4 block"
+                      strokeWidth={1.5}
+                    />
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={onDelete}
+                    className="rounded-full px-1.5 py-1 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 focus:bg-rose-500/10 focus:text-rose-600 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                    title="Delete Expense"
+                  >
+                    <HugeiconsIcon icon={Delete01Icon} className="size-4 block" strokeWidth={1.5} />
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </div>
+
+          <div className="flex items-baseline justify-between pt-0.5 pb-2 border-b border-black/5">
+            <span className="text-[11px] font-medium text-neutral-400 tracking-wide font-manrope">
+              Total Amount
+            </span>
+            <span className="font-syne font-bold text-base md:text-lg tracking-normal text-neutral-900">
+              {formatCurrency(amount, expense.currency)}
+            </span>
+          </div>
+
+          <div className="space-y-2 text-xs font-manrope py-0.5">
+            <div className="flex justify-between items-center text-[11px] md:text-xs">
+              <span className="text-neutral-400 font-medium tracking-wide">Paid By</span>
+              <span className="font-semibold text-neutral-800 font-manrope">{payerName}</span>
             </div>
-            <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-neutral-500">Paid By:</span>
-              <span className="text-neutral-900 font-bold">{payerName}</span>
+            <div className="flex justify-between items-center text-[11px] md:text-xs">
+              <span className="text-neutral-400 font-medium tracking-wide">Paid On</span>
+              <span className="font-semibold text-neutral-800 font-manrope">{formattedDate}</span>
             </div>
-            <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-neutral-500">Paid On:</span>
-              <span className="text-neutral-900 font-bold">{formattedDate}</span>
-            </div>
-            <div className="flex justify-between items-center text-xs font-semibold">
-              <span className="text-neutral-500">Split Method:</span>
-              <span className="text-neutral-900 font-bold uppercase tracking-wider">
+            <div className="flex justify-between items-center text-[11px] md:text-xs">
+              <span className="text-neutral-400 font-medium tracking-wide">Split Method</span>
+              <span className="font-semibold text-neutral-800 uppercase tracking-wider font-manrope">
                 {splitLabel}
               </span>
             </div>
           </div>
 
-          <div className="px-6 pb-[12%] flex flex-col items-center justify-end space-y-1.5">
-            <p className="text-[10px] text-neutral-400 font-semibold text-center uppercase tracking-wider">
-              {expense.receiptUrl ? 'Receipt Attached' : 'No Receipt Attached'}
-            </p>
-
-            <div className="w-full flex justify-center">
-              {expense.receiptUrl ? (
-                <button
-                  type="button"
-                  onClick={handleViewReceipt}
-                  className="inline-flex items-center justify-center gap-1.5 px-3 py-1 bg-[#E6F4EA] hover:bg-[#D2EBD9] text-[#137333] border border-[#137333]/15 rounded-[10px] text-[11px] font-semibold tracking-wide transition-colors cursor-pointer shadow-3xs"
-                >
-                  <Receipt className="h-3 w-3 stroke-[2.2]" />
-                  View Receipt
-                </button>
-              ) : (
-                <button
-                  type="button"
-                  disabled
-                  className="inline-flex items-center justify-center gap-1.5 px-4 py-1.5 bg-neutral-50 text-neutral-400 border border-neutral-200/50 rounded-[10px] text-[11px] font-semibold tracking-wide select-none cursor-not-allowed"
-                >
-                  No Receipt
-                </button>
-              )}
-            </div>
+          <div className="pt-2 border-t border-black/5">
+            {expense.receiptUrl ? (
+              <button
+                type="button"
+                onClick={handleViewReceipt}
+                className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.75 bg-[#10b981]/10 hover:bg-[#10b981]/20 text-[#059669] border border-[#10b981]/20 rounded-xl text-xs font-semibold font-manrope transition-colors cursor-pointer shadow-3xs"
+              >
+                <HugeiconsIcon icon={ReceiptTextIcon} className="size-3.5 block" strokeWidth={2} />
+                <span>View Receipt</span>
+              </button>
+            ) : (
+              <div className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 bg-black/5 text-neutral-400 border border-neutral-200/40 rounded-xl text-xs font-medium font-manrope select-none">
+                <span className="text-[11px]">No Receipt Attached</span>
+              </div>
+            )}
           </div>
         </div>
       </div>
