@@ -24,7 +24,7 @@ function SignInRoute() {
   }, [user, isPending, router]);
 
   if (isPending && !initialLoadComplete) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+    return null;
   }
 
   return (

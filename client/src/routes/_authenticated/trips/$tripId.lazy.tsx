@@ -32,22 +32,28 @@ function TripWorkspaceLayout() {
   }, [socket, tripId]);
 
   if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading workspace...</div>;
+    return (
+      <div className="p-8 text-center text-muted-foreground bg-white">Loading workspace...</div>
+    );
   }
 
   if (error || !data) {
-    return <div className="p-8 text-center text-destructive">Failed to load trip workspace.</div>;
+    return (
+      <div className="p-8 text-center text-destructive bg-white">
+        Failed to load trip workspace.
+      </div>
+    );
   }
 
   const trip = data.data.trip;
 
   return (
     <>
-      <div className="flex h-screen w-full overflow-hidden">
-        <div className="flex-1 flex flex-col overflow-y-auto bg-[#F8F9FA]">
+      <div className="flex h-screen w-full overflow-hidden bg-white">
+        <div className="flex-1 flex flex-col overflow-y-auto bg-[#F5F5F7]">
           <WorkspaceHeader trip={trip} />
           <WorkspaceTabs tripId={trip.id} role={trip.role} />
-          <div className="w-full px-4 sm:px-6 md:px-8 pt-6 pb-6 flex-1 space-y-6">
+          <div className="w-full px-4 sm:px-6 md:px-8 pt-1.5 sm:pt-2.5 pb-6 flex-1 space-y-6 bg-[#F5F5F7]">
             <div>
               <Outlet />
             </div>

@@ -21,7 +21,7 @@ function AuthenticatedLayout() {
   }, [isPending, user, router]);
 
   if (isPending) {
-    return <div className="flex h-screen w-full items-center justify-center">Loading...</div>;
+    return null;
   }
 
   if (!user) {
@@ -29,12 +29,11 @@ function AuthenticatedLayout() {
   }
 
   const isSettingsPage = location.pathname === '/settings';
-  const isTripWorkspace = location.pathname.startsWith('/trips/');
 
   return (
     <SocketProvider>
       <div className="flex min-h-screen flex-col bg-background">
-        {!isSettingsPage && !isTripWorkspace && <TopNavbar />}
+        {!isSettingsPage && <TopNavbar />}
         <main className="flex-1">
           <Outlet />
         </main>

@@ -25,7 +25,7 @@ function ResetPasswordRoute() {
   }, [user, isPending, router]);
 
   if (isPending || user) {
-    return <div className="flex min-h-screen items-center justify-center">Loading...</div>;
+    return null;
   }
 
   return (
