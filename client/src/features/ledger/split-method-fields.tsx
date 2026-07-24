@@ -4,7 +4,7 @@ import { travelersApi } from '@/lib/api-client';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
-import { formatCurrency, getCurrencySymbol } from '@/lib/utils';
+import { formatCurrency } from '@/lib/utils';
 import type { SplitMethod } from '@/types/models';
 
 export interface ParticipantShare {
@@ -111,7 +111,11 @@ export function SplitMethodFields({
   }, [splitMethod, totalAmount, value, onChange]);
 
   if (members.length === 0 || value.length === 0) {
-    return <div className="text-sm text-muted-foreground">Loading participants...</div>;
+    return (
+      <div className="text-xs md:text-sm font-manrope text-neutral-500">
+        Loading participants...
+      </div>
+    );
   }
 
   const handleToggle = (userId: string, checked: boolean) => {
@@ -127,14 +131,15 @@ export function SplitMethodFields({
   const isBalanced = diff < 0.02;
 
   return (
-    <div className="space-y-4 pt-4 border-t mt-4">
+    <div className="space-y-3 pt-4 border-t border-neutral-200/60 mt-2">
       <div className="flex justify-between items-center">
-        <h4 className="text-sm font-semibold text-foreground tracking-tight">Split Details</h4>
+        <h4 className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide">
+          Split Details
+        </h4>
         <span
-          className={`text-xs font-medium ${isBalanced ? 'text-green-500' : 'text-destructive'}`}
+          className={`text-xs md:text-sm font-semibold font-syne ${isBalanced ? 'text-[#10b981]' : 'text-red-500'}`}
         >
-          Total Assigned: {formatCurrency(currentTotal, currency)} /{' '}
-          {formatCurrency(totalAmount, currency)}
+          {formatCurrency(currentTotal, currency)} / {formatCurrency(totalAmount, currency)}
         </span>
       </div>
 
@@ -146,45 +151,55 @@ export function SplitMethodFields({
           return (
             <div
               key={member.userId}
-              className="flex items-center justify-between p-2 rounded-md border bg-card"
+              className="flex items-center justify-between px-3.5 py-2.5 rounded-xl border border-neutral-200/80 bg-[#F5F5F7] transition-colors"
             >
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-2.5 min-w-0 pr-2">
                 <Checkbox
                   id={`split-${member.userId}`}
                   checked={share.isSelected}
                   onCheckedChange={(checked) => handleToggle(member.userId, checked as boolean)}
                   disabled={disabled}
+                  className="border-neutral-300 data-[state=checked]:bg-[#10b981] data-[state=checked]:border-[#10b981] shrink-0"
                 />
-                <Label htmlFor={`split-${member.userId}`} className="cursor-pointer font-medium">
+                <Label
+                  htmlFor={`split-${member.userId}`}
+                  className="cursor-pointer font-medium font-manrope text-xs md:text-sm text-neutral-900 truncate"
+                >
                   {member.user?.name || member.user?.email || 'Unknown'}
                 </Label>
               </div>
 
-              <div className="flex items-center space-x-3">
+              <div className="flex items-center gap-2">
                 {share.isSelected && splitMethod !== 'equal' && (
-                  <div className="flex items-center space-x-1">
+                  <div className="flex items-center gap-1.5">
                     <Input
                       type="number"
-                      className="h-8 w-20 text-right"
+                      step={splitMethod === 'unequal' ? '0.01' : '1'}
+                      min="0"
+                      className="h-9 w-24 text-left px-3 bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200"
                       placeholder={
-                        splitMethod === 'percentage'
-                          ? '%'
-                          : splitMethod === 'custom'
-                            ? 'shares'
-                            : getCurrencySymbol(currency)
+                        splitMethod === 'unequal'
+                          ? '0.00'
+                          : splitMethod === 'percentage'
+                            ? '0'
+                            : '1'
                       }
                       value={share.inputValue}
                       onChange={(e) => handleInputChange(member.userId, e.target.value)}
                       disabled={disabled}
                     />
-                    <span className="text-xs text-muted-foreground">
-                      {splitMethod === 'percentage' ? '%' : splitMethod === 'custom' ? 'sh' : ''}
-                    </span>
+                    {splitMethod !== 'unequal' && (
+                      <span className="text-xs text-neutral-400 font-manrope shrink-0 select-none">
+                        {splitMethod === 'percentage' ? '%' : 'sh'}
+                      </span>
+                    )}
                   </div>
                 )}
 
-                <div className="text-sm font-semibold min-w-[70px] text-right">
-                  {share.isSelected ? formatCurrency(share.shareAmount, currency) : formatCurrency(0, currency)}
+                <div className="text-sm font-semibold font-syne text-neutral-900 min-w-18 text-right">
+                  {share.isSelected
+                    ? formatCurrency(share.shareAmount, currency)
+                    : formatCurrency(0, currency)}
                 </div>
               </div>
             </div>
@@ -193,7 +208,7 @@ export function SplitMethodFields({
       </div>
 
       {!isBalanced && (
-        <p className="text-xs text-destructive text-right">
+        <p className="text-xs text-red-500 text-right font-manrope">
           The split amounts must equal the total expense amount.
         </p>
       )}
