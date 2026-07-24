@@ -4,8 +4,10 @@ import { tripApi } from '@/lib/api-client';
 import { WorkspaceHeader } from '@/features/trips/workspace-header';
 import { WorkspaceTabs } from '@/features/trips/workspace-tabs';
 import { useSocket } from '@/components/providers/socket-provider';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { CommunicationPanel } from '@/features/communication/communication-panel';
+import { DotLottiePlayer } from '@dotlottie/react-player';
+import loaderUrl from '@/assets/lottie/loader.lottie?url';
 
 export const Route = createLazyFileRoute('/_authenticated/trips/$tripId')({
   component: TripWorkspaceLayout,
@@ -13,6 +15,7 @@ export const Route = createLazyFileRoute('/_authenticated/trips/$tripId')({
 
 function TripWorkspaceLayout() {
   const { tripId } = Route.useLoaderData();
+  const [showMinLoader, setShowMinLoader] = useState(true);
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['trip', tripId],
@@ -31,15 +34,31 @@ function TripWorkspaceLayout() {
     }
   }, [socket, tripId]);
 
-  if (isLoading) {
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowMinLoader(false);
+    }, 1500);
+    return () => clearTimeout(timer);
+  }, []);
+
+  if (isLoading || showMinLoader) {
     return (
-      <div className="p-8 text-center text-muted-foreground bg-white">Loading workspace...</div>
+      <div className="flex h-[calc(100vh-3.5rem)] w-full items-center justify-center bg-white">
+        <div className="w-48 h-48 flex items-center justify-center">
+          <DotLottiePlayer
+            src={loaderUrl}
+            autoplay
+            loop
+            style={{ width: '100%', height: '100%' }}
+          />
+        </div>
+      </div>
     );
   }
 
   if (error || !data) {
     return (
-      <div className="p-8 text-center text-destructive bg-white">
+      <div className="flex h-[calc(100vh-3.5rem)] p-8 items-center justify-center text-center text-destructive bg-white">
         Failed to load trip workspace.
       </div>
     );
@@ -49,7 +68,7 @@ function TripWorkspaceLayout() {
 
   return (
     <>
-      <div className="flex h-screen w-full overflow-hidden bg-white">
+      <div className="flex h-[calc(100vh-3.5rem)] w-full overflow-hidden bg-white">
         <div className="flex-1 flex flex-col overflow-y-auto bg-[#F5F5F7]">
           <WorkspaceHeader trip={trip} />
           <WorkspaceTabs tripId={trip.id} role={trip.role} />
