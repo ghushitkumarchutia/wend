@@ -3,8 +3,13 @@ import * as tripsServices from './trips.services.js';
 
 export async function listTrips(req: Request, res: Response): Promise<void> {
   const userId = (req as Request & { user: { id: string } }).user.id;
-  const tripsList = await tripsServices.listUserTrips(userId);
-  res.json({ data: tripsList });
+  const cursor = req.query.cursor as string | undefined;
+  const limit = req.query.limit ? Number(req.query.limit) : 4;
+  const status = req.query.status as string | undefined;
+  const search = req.query.search as string | undefined;
+
+  const result = await tripsServices.listUserTrips(userId, cursor, limit, status, search);
+  res.json(result);
 }
 
 export async function createTrip(req: Request, res: Response): Promise<void> {

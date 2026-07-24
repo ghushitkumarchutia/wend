@@ -1,6 +1,6 @@
 import { db } from '../../common/db.js';
 import { trips, tripMembers, activityLog, user } from '../../db/index.js';
-import { eq, and, desc, lt, isNull } from 'drizzle-orm';
+import { eq, and, desc, lt, lte, gt, gte, isNull, isNotNull, ilike, or } from 'drizzle-orm';
 import { remindersQueue } from '../../common/queues.js';
 import type { TripMemberRole } from '../../shared/enums.js';
 import type { TripWithRole, CursorPaginatedResponse } from '../../shared/types.js';
@@ -17,19 +17,70 @@ function computeTripStatus(
   return 'completed';
 }
 
-export async function listUserTrips(userId: string): Promise<TripWithRole[]> {
-  const memberships = await db.query.tripMembers.findMany({
-    where: eq(tripMembers.userId, userId),
-    with: {
-      trip: {
-        with: {
-          members: { columns: { id: true } },
-        },
-      },
-    },
-  });
+export async function listUserTrips(
+  userId: string,
+  cursor?: string,
+  limit: number = 4,
+  status: string = 'all',
+  searchQuery: string = '',
+): Promise<CursorPaginatedResponse<TripWithRole>> {
+  const conditions = [eq(tripMembers.userId, userId)];
 
-  return memberships.map((m) => ({
+  if (cursor) {
+    conditions.push(lt(trips.createdAt, new Date(cursor)));
+  }
+
+  if (searchQuery) {
+    conditions.push(
+      or(ilike(trips.name, `%${searchQuery}%`), ilike(trips.destination, `%${searchQuery}%`))!,
+    );
+  }
+
+  const now = new Date();
+  if (status === 'archived') {
+    conditions.push(isNotNull(trips.archivedAt));
+  } else {
+    conditions.push(isNull(trips.archivedAt));
+    if (status === 'upcoming') {
+      conditions.push(gt(trips.startDate, now));
+    } else if (status === 'ongoing') {
+      conditions.push(and(lte(trips.startDate, now), gte(trips.endDate, now))!);
+    } else if (status === 'completed') {
+      conditions.push(lt(trips.endDate, now));
+    }
+  }
+
+  const rows = await db
+    .select({
+      trip: trips,
+      role: tripMembers.role,
+    })
+    .from(trips)
+    .innerJoin(tripMembers, eq(trips.id, tripMembers.tripId))
+    .where(and(...conditions))
+    .orderBy(desc(trips.createdAt))
+    .limit(limit + 1);
+
+  const hasMore = rows.length > limit;
+  const data = hasMore ? rows.slice(0, limit) : rows;
+
+  const tripIds = data.map((r) => r.trip.id);
+  let memberCounts: Record<string, number> = {};
+  if (tripIds.length > 0) {
+    const counts = await db.query.trips.findMany({
+      where: (trips, { inArray }) => inArray(trips.id, tripIds),
+      with: { members: { columns: { id: true } } },
+    });
+    memberCounts = counts.reduce(
+      (acc, trip) => {
+        acc[trip.id] = trip.members.length;
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
+  }
+
+  const formattedData = data.map((m) => ({
     id: m.trip.id,
     name: m.trip.name,
     destination: m.trip.destination,
@@ -44,9 +95,13 @@ export async function listUserTrips(userId: string): Promise<TripWithRole[]> {
     createdAt: m.trip.createdAt.toISOString(),
     updatedAt: m.trip.updatedAt.toISOString(),
     role: m.role as TripMemberRole,
-    memberCount: m.trip.members.length,
+    memberCount: memberCounts[m.trip.id] || 0,
     status: computeTripStatus(m.trip.startDate, m.trip.endDate, m.trip.archivedAt),
   }));
+
+  const nextCursor = hasMore ? data[data.length - 1].trip.createdAt.toISOString() : null;
+
+  return { data: formattedData, nextCursor, hasMore };
 }
 
 export async function createTrip(
