@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { UploadCloud, File as FileIcon, X } from 'lucide-react';
+import { File as FileIcon, X } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { CloudUploadIcon } from '@hugeicons/core-free-icons';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -75,7 +77,7 @@ export function DocumentUploadArea({ onFileSelect, disabled }: DocumentUploadAre
 
   if (selectedFile) {
     return (
-      <div className="flex items-center justify-between p-4 border border-neutral-200/60 rounded-xl bg-neutral-50/50">
+      <div className="flex items-center justify-between p-4 border border-neutral-200/60 rounded-2xl bg-neutral-50/50">
         <div className="flex items-center space-x-3 truncate">
           <FileIcon className="h-6 w-6 text-[#09a474] shrink-0 stroke-1.5" />
           <div className="truncate">
@@ -101,7 +103,7 @@ export function DocumentUploadArea({ onFileSelect, disabled }: DocumentUploadAre
 
   return (
     <div
-      className={`relative border-2 border-dashed rounded-xl p-8 transition-all duration-200 ${
+      className={`relative border-2 border-dashed rounded-2xl p-8 transition-all duration-200 ${
         dragActive
           ? 'border-[#09a474] bg-[#09a474]/5'
           : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/40'
@@ -121,12 +123,12 @@ export function DocumentUploadArea({ onFileSelect, disabled }: DocumentUploadAre
       />
 
       <div className="flex flex-col items-center justify-center text-center space-y-3 pointer-events-none">
-        <div className="p-3 bg-[#09a474]/10 rounded-full">
-          <UploadCloud className="h-6 w-6 text-[#09a474] stroke-1.5" />
+        <div className="p-3 bg-[#09a474]/10 rounded-2xl flex items-center justify-center">
+          <HugeiconsIcon icon={CloudUploadIcon} className="w-6 h-6 text-[#09a474]" strokeWidth={1.75} />
         </div>
         <div>
-          <p className="text-sm font-medium text-neutral-800">Click to upload or drag and drop</p>
-          <p className="text-xs text-neutral-400 font-light mt-1">PDF, JPG, PNG, DOC (max. 5MB)</p>
+          <p className="text-sm font-medium font-manrope text-neutral-800">Click to upload or drag and drop</p>
+          <p className="text-xs text-neutral-400 font-manrope font-light mt-1">PDF, JPG, PNG, DOC (max. 5MB)</p>
         </div>
       </div>
     </div>
