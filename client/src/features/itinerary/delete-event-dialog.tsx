@@ -58,7 +58,7 @@ export function DeleteEventDialog({
             variant="waterdrop"
             disabled={isDeleting}
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-neutral-800 border border-white/90"
+            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-neutral-800 border border-white/90 cursor-pointer"
             style={{
               background: 'linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)',
               boxShadow: `
@@ -77,7 +77,7 @@ export function DeleteEventDialog({
             variant="waterdrop"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35"
+            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer"
             style={{
               background: 'linear-gradient(135deg, #F85252 0%, #E63946 100%)',
               boxShadow: `

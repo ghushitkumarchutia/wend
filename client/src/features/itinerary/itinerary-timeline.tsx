@@ -6,8 +6,10 @@ import { itineraryApi, tripApi } from '@/lib/api-client';
 import { DaySection } from './day-section';
 import { OutsideDatesWarning } from './outside-dates-warning';
 import { AddEditEventModal } from './add-edit-event-modal';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { DotLottiePlayer } from '@dotlottie/react-player';
+import loaderUrl from '@/assets/lottie/loader.lottie?url';
 import type { ItineraryEvent } from '@/types/models';
 
 interface ItineraryTimelineProps {
@@ -17,22 +19,44 @@ interface ItineraryTimelineProps {
 export function ItineraryTimeline({ tripId }: ItineraryTimelineProps) {
   const [isAddEventModalOpen, setIsAddEventModalOpen] = useState(false);
 
-  const { data: tripData } = useQuery({
+  const { data: tripData, isLoading: isTripLoading } = useQuery({
     queryKey: ['trip', tripId],
     queryFn: () => tripApi.getTrip(tripId),
   });
 
   const {
     data: eventsData,
-    isLoading,
+    isLoading: isEventsLoading,
     error,
   } = useQuery({
     queryKey: ['itinerary', tripId],
     queryFn: () => itineraryApi.getEvents(tripId),
   });
 
+  const [showMinLoader, setShowMinLoader] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowMinLoader(false);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const isLoading = isTripLoading || isEventsLoading || showMinLoader;
+
   if (isLoading) {
-    return <div className="p-8 text-center text-muted-foreground">Loading itinerary...</div>;
+    return (
+      <div className="flex items-center justify-center py-24 w-full">
+        <div className="w-28 h-28 flex items-center justify-center">
+          <DotLottiePlayer
+            src={loaderUrl}
+            autoplay
+            loop
+            style={{ width: '100%', height: '100%' }}
+          />
+        </div>
+      </div>
+    );
   }
 
   if (error || !eventsData || !tripData) {
@@ -80,7 +104,7 @@ export function ItineraryTimeline({ tripId }: ItineraryTimelineProps) {
 
   return (
     <div className="space-y-2.5 md:space-y-3">
-      <div className="flex items-center justify-between mt-1 md:-mt-3">
+      <div className="flex items-center justify-between mt-1 md:mt-0">
         <h2 className="text-[18px] md:text-2xl font-semibold tracking-wide text-neutral-900 font-syne">
           Itinerary
         </h2>
