@@ -1,43 +1,24 @@
-import { useQuery } from '@tanstack/react-query';
-import { documentsApi, tripApi } from '@/lib/api-client';
 import { DocumentCard } from './document-card';
 import { useAuth } from '@/hooks/use-auth';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { File02Icon } from '@hugeicons/core-free-icons';
+import type { TripDocument } from '@/types/models';
 
 interface DocumentListProps {
   tripId: string;
   isOrganizerOrMember: boolean;
+  documents: TripDocument[];
+  userRole: string;
 }
 
-export function DocumentList({ tripId, isOrganizerOrMember }: DocumentListProps) {
+export function DocumentList({
+  tripId,
+  isOrganizerOrMember,
+  documents,
+  userRole,
+}: DocumentListProps) {
   const { user } = useAuth();
-
-  const { data: tripData } = useQuery({
-    queryKey: ['trip', tripId],
-    queryFn: () => tripApi.getTrip(tripId),
-  });
-
-  const {
-    data: docsData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['documents', tripId],
-    queryFn: () => documentsApi.getDocuments(tripId),
-  });
-
-  if (isLoading) {
-    return <div className="py-8 text-center text-muted-foreground">Loading documents...</div>;
-  }
-
-  if (error || !docsData || !tripData) {
-    return <div className="py-8 text-center text-destructive">Failed to load documents.</div>;
-  }
-
-  const documents = docsData.data.documents;
   const currentUserId = user?.id;
-  const userRole = tripData.data.trip.role;
 
   if (documents.length === 0) {
     return (

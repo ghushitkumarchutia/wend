@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { tripApi } from '@/lib/api-client';
+import { tripApi, documentsApi } from '@/lib/api-client';
 import { Button } from '@/components/ui/button';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Add01Icon } from '@hugeicons/core-free-icons';
 import { DocumentList } from './document-list';
 import { UploadDocumentModal } from './upload-document-modal';
+import { DotLottiePlayer } from '@dotlottie/react-player';
+import loaderUrl from '@/assets/lottie/loader.lottie?url';
 
 interface DocumentsPageProps {
   tripId: string;
@@ -14,19 +16,52 @@ interface DocumentsPageProps {
 export function DocumentsPage({ tripId }: DocumentsPageProps) {
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  const { data: tripData } = useQuery({
+  const { data: tripData, isLoading: isTripLoading } = useQuery({
     queryKey: ['trip', tripId],
     queryFn: () => tripApi.getTrip(tripId),
   });
+
+  const { data: docsData, isLoading: isDocsLoading } = useQuery({
+    queryKey: ['documents', tripId],
+    queryFn: () => documentsApi.getDocuments(tripId),
+  });
+
+  const [showMinLoader, setShowMinLoader] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowMinLoader(false);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, []);
+
+  const isLoading = isTripLoading || isDocsLoading || showMinLoader;
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24 w-full">
+        <div className="w-28 h-28 flex items-center justify-center">
+          <DotLottiePlayer
+            src={loaderUrl}
+            autoplay
+            loop
+            style={{ width: '100%', height: '100%' }}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (!tripData) return null;
 
   const trip = tripData.data.trip;
   const isOrganizerOrMember = trip.role === 'organizer' || trip.role === 'member';
+  const documents = docsData?.data?.documents ?? [];
+  const userRole = trip.role;
 
   return (
     <div className="space-y-2.5 md:space-y-3">
-      <div className="flex items-center justify-between mt-1 md:-mt-3">
+      <div className="flex items-center justify-between mt-1 md:mt-0">
         <h2 className="text-[18px] md:text-2xl font-semibold tracking-wide text-neutral-900 font-syne">
           Documents
         </h2>
@@ -61,7 +96,12 @@ export function DocumentsPage({ tripId }: DocumentsPageProps) {
         )}
       </div>
 
-      <DocumentList tripId={tripId} isOrganizerOrMember={isOrganizerOrMember} />
+      <DocumentList
+        tripId={tripId}
+        isOrganizerOrMember={isOrganizerOrMember}
+        documents={documents}
+        userRole={userRole}
+      />
 
       {isUploadModalOpen && (
         <UploadDocumentModal
