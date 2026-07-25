@@ -1,58 +1,57 @@
-import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { travelersApi } from '@/lib/api-client';
 import { MemberRow } from './member-row';
 import { useAuth } from '@/hooks/use-auth';
+import type { TripMember } from '@/types/models';
 
 interface MembersListProps {
   tripId: string;
   isOrganizer: boolean;
+  members: TripMember[];
 }
 
-export function MembersList({ tripId, isOrganizer }: MembersListProps) {
+export function MembersList({ tripId, isOrganizer, members }: MembersListProps) {
   const { user } = useAuth();
-  const { data, isLoading, error } = useQuery({
-    queryKey: ['trip-members', tripId],
-    queryFn: () => travelersApi.getMembers(tripId),
-  });
 
-  if (isLoading) {
-    return <div className="text-sm text-muted-foreground p-4">Loading members...</div>;
+  if (!members.length) {
+    return null;
   }
 
-  if (error || !data) {
-    return <div className="text-sm text-destructive p-4">Failed to load members.</div>;
-  }
-
-  const members = data.data.members;
-  const organizersCount = members.filter(m => m.role === 'organizer').length;
+  const organizersCount = members.filter((m) => m.role === 'organizer').length;
 
   return (
-    <Card className="border-none shadow-none bg-transparent">
-      <CardHeader className="px-0">
-        <CardTitle>Travelers ({members.length})</CardTitle>
-        <CardDescription>
-          People who have joined this trip.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="px-0 divide-y">
-        {members.map((member) => {
-          const isCurrentUser = member.userId === user?.id;
-          // You can only leave if you are not an organizer, or if there is more than 1 organizer.
-          const canLeave = member.role !== 'organizer' || organizersCount > 1;
+    <div className="relative w-full rounded-3xl p-1 bg-white shadow-2xs flex flex-col justify-start select-none font-manrope">
+      <div
+        className="w-full rounded-2xl px-4.5 md:px-5 pt-4 md:pt-5 pb-5 md:pb-6 flex flex-col justify-start transition-colors"
+        style={{
+          background: 'linear-gradient(to top, #DDD6FE 0%, #FFFFFF 100%)',
+        }}
+      >
+        <div className="pb-4">
+          <h3 className="text-lg md:text-xl font-semibold tracking-wide text-neutral-900 font-syne">
+            Travelers ({members.length})
+          </h3>
+          <p className="text-[11px] md:text-xs text-neutral-500 font-manrope mt-0.5">
+            People who have joined this trip.
+          </p>
+        </div>
 
-          return (
-            <MemberRow
-              key={member.id}
-              tripId={tripId}
-              member={member}
-              isOrganizer={isOrganizer}
-              isCurrentUser={isCurrentUser}
-              canLeave={canLeave}
-            />
-          );
-        })}
-      </CardContent>
-    </Card>
+        <div className="space-y-3 relative z-10">
+          {members.map((member) => {
+            const isCurrentUser = member.userId === user?.id;
+            const canLeave = member.role !== 'organizer' || organizersCount > 1;
+
+            return (
+              <MemberRow
+                key={member.id}
+                tripId={tripId}
+                member={member}
+                isOrganizer={isOrganizer}
+                isCurrentUser={isCurrentUser}
+                canLeave={canLeave}
+              />
+            );
+          })}
+        </div>
+      </div>
+    </div>
   );
 }
