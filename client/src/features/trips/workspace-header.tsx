@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { Link } from '@tanstack/react-router';
 import type { TripWithRole } from '@/types/models';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
-  ArrowLeft02Icon,
   Location01Icon,
   Calendar02Icon,
   MoreVerticalIcon,
@@ -56,22 +54,7 @@ export function WorkspaceHeader({ trip }: WorkspaceHeaderProps) {
         className="w-full h-full object-cover object-center text-transparent transition-all duration-300"
       />
       <div className="absolute inset-0 bg-linear-to-b from-black/60 via-black/20 to-black/85" />
-      <div className="absolute top-4 left-4 right-4 md:top-6 md:left-6 md:right-6 flex items-center justify-between z-20">
-        <Link
-          to="/dashboard"
-          className="flex items-center gap-2 pl-0.5 pr-2 py-1.5 text-white hover:opacity-90 transition-all focus-visible:outline-none cursor-pointer drop-shadow-md group"
-          title="Back to Dashboard"
-        >
-          <HugeiconsIcon
-            icon={ArrowLeft02Icon}
-            className="size-6 md:size-7 text-white shrink-0 group-hover:-translate-x-0.5 transition-transform"
-            strokeWidth={2.25}
-          />
-          <span className="text-xs md:text-sm font-manrope font-medium text-white/95 tracking-wide drop-shadow-sm">
-            Back to Dashboard
-          </span>
-        </Link>
-
+      <div className="absolute top-4 left-4 right-4 md:top-6 md:left-6 md:right-6 flex items-center justify-end z-20">
         {isOrganizer && (
           <div
             onMouseEnter={() => setIsHovered(true)}

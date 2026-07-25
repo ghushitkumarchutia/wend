@@ -40,32 +40,52 @@ export function ArchiveTripDialog({ tripId, open, onOpenChange }: ArchiveTripDia
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         showCloseButton={false}
-        className="sm:max-w-[440px] rounded-2xl bg-white pt-5 md:pt-6 pb-6 px-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 animate-in fade-in-0 zoom-in-95"
+        className="max-w-[92vw] md:max-w-105 rounded-3xl md:rounded-[32px] ring-0 bg-white p-6 md:p-7 border border-black/5 shadow-2xl gap-0 font-manrope"
       >
-        <DialogHeader className="text-center flex flex-col items-center justify-center gap-1.5">
-          <DialogTitle className="text-[22px] font-semibold text-[#09a474] font-heading text-center">
+        <DialogHeader className="text-center flex flex-col items-center justify-center">
+          <DialogTitle className="text-xl md:text-2xl font-bold text-neutral-900 font-syne text-center tracking-tight">
             Archive Trip
           </DialogTitle>
-          <DialogDescription className="text-sm text-neutral-400 font-light text-center leading-relaxed">
+          <DialogDescription className="text-xs md:text-sm text-neutral-500 font-manrope text-center leading-relaxed mt-2">
             Archiving a trip will move it out of your active trips list and set it to read-only
             mode. You can restore it later if you need to.
           </DialogDescription>
         </DialogHeader>
 
-        <div className="flex gap-4 mt-6">
+        <div className="flex gap-2.5 md:gap-3 mt-6">
           <Button
             type="button"
+            variant="waterdrop"
             disabled={isArchiving}
             onClick={() => onOpenChange(false)}
-            className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#ff5d62] hover:bg-[#e04f53] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-neutral-800 border border-white/90 cursor-pointer"
+            style={{
+              background: 'linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)',
+              boxShadow: `
+                inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95),
+                inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.08),
+                0 4px 12px -2px rgba(0, 0, 0, 0.08),
+                0 1px 3px 0 rgba(0, 0, 0, 0.05)
+              `,
+            }}
           >
             Cancel
           </Button>
           <Button
             type="button"
+            variant="waterdrop"
             onClick={handleArchive}
             disabled={isArchiving}
-            className="flex-1 h-12 text-sm font-medium tracking-wide bg-[#09a474] hover:bg-[#088f65] text-white rounded-xl transition-all duration-200 cursor-pointer flex items-center justify-center border-none shadow-none"
+            className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+            style={{
+              background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
+              boxShadow: `
+                inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+                inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+                0 4px 14px -2px rgba(16, 185, 129, 0.4),
+                0 1px 3px 0 rgba(0, 0, 0, 0.08)
+              `,
+            }}
           >
             {isArchiving ? 'Archiving...' : 'Archive Trip'}
           </Button>

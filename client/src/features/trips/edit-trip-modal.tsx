@@ -171,7 +171,7 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
   return (
     <form onSubmit={handleSubmit}>
       <DialogHeader className="text-center flex flex-col items-center justify-center gap-1">
-        <DialogTitle className="text-xl md:text-2xl font-bold text-[#10b981] font-syne text-center tracking-tight">
+        <DialogTitle className="text-xl md:text-2xl font-bold text-neutral-900 font-syne text-center tracking-tight">
           Edit Trip Details
         </DialogTitle>
         <DialogDescription className="text-xs md:text-sm text-neutral-500 font-manrope text-center leading-relaxed">
@@ -192,7 +192,7 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
             value={name}
             onChange={(e) => setName(e.target.value)}
             disabled={isSubmitting}
-            className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-neutral-900 placeholder:text-neutral-400 transition-all duration-200"
+            className="bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 placeholder:text-neutral-400 transition-all duration-200 shadow-2xs"
             required
           />
         </div>
@@ -209,7 +209,7 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
             value={destination}
             onChange={(e) => handleDestinationChange(e.target.value)}
             disabled={isSubmitting}
-            className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-neutral-900 placeholder:text-neutral-400 transition-all duration-200"
+            className="bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 placeholder:text-neutral-400 transition-all duration-200 shadow-2xs"
             required
           />
         </div>
@@ -348,7 +348,7 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
             >
               <SelectTrigger
                 id="edit-baseCurrency"
-                className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5! md:h-11! px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 w-full cursor-pointer! flex items-center justify-between"
+                className="bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5! md:h-11! px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 transition-all duration-200 w-full cursor-pointer! flex items-center justify-between shadow-2xs"
               >
                 <SelectValue placeholder="Select currency" />
               </SelectTrigger>
@@ -367,17 +367,18 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
                       value={currency}
                       className={`rounded-lg transition-all cursor-pointer py-2.25! px-3.5! pr-9! my-0.5 font-manrope text-sm font-medium ${
                         isSelected
-                          ? 'text-white! hover:text-white! focus:text-white! focus:bg-[#059669]! hover:bg-[#059669]! **:text-white! hover:**:text-white! focus:**:text-white! font-semibold border border-white/30'
-                          : 'hover:bg-[#09a474]/10! focus:bg-[#09a474]/10! hover:text-[#09a474]! focus:text-[#09a474]! text-neutral-800'
+                          ? 'text-emerald-700! hover:text-emerald-700! focus:text-emerald-700! focus:bg-emerald-50! hover:bg-emerald-50! font-semibold border border-emerald-200/50'
+                          : 'hover:bg-slate-50! focus:bg-slate-50! hover:text-emerald-600! focus:text-emerald-600! text-neutral-800'
                       }`}
                       style={
                         isSelected
                           ? {
-                              background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
+                              background:
+                                'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, #D1FAE5 100%)',
                               boxShadow: `
-                                inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.4),
-                                inset 0 -1px 2px 0 rgba(0, 0, 0, 0.2),
-                                0 3px 10px -1px rgba(16, 185, 129, 0.35)
+                                inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95),
+                                inset 0 -1px 2px 0 rgba(0, 0, 0, 0.05),
+                                0 2px 8px -2px rgba(16, 185, 129, 0.2)
                               `,
                             }
                           : undefined
@@ -406,7 +407,7 @@ function EditTripForm({ trip, onClose }: EditTripFormProps) {
               value={estimatedBudget}
               onChange={(e) => setEstimatedBudget(e.target.value)}
               disabled={isSubmitting}
-              className="bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+              className="bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 transition-all duration-200 shadow-2xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
           </div>
         </div>
