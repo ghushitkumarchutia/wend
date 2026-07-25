@@ -1,73 +1,18 @@
-import { useQuery } from '@tanstack/react-query';
-import { ledgerApi } from '@/lib/api-client';
 import { formatCurrency, cn } from '@/lib/utils';
-import { Skeleton } from '@/components/ui/skeleton';
 
 interface BudgetOverviewProps {
-  tripId: string;
   currency: string;
+  estimatedBudget: string | null;
+  totalSpent: string;
+  byCategory: Record<string, string>;
 }
 
-export function BudgetOverview({ tripId, currency }: BudgetOverviewProps) {
-  const {
-    data: budgetData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['budget', tripId],
-    queryFn: () => ledgerApi.getBudgetOverview(tripId),
-  });
-
-  if (isLoading) {
-    return (
-      <div
-        className="relative rounded-3xl overflow-hidden border border-white/35"
-        style={{
-          background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
-          boxShadow: `
-            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
-            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.25),
-            0 6px 16px -2px rgba(16, 185, 129, 0.45),
-            0 3px 6px 0 rgba(0, 0, 0, 0.12)
-          `,
-        }}
-      >
-        <div className="absolute inset-x-4 top-0.5 h-2 rounded-t-full bg-linear-to-b from-white/40 via-white/10 to-transparent pointer-events-none" />
-        <div className="pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6.5">
-          <div className="pb-2">
-            <h3 className="text-base md:text-xl font-semibold tracking-wide text-white/90 font-syne">Budget Overview</h3>
-          </div>
-          <div className="space-y-4">
-            <Skeleton className="h-4 w-full bg-white/20" />
-            <Skeleton className="h-2 w-full bg-white/20" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (error || !budgetData) {
-    return (
-      <div
-        className="relative rounded-3xl overflow-hidden border border-white/35"
-        style={{
-          background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
-          boxShadow: `
-            inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
-            inset 0 -2px 4px 0 rgba(0, 0, 0, 0.25),
-            0 6px 16px -2px rgba(16, 185, 129, 0.45),
-            0 3px 6px 0 rgba(0, 0, 0, 0.12)
-          `,
-        }}
-      >
-        <div className="pt-4 md:pt-5 pb-5 md:pb-6 px-5 md:px-6.5 text-sm text-white/70 font-manrope">
-          Failed to load budget overview.
-        </div>
-      </div>
-    );
-  }
-
-  const { estimatedBudget, totalSpent, byCategory = {} } = budgetData.data;
+export function BudgetOverview({
+  currency,
+  estimatedBudget,
+  totalSpent,
+  byCategory,
+}: BudgetOverviewProps) {
 
   const spent = typeof totalSpent === 'number' ? totalSpent : parseFloat(totalSpent || '0');
   const budget = estimatedBudget

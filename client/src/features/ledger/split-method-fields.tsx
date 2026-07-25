@@ -176,7 +176,7 @@ export function SplitMethodFields({
                       type="number"
                       step={splitMethod === 'unequal' ? '0.01' : '1'}
                       min="0"
-                      className="h-9 w-24 text-left px-3 bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200"
+                      className="h-9 w-24 text-left px-3 bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl text-xs md:text-sm font-manrope font-semibold text-neutral-900 transition-all duration-200 shadow-2xs"
                       placeholder={
                         splitMethod === 'unequal'
                           ? '0.00'

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { HugeiconsIcon } from '@hugeicons/react';
 import { Add01Icon, Invoice01Icon } from '@hugeicons/core-free-icons';
 import { Button } from '@/components/ui/button';
@@ -14,40 +14,14 @@ interface ExpenseListProps {
   tripId: string;
   isOrganizerOrMember: boolean;
   currency: string;
+  expenses: Expense[];
 }
 
-export function ExpenseList({ tripId, isOrganizerOrMember, currency }: ExpenseListProps) {
+export function ExpenseList({ tripId, isOrganizerOrMember, currency, expenses }: ExpenseListProps) {
   const queryClient = useQueryClient();
   const [isLogExpenseModalOpen, setIsLogExpenseModalOpen] = useState(false);
   const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [deletingExpense, setDeletingExpense] = useState<Expense | null>(null);
-
-  const {
-    data: expensesData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ['expenses', tripId],
-    queryFn: () => ledgerApi.getExpenses(tripId),
-  });
-
-  if (isLoading) {
-    return (
-      <div className="py-8 text-center text-muted-foreground text-sm font-light font-manrope">
-        Loading expenses...
-      </div>
-    );
-  }
-
-  if (error || !expensesData) {
-    return (
-      <div className="py-8 text-center text-destructive text-sm font-medium font-manrope">
-        Failed to load expenses.
-      </div>
-    );
-  }
-
-  const expenses = expensesData.data.expenses;
 
   const handleDeleteConfirm = async () => {
     if (!deletingExpense) return;
@@ -67,7 +41,7 @@ export function ExpenseList({ tripId, isOrganizerOrMember, currency }: ExpenseLi
 
   return (
     <div className="space-y-2.5 md:space-y-3 font-manrope">
-      <div className="flex items-center justify-between mt-1 md:-mt-3">
+      <div className="flex items-center justify-between mt-1 md:mt-0">
         <h2 className="text-[18px] md:text-2xl font-semibold tracking-wide text-neutral-900 font-syne">
           Ledger
         </h2>

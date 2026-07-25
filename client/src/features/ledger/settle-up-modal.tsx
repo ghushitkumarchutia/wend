@@ -73,7 +73,7 @@ export function SettleUpModal({
   const paddingLeftPx = Math.max(36, 14 + currencySymbol.length * 9.5 + 4);
 
   const inputCls =
-    'bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope text-neutral-900 placeholder:text-neutral-400 transition-all duration-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
+    'bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 placeholder:text-neutral-400 transition-all duration-200 shadow-2xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none';
   const labelCls =
     'text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none';
 
@@ -84,7 +84,7 @@ export function SettleUpModal({
         className="max-w-[92vw] md:max-w-110 rounded-3xl md:rounded-[32px] bg-white pt-5 pb-6 px-6 md:pt-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 max-h-[90vh] overflow-y-auto font-manrope"
       >
         <DialogHeader className="text-center flex flex-col items-center justify-center gap-1">
-          <DialogTitle className="text-xl md:text-2xl font-bold text-[#10b981] font-syne text-center tracking-tight">
+          <DialogTitle className="text-xl md:text-2xl font-bold text-neutral-900 font-syne text-center tracking-tight">
             Record Payment
           </DialogTitle>
           <DialogDescription className="text-xs md:text-sm text-neutral-500 font-manrope text-center leading-relaxed">
