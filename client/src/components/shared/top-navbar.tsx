@@ -21,10 +21,10 @@ export function TopNavbar() {
           <nav className="flex gap-4 sm:gap-8 h-full">
             <Link
               to="/dashboard"
-              className="relative h-full flex items-center px-1 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.75 after:rounded-t-[3px] after:transition-colors after:duration-200 after:bg-transparent hover:after:bg-neutral-300 [&.active]:after:bg-[#09a474] group"
+              className="relative h-full flex items-center px-1 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.75 after:rounded-t-[3px] after:transition-colors after:duration-200 after:bg-transparent hover:after:bg-neutral-300 [&.active]:after:bg-emerald-500 group"
             >
               <div className="grid place-items-center">
-                <span className="col-start-1 row-start-1 text-sm font-semibold font-syne text-neutral-600 transition-all duration-200 group-hover:text-neutral-900 group-[.active]:text-[#09a474] group-[.active]:text-[15px] group-[.active]:font-bold group-[.active]:tracking-wide">
+                <span className="col-start-1 row-start-1 text-sm font-semibold font-syne text-neutral-600 transition-all duration-200 group-hover:text-neutral-900 group-[.active]:text-emerald-600 group-[.active]:text-[15px] group-[.active]:font-bold group-[.active]:tracking-wide">
                   Dashboard
                 </span>
                 <span
@@ -37,10 +37,10 @@ export function TopNavbar() {
             </Link>
             <Link
               to="/explore"
-              className="relative h-full flex items-center px-1 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.75 after:rounded-t-[3px] after:transition-colors after:duration-200 after:bg-transparent hover:after:bg-neutral-300 [&.active]:after:bg-[#09a474] group"
+              className="relative h-full flex items-center px-1 after:absolute after:bottom-0 after:left-0 after:w-full after:h-0.75 after:rounded-t-[3px] after:transition-colors after:duration-200 after:bg-transparent hover:after:bg-neutral-300 [&.active]:after:bg-emerald-500 group"
             >
               <div className="grid place-items-center">
-                <span className="col-start-1 row-start-1 text-sm font-semibold font-syne text-neutral-600 transition-all duration-200 group-hover:text-neutral-900 group-[.active]:text-[#09a474] group-[.active]:text-[15px] group-[.active]:font-bold group-[.active]:tracking-wide">
+                <span className="col-start-1 row-start-1 text-sm font-semibold font-syne text-neutral-600 transition-all duration-200 group-hover:text-neutral-900 group-[.active]:text-emerald-600 group-[.active]:text-[15px] group-[.active]:font-bold group-[.active]:tracking-wide">
                   Explore
                 </span>
                 <span
@@ -60,7 +60,7 @@ export function TopNavbar() {
             <DropdownMenuTrigger className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full cursor-pointer outline-none transition-opacity hover:opacity-80">
               <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border border-neutral-200/50 shadow-sm">
                 <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
-                <AvatarFallback className="bg-[#09a474]/10 text-[#09a474] font-syne font-bold text-xs sm:text-sm">
+                <AvatarFallback className="bg-emerald-50 text-emerald-700 font-syne font-bold text-xs sm:text-sm">
                   {user?.name?.[0]?.toUpperCase() || 'U'}
                 </AvatarFallback>
               </Avatar>
@@ -75,7 +75,7 @@ export function TopNavbar() {
               <div className="flex items-center gap-3 px-2.5 py-3 mb-1.5 border-b border-neutral-100">
                 <Avatar className="h-10 w-10 border border-neutral-200/50 shadow-sm">
                   <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
-                  <AvatarFallback className="bg-[#09a474]/10 text-[#09a474] font-syne font-bold">
+                  <AvatarFallback className="bg-emerald-50 text-emerald-700 font-syne font-bold">
                     {user?.name?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
                 </Avatar>
@@ -89,7 +89,7 @@ export function TopNavbar() {
                 </div>
               </div>
 
-              <DropdownMenuItem className="rounded-lg p-0 text-sm font-semibold text-neutral-700 bg-transparent! focus:bg-transparent! focus:text-neutral-700! hover:bg-[#09a474]/10! hover:text-[#09a474]! focus:hover:bg-[#09a474]/10! focus:hover:text-[#09a474]! cursor-pointer transition-colors duration-200">
+              <DropdownMenuItem className="rounded-lg p-0 text-sm font-semibold text-neutral-700 bg-transparent! focus:bg-transparent! focus:text-neutral-700! hover:bg-emerald-50! hover:text-emerald-700! focus:hover:bg-emerald-50! focus:hover:text-emerald-700! cursor-pointer transition-colors duration-200">
                 <Link to="/settings" className="flex w-full items-center px-3 py-2.5">
                   <HugeiconsIcon
                     icon={Settings01Icon}
@@ -102,7 +102,7 @@ export function TopNavbar() {
 
               <DropdownMenuItem
                 onClick={signOut}
-                className="rounded-lg p-0 mt-0.5 text-sm font-semibold text-red-600! bg-transparent! hover:bg-red-50! focus:bg-red-50! hover:text-red-600! focus:text-red-600! hover:**:text-red-600! focus:**:text-red-600! cursor-pointer transition-colors duration-200"
+                className="rounded-lg p-0 mt-0.5 text-sm font-semibold text-rose-600! bg-transparent! hover:bg-rose-50! focus:bg-rose-50! hover:text-rose-600! focus:text-rose-600! hover:**:text-rose-600! focus:**:text-rose-600! cursor-pointer transition-colors duration-200"
               >
                 <div className="flex w-full items-center px-3 py-2.5">
                   <HugeiconsIcon
