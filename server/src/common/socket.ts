@@ -35,6 +35,25 @@ export function initSocketServer(httpServer: HTTPServer): Server {
     }
   });
 
+  io.on('connection', (socket) => {
+    if (socket.data.userId) {
+      socket.join(`user:${socket.data.userId}`);
+    }
+  });
+
+  const subClient = redisClient.duplicate();
+  subClient.subscribe('worker:socket:emit');
+  subClient.on('message', (channel, message) => {
+    if (channel === 'worker:socket:emit') {
+      try {
+        const { room, event, data } = JSON.parse(message);
+        io.to(room).emit(event, data);
+      } catch (err) {
+        // ignore parsing errors
+      }
+    }
+  });
+
   return io;
 }
 
