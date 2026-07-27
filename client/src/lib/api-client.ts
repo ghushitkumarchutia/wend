@@ -97,7 +97,23 @@ export const tripsApi = {
     fetcher<ApiSuccessResponse<string[]>>(`/v1/trips/photos?query=${encodeURIComponent(query)}`),
 };
 
+export interface UserProfile {
+  id: string;
+  name: string;
+  email: string;
+  emailVerified: boolean;
+  image: string | null;
+  role: string;
+  createdAt: string;
+  tripCount: number;
+  hasPassword: boolean;
+  hasGoogle: boolean;
+}
+
 export const accountApi = {
+  getProfile: () =>
+    fetcher<ApiSuccessResponse<UserProfile>>('/v1/account/profile'),
+
   updateProfile: (data: UpdateProfileRequest) =>
     fetcher<ApiSuccessResponse<void>>('/v1/account/profile', {
       method: 'PATCH',
@@ -126,6 +142,17 @@ export const accountApi = {
     fetcher<ApiSuccessResponse<void>>('/v1/account/change-password', {
       method: 'POST',
       body: JSON.stringify(data),
+    }),
+
+  setPassword: (data: { newPassword: string; confirmPassword: string }) =>
+    fetcher<ApiSuccessResponse<void>>('/v1/account/set-password', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    }),
+
+  disconnectGoogle: () =>
+    fetcher<ApiSuccessResponse<void>>('/v1/account/google', {
+      method: 'DELETE',
     }),
 
   deleteAccount: (data: DeleteAccountRequest) =>
