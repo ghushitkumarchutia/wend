@@ -3,7 +3,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { accountApi } from '@/lib/api-client';
 import { toast } from 'sonner';
-import { Mail, Bell } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Mail02Icon, Notification03Icon } from '@hugeicons/core-free-icons';
 import type { NotificationPreferences } from '@/types/api';
 
 const cardStyle = {
@@ -27,32 +28,47 @@ export function NotificationPreferencesSection() {
   const mutation = useMutation({
     mutationFn: (updates: Partial<NotificationPreferences>) =>
       accountApi.updateNotificationPreferences(updates),
-    onSuccess: (updatedData) => {
-      queryClient.setQueryData(['notification-preferences'], updatedData);
-      toast.success('Notification preferences updated.');
+    onMutate: async (updates) => {
+      await queryClient.cancelQueries({ queryKey: ['notification-preferences'] });
+      const previous = queryClient.getQueryData<{ data: NotificationPreferences }>([
+        'notification-preferences',
+      ]);
+
+      if (previous) {
+        const newData = { ...previous, data: { ...previous.data } };
+        if (updates.email) {
+          newData.data.email = { ...(newData.data.email || {}), ...updates.email } as NotificationPreferences['email'];
+        }
+        if (updates.push) {
+          newData.data.push = { ...(newData.data.push || {}), ...updates.push } as NotificationPreferences['push'];
+        }
+        queryClient.setQueryData(['notification-preferences'], newData);
+      }
+
+      return { previous };
     },
-    onError: (error) => {
+    onError: (error, _updates, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(['notification-preferences'], context.previous);
+      }
       const msg = error instanceof Error ? error.message : 'Failed to update preferences.';
       toast.error(msg);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['notification-preferences'] });
     },
   });
 
   const handleToggleEmail = (key: keyof NotificationPreferences['email']) => {
     if (!data?.data?.email) return;
-    const newEmailPrefs = {
-      ...data.data.email,
-      [key]: !data.data.email[key],
-    };
-    mutation.mutate({ email: newEmailPrefs });
+    mutation.mutate({
+      email: { [key]: !data.data.email[key] },
+    } as Partial<NotificationPreferences>);
   };
 
   const handleTogglePush = (key: keyof NotificationPreferences['push']) => {
     if (!data?.data?.push) return;
-    const newPushPrefs = {
-      ...data.data.push,
-      [key]: !data.data.push[key],
-    };
-    mutation.mutate({ push: newPushPrefs });
+    mutation.mutate({ push: { [key]: !data.data.push[key] } } as Partial<NotificationPreferences>);
   };
 
   const prefs = data?.data;
@@ -83,7 +99,6 @@ export function NotificationPreferencesSection() {
     >
       <div className="absolute inset-x-4 top-0.5 h-2 rounded-t-full bg-linear-to-b from-white via-white/50 to-transparent pointer-events-none" />
       <div className="text-neutral-900 p-4.5 md:p-6 space-y-6 md:space-y-7">
-        {/* Section Header */}
         <div>
           <h3 className="text-lg md:text-xl font-bold tracking-normal text-neutral-900 font-syne">
             Notification Preferences
@@ -93,11 +108,14 @@ export function NotificationPreferencesSection() {
           </p>
         </div>
 
-        {/* Email Notifications Group */}
         <div className="space-y-3.5">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-slate-200/80 shadow-2xs shrink-0 text-emerald-600">
-              <Mail className="size-4" />
+              <HugeiconsIcon
+                icon={Mail02Icon}
+                className="size-4 text-emerald-600"
+                strokeWidth={2}
+              />
             </div>
             <h4 className="text-sm font-bold font-syne text-neutral-900 tracking-wide">
               Email Notifications
@@ -107,7 +125,10 @@ export function NotificationPreferencesSection() {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="email-trip-invites" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="email-trip-invites"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Trip Invites
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -118,14 +139,16 @@ export function NotificationPreferencesSection() {
                 id="email-trip-invites"
                 checked={prefs?.email?.trip_invites ?? false}
                 onCheckedChange={() => handleToggleEmail('trip_invites')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>
 
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="email-trip-updates" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="email-trip-updates"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Trip Updates
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -136,14 +159,16 @@ export function NotificationPreferencesSection() {
                 id="email-trip-updates"
                 checked={prefs?.email?.trip_updates ?? false}
                 onCheckedChange={() => handleToggleEmail('trip_updates')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>
 
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="email-daily-digest" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="email-daily-digest"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Daily Digest
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -154,14 +179,16 @@ export function NotificationPreferencesSection() {
                 id="email-daily-digest"
                 checked={prefs?.email?.daily_digest ?? false}
                 onCheckedChange={() => handleToggleEmail('daily_digest')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>
 
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="email-marketing" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="email-marketing"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Feature & Product News
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -172,18 +199,20 @@ export function NotificationPreferencesSection() {
                 id="email-marketing"
                 checked={prefs?.email?.marketing ?? false}
                 onCheckedChange={() => handleToggleEmail('marketing')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>
           </div>
         </div>
 
-        {/* Push Notifications Group */}
         <div className="space-y-3.5 pt-2">
           <div className="flex items-center gap-2.5">
             <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-white border border-slate-200/80 shadow-2xs shrink-0 text-emerald-600">
-              <Bell className="size-4" />
+              <HugeiconsIcon
+                icon={Notification03Icon}
+                className="size-4 text-emerald-600"
+                strokeWidth={2}
+              />
             </div>
             <h4 className="text-sm font-bold font-syne text-neutral-900 tracking-wide">
               Push Notifications
@@ -193,7 +222,10 @@ export function NotificationPreferencesSection() {
           <div className="space-y-2.5">
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="push-trip-invites" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="push-trip-invites"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Trip Invites
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -204,14 +236,16 @@ export function NotificationPreferencesSection() {
                 id="push-trip-invites"
                 checked={prefs?.push?.trip_invites ?? false}
                 onCheckedChange={() => handleTogglePush('trip_invites')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>
 
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="push-trip-updates" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="push-trip-updates"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Trip Updates
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -222,14 +256,16 @@ export function NotificationPreferencesSection() {
                 id="push-trip-updates"
                 checked={prefs?.push?.trip_updates ?? false}
                 onCheckedChange={() => handleTogglePush('trip_updates')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>
 
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="push-chat-mentions" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="push-chat-mentions"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Chat Mentions
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -240,14 +276,16 @@ export function NotificationPreferencesSection() {
                 id="push-chat-mentions"
                 checked={prefs?.push?.chat_mentions ?? false}
                 onCheckedChange={() => handleTogglePush('chat_mentions')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>
 
             <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
               <div className="space-y-0.5 pr-4">
-                <Label htmlFor="push-reminders" className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer">
+                <Label
+                  htmlFor="push-reminders"
+                  className="text-xs md:text-sm font-bold font-manrope text-neutral-900 cursor-pointer"
+                >
                   Upcoming Event Reminders
                 </Label>
                 <p className="text-xs font-medium font-manrope text-slate-500">
@@ -258,7 +296,6 @@ export function NotificationPreferencesSection() {
                 id="push-reminders"
                 checked={prefs?.push?.reminders ?? false}
                 onCheckedChange={() => handleTogglePush('reminders')}
-                disabled={mutation.isPending}
                 className="data-checked:bg-emerald-500! data-checked:border-emerald-600! cursor-pointer"
               />
             </div>

@@ -12,7 +12,7 @@ export const Route = createLazyFileRoute('/_authenticated/settings')({
 
 function SettingsRoute() {
   return (
-    <div className="flex flex-col gap-6 p-6 lg:p-10 w-full max-w-4xl mx-auto">
+    <div className="flex flex-col gap-6 p-6 lg:p-10 w-full max-w-4xl mx-auto bg-[#F5F5F7]">
       <div className="flex items-center">
         <Link
           to="/dashboard"
