@@ -1,4 +1,5 @@
 import type { Server as HTTPServer } from 'node:http';
+import { Redis } from 'ioredis';
 import { Server } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-streams-adapter';
 import { jwtVerify, createRemoteJWKSet } from 'jose';
@@ -38,18 +39,32 @@ export function initSocketServer(httpServer: HTTPServer): Server {
   io.on('connection', (socket) => {
     if (socket.data.userId) {
       socket.join(`user:${socket.data.userId}`);
+      console.log(`[Socket] User ${socket.data.userId} joined room user:${socket.data.userId}`);
     }
   });
 
-  const subClient = redisClient.duplicate();
-  subClient.subscribe('worker:socket:emit');
+  const subClient = new Redis(env.REDIS_URL);
+  subClient.on('ready', () => {
+    console.log('[Socket] Redis Pub/Sub subscriber connected');
+  });
+  subClient.on('error', (err) => {
+    console.error('[Socket] Redis Pub/Sub subscriber error:', err.message);
+  });
+  subClient.subscribe('worker:socket:emit', (err) => {
+    if (err) {
+      console.error('[Socket] Failed to subscribe to worker:socket:emit:', err.message);
+    } else {
+      console.log('[Socket] Subscribed to worker:socket:emit channel');
+    }
+  });
   subClient.on('message', (channel, message) => {
     if (channel === 'worker:socket:emit') {
       try {
         const { room, event, data } = JSON.parse(message);
+        console.log(`[Socket] Relaying ${event} to room ${room}`);
         io.to(room).emit(event, data);
       } catch (err) {
-        // ignore parsing errors
+        console.error('[Socket] Failed to parse worker message:', err);
       }
     }
   });

@@ -67,14 +67,16 @@ export async function processNotificationJob(job: Job<NotificationJobData>): Pro
         )
       `;
 
-      await redisClient.publish(
-        'worker:socket:emit',
-        JSON.stringify({
+      const pubPayload = {
           room: `user:${recipient.user_id}`,
           event: 'notification:new',
           data: { type: data.type, tripName: data.tripName, actorName: data.actorName },
-        })
+        };
+      const subscribers = await redisClient.publish(
+        'worker:socket:emit',
+        JSON.stringify(pubPayload)
       );
+      console.log(`[Worker] Published notification:new to user:${recipient.user_id} (${subscribers} subscriber(s) received)`);
     }
 
     if (sendEmail && recipient.email) {
