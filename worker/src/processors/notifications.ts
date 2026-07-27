@@ -1,7 +1,10 @@
 import type { Job } from 'bullmq';
 import { Queue } from 'bullmq';
 import postgres from 'postgres';
+import { Redis } from 'ioredis';
 import { workerRedisUrl } from '../redis.js';
+
+const redisClient = new Redis(workerRedisUrl);
 
 const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
@@ -63,6 +66,15 @@ export async function processNotificationJob(job: Job<NotificationJobData>): Pro
           NOW()
         )
       `;
+
+      await redisClient.publish(
+        'worker:socket:emit',
+        JSON.stringify({
+          room: `user:${recipient.user_id}`,
+          event: 'notification:new',
+          data: { type: data.type, tripName: data.tripName, actorName: data.actorName },
+        })
+      );
     }
 
     if (sendEmail && recipient.email) {
