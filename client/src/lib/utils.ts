@@ -24,3 +24,14 @@ export function getCurrencySymbol(currency: string = 'USD') {
     return currency;
   }
 }
+
+export function formatImageUrl(url: string | null | undefined): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  const apiBase = (import.meta.env?.VITE_API_URL as string | undefined) || 'http://localhost:3000/api';
+  const serverOrigin = apiBase.replace(/\/api$/, '');
+  const cleanUrl = url.startsWith('/') ? url : `/${url}`;
+  return `${serverOrigin}${cleanUrl}`;
+}

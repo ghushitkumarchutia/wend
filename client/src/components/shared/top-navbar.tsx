@@ -1,5 +1,6 @@
 import { Link } from '@tanstack/react-router';
 import { useAuth } from '@/hooks/use-auth';
+import { formatImageUrl } from '@/lib/utils';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,6 +14,7 @@ import { NotificationBell } from '@/features/notifications/notification-bell';
 
 export function TopNavbar() {
   const { user, signOut } = useAuth();
+  const avatarSrc = formatImageUrl(user?.image);
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-neutral-200 bg-white">
@@ -59,7 +61,7 @@ export function TopNavbar() {
           <DropdownMenu>
             <DropdownMenuTrigger className="relative h-8 w-8 sm:h-9 sm:w-9 rounded-full cursor-pointer outline-none transition-opacity hover:opacity-80">
               <Avatar className="h-8 w-8 sm:h-9 sm:w-9 border border-neutral-200/50 shadow-sm">
-                <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
+                <AvatarImage src={avatarSrc} alt={user?.name || ''} />
                 <AvatarFallback className="bg-emerald-50 text-emerald-700 font-syne font-bold text-xs sm:text-sm">
                   {user?.name?.[0]?.toUpperCase() || 'U'}
                 </AvatarFallback>
@@ -74,7 +76,7 @@ export function TopNavbar() {
             >
               <div className="flex items-center gap-3 px-2.5 py-3 mb-1.5 border-b border-neutral-100">
                 <Avatar className="h-10 w-10 border border-neutral-200/50 shadow-sm">
-                  <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
+                  <AvatarImage src={avatarSrc} alt={user?.name || ''} />
                   <AvatarFallback className="bg-emerald-50 text-emerald-700 font-syne font-bold">
                     {user?.name?.[0]?.toUpperCase() || 'U'}
                   </AvatarFallback>
