@@ -1,14 +1,20 @@
 import { z } from 'zod';
-import { NotificationType } from '../enums.js';
+
+const emailPreferencesSchema = z.object({
+  trip_invites: z.boolean().optional(),
+  trip_updates: z.boolean().optional(),
+  daily_digest: z.boolean().optional(),
+  marketing: z.boolean().optional(),
+});
+
+const pushPreferencesSchema = z.object({
+  trip_invites: z.boolean().optional(),
+  trip_updates: z.boolean().optional(),
+  chat_mentions: z.boolean().optional(),
+  reminders: z.boolean().optional(),
+});
 
 export const updatePreferencesSchema = z.object({
-  preferences: z
-    .array(
-      z.object({
-        type: z.enum(NotificationType),
-        inApp: z.boolean().optional(),
-        email: z.boolean().optional(),
-      }),
-    )
-    .min(1),
+  email: emailPreferencesSchema.optional(),
+  push: pushPreferencesSchema.optional(),
 });
