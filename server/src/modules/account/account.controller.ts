@@ -23,8 +23,8 @@ export async function requestPhotoUrl(req: Request, res: Response): Promise<void
 export async function confirmPhoto(req: Request, res: Response): Promise<void> {
   const userId = (req as Request & { user: { id: string } }).user.id;
   const { storageKey } = req.body;
-  await accountServices.confirmAvatarUpload(userId, storageKey);
-  res.json({ data: { success: true } });
+  const imageUrl = await accountServices.confirmAvatarUpload(userId, storageKey, req.headers);
+  res.json({ data: { success: true, image: imageUrl } });
 }
 
 export async function changeEmail(req: Request, res: Response): Promise<void> {

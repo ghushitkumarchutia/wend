@@ -18,6 +18,7 @@ import { pollsRouter } from './modules/polls/polls.routes.js';
 import { notificationsRouter } from './modules/notifications/notifications.routes.js';
 import { dashboardRouter } from './modules/dashboard/dashboard.routes.js';
 import { accountRouter } from './modules/account/account.routes.js';
+import { storageRouter } from './modules/storage/storage.routes.js';
 import { templatesRouter } from './modules/templates/templates.routes.js';
 import { adminRouter } from './modules/admin/admin.routes.js';
 import { docsRouter } from './openapi/docs.routes.js';
@@ -26,7 +27,11 @@ import { requestLogger } from './common/logger.js';
 export const app = express();
 
 app.use(requestLogger);
-app.use(helmet());
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+);
 app.use(
   cors({
     origin: [env.WEB_ORIGIN, env.ADMIN_ORIGIN],
@@ -38,6 +43,8 @@ app.use(express.json({ limit: '1mb' }));
 app.use(enforceJsonContentType);
 
 app.all('/api/auth/{*any}', ...authHandlers);
+
+app.use('/api/v1/storage', storageRouter);
 
 app.use('/api/v1', sessionMiddleware, requireAuth);
 app.use('/api/admin', sessionMiddleware, requireAuth);

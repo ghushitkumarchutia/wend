@@ -24,6 +24,14 @@ async function verifyPassword(storedHash: string, password: string): Promise<boo
   return timingSafeEqual(hashBuffer, storedBuffer);
 }
 
+export function resolveStorageUrl(keyOrUrl: string | null | undefined): string | null {
+  if (!keyOrUrl) return null;
+  if (keyOrUrl.startsWith('http://') || keyOrUrl.startsWith('https://')) {
+    return keyOrUrl;
+  }
+  return `/api/v1/storage/file?key=${encodeURIComponent(keyOrUrl)}`;
+}
+
 export async function getUserProfile(userId: string) {
   const row = await db.query.user.findFirst({
     where: eq(user.id, userId),
@@ -61,6 +69,7 @@ export async function getUserProfile(userId: string) {
 
   return {
     ...row,
+    image: resolveStorageUrl(row.image),
     tripCount: tripCount?.value ?? 0,
     hasPassword: !!hasPassword,
     hasGoogle: !!hasGoogle,
@@ -86,14 +95,31 @@ export async function updateUserProfile(userId: string, data: { name: string }) 
 export async function getAvatarUploadUrl(userId: string, fileType: string) {
   const key = `avatars/${userId}/${Date.now()}`;
   const uploadUrl = await getPresignedPutUrl(key, fileType);
-  return { uploadUrl, storageKey: key };
+  return { uploadUrl, storageKey: key, url: uploadUrl, key };
 }
 
-export async function confirmAvatarUpload(userId: string, storageKey: string) {
+export async function confirmAvatarUpload(
+  userId: string,
+  storageKey: string,
+  headers?: IncomingHttpHeaders,
+) {
+  const imageUrl = resolveStorageUrl(storageKey);
   await db
     .update(user)
-    .set({ image: storageKey, updatedAt: new Date() })
+    .set({ image: imageUrl, updatedAt: new Date() })
     .where(eq(user.id, userId));
+
+  if (headers) {
+    try {
+      await auth.api.updateUser({
+        body: { image: imageUrl },
+        headers: headers as unknown as Headers,
+      });
+    } catch (e) {
+      // Ignore session update error if headers incomplete
+    }
+  }
+  return imageUrl;
 }
 
 export async function changeUserEmail(
