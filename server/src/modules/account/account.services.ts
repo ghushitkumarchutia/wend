@@ -132,7 +132,9 @@ export async function changeUserEmail(
   });
 
   if (!credentialAccount?.password) {
-    const err = new Error('No password set — cannot verify identity') as Error & { status: number };
+    const err = new Error(
+      'You must set a password before you can change your email address.',
+    ) as Error & { status: number };
     err.status = 400;
     throw err;
   }
@@ -175,6 +177,19 @@ export async function changeUserPassword(
   data: { currentPassword: string; newPassword: string },
   headers: IncomingHttpHeaders,
 ) {
+  const credentialAccount = await db.query.account.findFirst({
+    where: and(eq(account.userId, userId), eq(account.providerId, 'credential')),
+    columns: { id: true },
+  });
+
+  if (!credentialAccount) {
+    const err = new Error(
+      'No password is set on this account. Please use "Set Password" instead.',
+    ) as Error & { status: number };
+    err.status = 400;
+    throw err;
+  }
+
   try {
     await auth.api.changePassword({
       body: {
