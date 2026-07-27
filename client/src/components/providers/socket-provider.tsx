@@ -27,7 +27,13 @@ export function SocketProvider({ children }: SocketProviderProps) {
 
     async function setup() {
       try {
-        const res = await fetch('/api/auth/token');
+        const authBaseURL =
+          import.meta.env.VITE_AUTH_URL ||
+          (import.meta.env.VITE_API_URL || 'http://localhost:3000/api').replace(/\/api$/, '');
+
+        const res = await fetch(`${authBaseURL}/api/auth/token`, {
+          credentials: 'include',
+        });
         if (!res.ok) {
           throw new Error('Failed to fetch token');
         }

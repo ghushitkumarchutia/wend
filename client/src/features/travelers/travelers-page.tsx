@@ -17,6 +17,9 @@ export function TravelersPage({ tripId }: TravelersPageProps) {
     queryFn: () => tripApi.getTrip(tripId),
   });
 
+  const role = tripData?.data.trip.role;
+  const isOrganizer = role === 'organizer';
+
   const { data: membersData, isLoading: isMembersLoading } = useQuery({
     queryKey: ['trip-members', tripId],
     queryFn: () => travelersApi.getMembers(tripId),
@@ -25,6 +28,7 @@ export function TravelersPage({ tripId }: TravelersPageProps) {
   const { data: invitesData, isLoading: isInvitesLoading } = useQuery({
     queryKey: ['trip-invites', tripId],
     queryFn: () => travelersApi.getPendingInvites(tripId),
+    enabled: isOrganizer,
   });
 
   const [showMinLoader, setShowMinLoader] = useState(true);
@@ -36,7 +40,8 @@ export function TravelersPage({ tripId }: TravelersPageProps) {
     return () => clearTimeout(timer);
   }, []);
 
-  const isLoading = isTripLoading || isMembersLoading || isInvitesLoading || showMinLoader;
+  const isInvitesLoadingActual = isOrganizer ? isInvitesLoading : false;
+  const isLoading = isTripLoading || isMembersLoading || isInvitesLoadingActual || showMinLoader;
 
   if (isLoading) {
     return (
@@ -53,8 +58,6 @@ export function TravelersPage({ tripId }: TravelersPageProps) {
     );
   }
 
-  const role = tripData?.data.trip.role;
-  const isOrganizer = role === 'organizer';
   const members = membersData?.data.members ?? [];
   const allInvites = invitesData?.data.invites ?? [];
   const pendingInvites = allInvites.filter((inv) => inv.status === 'pending');
