@@ -50,7 +50,7 @@ export async function listMessages(
   const data = hasMore ? rows.slice(0, limit) : rows;
   const nextCursor = hasMore ? data[data.length - 1].createdAt.toISOString() : null;
 
-  const formatted = data.map((r) => ({
+  const formatted = data.reverse().map((r) => ({
     id: r.id,
     tripId: r.tripId,
     userId: r.userId,
