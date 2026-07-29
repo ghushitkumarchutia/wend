@@ -2,11 +2,11 @@ import { create } from 'zustand';
 
 interface CommunicationPanelState {
   isOpen: boolean;
-  activeTab: 'chat' | 'polls' | 'updates';
+  activeTab: 'chat' | 'polls' | 'activity';
   activeTripId: string | null;
-  openPanel: (tripId: string, tab?: 'chat' | 'polls' | 'updates') => void;
+  openPanel: (tripId: string, tab?: 'chat' | 'polls' | 'activity') => void;
   closePanel: () => void;
-  setTab: (tab: 'chat' | 'polls' | 'updates') => void;
+  setTab: (tab: 'chat' | 'polls' | 'activity') => void;
 }
 
 export const useCommunicationPanelStore = create<CommunicationPanelState>((set) => ({

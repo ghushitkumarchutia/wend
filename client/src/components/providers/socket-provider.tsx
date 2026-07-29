@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useEffect, useState } from 'react';
 import { Socket } from 'socket.io-client';
 import { initSocket, disconnectSocket } from '@/lib/socket';

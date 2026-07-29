@@ -243,6 +243,8 @@ export interface ChatMessage {
   editedAt: string | null;
   deletedAt: string | null;
   createdAt: string;
+  userName?: string;
+  userImage?: string | null;
   user?: {
     id: string;
     name: string | null;
