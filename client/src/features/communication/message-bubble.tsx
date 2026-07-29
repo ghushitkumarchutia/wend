@@ -1,15 +1,30 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { MoreHorizontal, Pencil, Trash, Check, X } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  MoreHorizontalCircle01Icon,
+  PencilEdit02Icon,
+  Delete01Icon,
+  Tick04Icon,
+  Cancel02Icon,
+} from '@hugeicons/core-free-icons';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { chatApi } from '@/lib/api-client';
+import { formatImageUrl } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ChatMessage } from '@/types/models';
 
@@ -23,6 +38,8 @@ export function MessageBubble({ message, isOwn, tripId }: MessageBubbleProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [editBody, setEditBody] = useState(message.body);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const handleEdit = async () => {
     if (editBody.trim() === message.body || !editBody.trim()) {
@@ -42,112 +59,237 @@ export function MessageBubble({ message, isOwn, tripId }: MessageBubbleProps) {
   };
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this message?')) return;
-
     try {
+      setIsDeleting(true);
       await chatApi.deleteMessage(tripId, message.id);
+      setIsDeleteDialogOpen(false);
     } catch {
       toast.error('Failed to delete message');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const initials = message.user?.name?.slice(0, 2).toUpperCase() || 'U';
+  const senderName = message.userName || message.user?.name || 'Member';
+  const avatarImage = formatImageUrl(message.userImage || message.user?.image);
+  const initials =
+    senderName
+      .split(' ')
+      .filter(Boolean)
+      .map((n) => n[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'M';
 
   return (
-    <div className={`flex gap-3 w-full group ${isOwn ? 'flex-row-reverse' : ''}`}>
-      <Avatar className="w-8 h-8 shrink-0 mt-1">
-        <AvatarImage src={message.user?.image || undefined} />
-        <AvatarFallback className="text-xs bg-primary/10 text-primary">{initials}</AvatarFallback>
-      </Avatar>
+    <>
+      <div className={`flex gap-2.5 w-full group ${isOwn ? 'flex-row-reverse' : ''}`}>
+        <Avatar className="w-8 h-8 shrink-0 mt-0.5 border-2 border-white shadow-xs ring-1 ring-black/5 overflow-hidden">
+          <AvatarImage src={avatarImage} alt={senderName} />
+          <AvatarFallback className="text-[11px] font-bold font-syne bg-emerald-100 text-emerald-800">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
 
-      <div className={`flex flex-col max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
-        <div className={`flex items-baseline gap-2 mb-1 px-1 ${isOwn ? 'flex-row-reverse' : ''}`}>
-          <span className="text-xs font-medium text-foreground">
-            {message.user?.name || 'User'}
-          </span>
-          <span className="text-[10px] text-muted-foreground">
-            {format(new Date(message.createdAt), 'h:mm a')}
-          </span>
-          {message.editedAt && (
-            <span className="text-[10px] text-muted-foreground italic">(edited)</span>
-          )}
-        </div>
-
-        <div className="relative group/bubble flex items-center">
+        <div className={`flex flex-col max-w-[75%] ${isOwn ? 'items-end' : 'items-start'}`}>
           <div
-            className={`px-3 py-2 rounded-2xl text-sm wrap-break-word relative
-              ${
-                isOwn
-                  ? 'bg-primary text-primary-foreground rounded-tr-sm'
-                  : 'bg-muted text-foreground rounded-tl-sm'
-              }`}
+            className={`flex items-baseline gap-1.5 mb-0.5 translate-y-0.5 ${isOwn ? 'flex-row-reverse' : ''}`}
           >
-            {isEditing ? (
-              <div className="flex items-center gap-2 min-w-[200px]">
-                <input
-                  autoFocus
-                  className="bg-background text-foreground border rounded px-2 py-1 text-sm w-full outline-none"
-                  value={editBody}
-                  onChange={(e) => setEditBody(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter') handleEdit();
-                    if (e.key === 'Escape') {
-                      setIsEditing(false);
-                      setEditBody(message.body);
-                    }
-                  }}
-                  disabled={isSubmitting}
-                />
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 text-green-500 hover:text-green-600 hover:bg-green-500/10"
-                  onClick={handleEdit}
-                  disabled={isSubmitting}
-                >
-                  <Check className="h-3 w-3" />
-                </Button>
-                <Button
-                  size="icon"
-                  variant="ghost"
-                  className="h-6 w-6 text-red-500 hover:text-red-600 hover:bg-red-500/10"
-                  onClick={() => setIsEditing(false)}
-                  disabled={isSubmitting}
-                >
-                  <X className="h-3 w-3" />
-                </Button>
-              </div>
-            ) : (
-              <p className="whitespace-pre-wrap">{message.body}</p>
+            <span
+              className={`text-xs font-bold font-syne ${isOwn ? 'text-neutral-700' : 'text-emerald-700'}`}
+            >
+              {isOwn ? 'You' : senderName}
+            </span>
+            <span className="text-[10px] text-neutral-400 font-manrope">
+              {format(new Date(message.createdAt), 'h:mm a')}
+            </span>
+            {message.editedAt && (
+              <span className="text-[10px] text-neutral-400 italic font-manrope">(edited)</span>
             )}
           </div>
 
-          {!isEditing && isOwn && (
+          <div className="relative group/bubble flex items-start">
             <div
-              className={`absolute top-1/2 -translate-y-1/2 opacity-0 group-hover/bubble:opacity-100 transition-opacity ${isOwn ? 'right-full mr-2' : 'left-full ml-2'}`}
+              className={`px-3.5 py-2 md:px-4 md:py-2 text-[13px] md:text-[13px] font-manrope tracking-wide wrap-break-word relative transition-all duration-150 ${
+                isOwn
+                  ? 'text-white rounded-[18px] rounded-tr-sm border border-emerald-400/40'
+                  : 'text-emerald-950 rounded-[18px] rounded-tl-sm border border-emerald-200/60 hover:border-emerald-300/80'
+              }`}
+              style={
+                isOwn
+                  ? {
+                      background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
+                      boxShadow: `
+                        inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+                        inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+                        0 4px 14px -2px rgba(16, 185, 129, 0.35)
+                      `,
+                    }
+                  : {
+                      background: 'linear-gradient(145deg, #F0FDF4 0%, #ECFDF5 100%)',
+                      boxShadow: `
+                        inset 0 1.5px 2px 0 #FFFFFF,
+                        0 3px 12px -2px rgba(16, 185, 129, 0.08),
+                        0 1px 2px 0 rgba(0, 0, 0, 0.02)
+                      `,
+                    }
+              }
             >
-              <DropdownMenu>
-                <DropdownMenuTrigger className="h-6 w-6 inline-flex items-center justify-center rounded-full text-muted-foreground hover:bg-muted transition-colors">
-                  <MoreHorizontal className="h-3 w-3" />
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align={isOwn ? 'end' : 'start'}>
-                  <DropdownMenuItem onClick={() => setIsEditing(true)}>
-                    <Pencil className="w-4 h-4 mr-2" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="text-destructive focus:text-destructive"
-                    onClick={handleDelete}
+              {isEditing ? (
+                <div className="flex items-center gap-2 min-w-50">
+                  <input
+                    autoFocus
+                    className="bg-white/90 text-neutral-900 border border-emerald-300 rounded-lg px-2.5 py-1 text-[13px] md:text-[13px] font-manrope tracking-wide w-full outline-none focus:ring-2 focus:ring-emerald-500/20"
+                    value={editBody}
+                    onChange={(e) => setEditBody(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleEdit();
+                      if (e.key === 'Escape') {
+                        setIsEditing(false);
+                        setEditBody(message.body);
+                      }
+                    }}
+                    disabled={isSubmitting}
+                  />
+                  <button
+                    type="button"
+                    className="h-7 w-7 rounded-lg bg-emerald-600 hover:bg-emerald-700 active:scale-95 text-white flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                    onClick={handleEdit}
+                    disabled={isSubmitting}
+                    title="Save"
                   >
-                    <Trash className="w-4 h-4 mr-2" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+                    <HugeiconsIcon
+                      icon={Tick04Icon}
+                      className="w-4 h-4 text-white"
+                      strokeWidth={2.5}
+                    />
+                  </button>
+                  <button
+                    type="button"
+                    className="h-7 w-7 rounded-lg bg-rose-500 hover:bg-rose-600 active:scale-95 text-white flex items-center justify-center shrink-0 shadow-2xs transition-all cursor-pointer disabled:opacity-50"
+                    onClick={() => {
+                      setIsEditing(false);
+                      setEditBody(message.body);
+                    }}
+                    disabled={isSubmitting}
+                    title="Cancel"
+                  >
+                    <HugeiconsIcon
+                      icon={Cancel02Icon}
+                      className="w-4 h-4 text-white"
+                      strokeWidth={2.5}
+                    />
+                  </button>
+                </div>
+              ) : (
+                <p className="whitespace-pre-wrap leading-relaxed">{message.body}</p>
+              )}
             </div>
-          )}
+
+            {!isEditing && isOwn && (
+              <div
+                className={`absolute top-1 opacity-0 group-hover/bubble:opacity-100 transition-opacity ${
+                  isOwn ? 'right-full mr-1.5' : 'left-full ml-1.5'
+                }`}
+              >
+                <DropdownMenu>
+                  <DropdownMenuTrigger className="inline-flex items-center justify-center rounded-full text-neutral-400 hover:text-neutral-900 hover:bg-black/5 transition-colors focus-visible:outline-none h-6 w-6 p-0 shrink-0 cursor-pointer">
+                    <span className="sr-only">Open menu</span>
+                    <HugeiconsIcon
+                      icon={MoreHorizontalCircle01Icon}
+                      className="size-4 block"
+                      strokeWidth={1.5}
+                    />
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent
+                    align={isOwn ? 'end' : 'start'}
+                    className="w-auto min-w-0 bg-white/95 backdrop-blur-md border border-black/5 shadow-[0_4px_16px_rgba(0,0,0,0.06)] rounded-full p-1 z-50 flex items-center gap-0.5"
+                  >
+                    <DropdownMenuItem
+                      onClick={() => setIsEditing(true)}
+                      className="rounded-full px-1.5 py-1 text-neutral-600 hover:text-neutral-900 hover:bg-black/5 focus:bg-black/5 focus:text-neutral-900 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                      title="Edit Message"
+                    >
+                      <HugeiconsIcon
+                        icon={PencilEdit02Icon}
+                        className="size-4 block"
+                        strokeWidth={1.5}
+                      />
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setIsDeleteDialogOpen(true)}
+                      className="rounded-full px-1.5 py-1 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10 focus:bg-rose-500/10 focus:text-rose-600 cursor-pointer transition-colors flex items-center justify-center shrink-0"
+                      title="Delete Message"
+                    >
+                      <HugeiconsIcon
+                        icon={Delete01Icon}
+                        className="size-4 block"
+                        strokeWidth={1.5}
+                      />
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            )}
+          </div>
         </div>
       </div>
-    </div>
+
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent
+          showCloseButton={false}
+          className="max-w-[92vw] md:max-w-95 rounded-3xl md:rounded-[32px] ring-0 bg-white p-6 md:p-7 border border-black/5 shadow-2xl gap-0 font-manrope"
+        >
+          <DialogHeader className="text-center flex flex-col items-center justify-center">
+            <DialogTitle className="text-lg md:text-xl font-bold text-neutral-900 font-syne text-center tracking-tight">
+              Delete Message
+            </DialogTitle>
+            <DialogDescription className="text-xs md:text-sm text-neutral-500 font-manrope text-center leading-relaxed mt-2">
+              Are you sure you want to delete this message? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex gap-2.5 md:gap-3 mt-6">
+            <Button
+              type="button"
+              variant="waterdrop"
+              disabled={isDeleting}
+              onClick={() => setIsDeleteDialogOpen(false)}
+              className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-neutral-800 border border-white/90 cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #F3F4F6 0%, #E5E7EB 100%)',
+                boxShadow: `
+                  inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.95),
+                  inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.08),
+                  0 4px 12px -2px rgba(0, 0, 0, 0.08),
+                  0 1px 3px 0 rgba(0, 0, 0, 0.05)
+                `,
+              }}
+            >
+              Cancel
+            </Button>
+
+            <Button
+              type="button"
+              variant="waterdrop"
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #F85252 0%, #E63946 100%)',
+                boxShadow: `
+                  inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+                  inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+                  0 4px 14px -2px rgba(230, 57, 70, 0.4),
+                  0 1px 3px 0 rgba(0, 0, 0, 0.08)
+                `,
+              }}
+            >
+              {isDeleting ? 'Deleting...' : 'Delete'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
