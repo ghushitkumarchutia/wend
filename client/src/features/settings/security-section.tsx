@@ -8,9 +8,9 @@ import { toast } from 'sonner';
 import { useAuth } from '@/hooks/use-auth';
 
 const labelCls =
-  'text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none';
+  'text-xs font-semibold font-syne text-neutral-900 tracking-wide select-none flex items-center gap-1.5';
 const inputCls =
-  'h-10.5 rounded-xl border border-neutral-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white text-neutral-900 placeholder:text-neutral-400 text-xs md:text-sm font-manrope font-semibold focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! transition-all duration-200 shadow-2xs';
+  'h-10 rounded-xl border border-neutral-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] focus:bg-white text-neutral-900 placeholder:text-neutral-400 text-xs md:text-sm font-manrope font-medium focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! transition-all duration-200 shadow-2xs';
 
 const cardStyle = {
   background: 'linear-gradient(145deg, #FFFFFF 0%, #F8FAFC 100%)',
@@ -33,7 +33,7 @@ const emeraldBtnStyle = {
 };
 
 const emeraldBtnCls =
-  'h-10.5 px-6 text-xs md:text-sm font-bold font-manrope text-white border border-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 rounded-full! shrink-0 active:scale-97';
+  'h-9.5 md:h-10 px-5 md:px-6 text-xs md:text-sm font-bold font-manrope text-white border border-white/35 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer transition-all duration-200 rounded-full! shrink-0 active:scale-97';
 
 export function SecuritySection() {
   const { user } = useAuth();

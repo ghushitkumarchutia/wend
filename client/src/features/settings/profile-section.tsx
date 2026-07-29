@@ -9,11 +9,12 @@ import { updateUser } from '@/lib/auth-client';
 import { accountApi } from '@/lib/api-client';
 import { toast } from 'sonner';
 import { HugeiconsIcon } from '@hugeicons/react';
-import { User03Icon, Upload01Icon, Mail01Icon } from '@hugeicons/core-free-icons';
+import { User03Icon, Upload01Icon } from '@hugeicons/core-free-icons';
 
 export function ProfileSection() {
   const { user } = useAuth();
-  const [name, setName] = useState(user?.name || '');
+  const [nameInput, setNameInput] = useState<string | null>(null);
+  const name = nameInput ?? user?.name ?? '';
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -127,7 +128,7 @@ export function ProfileSection() {
     >
       <div className="absolute inset-x-4 top-0.5 h-2 rounded-t-full bg-linear-to-b from-white/40 via-white/10 to-transparent pointer-events-none" />
 
-      <div className="text-white p-3.5 md:p-5 space-y-3 md:space-y-4">
+      <div className="text-white p-3.5 md:p-5 space-y-3.5 md:space-y-4">
         <div className="flex items-center gap-3">
           <div>
             <h3 className="text-lg md:text-xl font-bold tracking-normal text-white font-syne">
@@ -139,18 +140,18 @@ export function ProfileSection() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3.5 p-2 md:p-2.5 rounded-[20px] bg-black/10 backdrop-blur-md border border-white/20 shadow-xs">
+        <div className="flex items-center gap-3.5 p-2.5 md:p-3 rounded-[20px] bg-black/10 backdrop-blur-md border border-white/20 shadow-xs flex-wrap md:flex-nowrap">
           <div className="shrink-0">
-            <Avatar className="h-20 w-20 md:h-22 md:w-22 rounded-[16px] border-2 border-white/60 shadow-lg ring-1 ring-white/30 overflow-hidden bg-black/20">
+            <Avatar className="h-18 w-18 md:h-22 md:w-22 rounded-[16px] border-2 border-white/60 shadow-lg ring-1 ring-white/30 overflow-hidden bg-black/20">
               <AvatarImage
                 src={avatarSrc}
                 alt={user?.name}
-                className="object-cover w-full h-full rounded-2xl"
+                className="object-cover w-full h-full rounded-[10px]"
               />
               <AvatarFallback className="bg-white/20 backdrop-blur-md text-white flex items-center justify-center rounded-2xl">
                 <HugeiconsIcon
                   icon={User03Icon}
-                  className="size-9 text-white/90"
+                  className="size-8 md:size-9 text-white/90"
                   strokeWidth={1.8}
                 />
               </AvatarFallback>
@@ -171,7 +172,7 @@ export function ProfileSection() {
                 variant="waterdrop"
                 disabled={isUploading}
                 onClick={() => fileInputRef.current?.click()}
-                className="h-8.5 px-3.5 text-xs font-semibold font-manrope text-emerald-950 border border-white/90 cursor-pointer transition-all active:scale-97"
+                className="h-8.5 px-3.5 text-xs font-semibold font-manrope text-emerald-950 border border-white/90 cursor-pointer transition-all active:scale-97 disabled:opacity-50"
                 style={{
                   background: 'linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%)',
                   boxShadow: `
@@ -183,13 +184,13 @@ export function ProfileSection() {
               >
                 <HugeiconsIcon
                   icon={Upload01Icon}
-                  className="size-3.5 text-emerald-700 mr-1.5"
-                  strokeWidth={2.2}
+                  className="size-3.5 text-emerald-950"
+                  strokeWidth={2.4}
                 />
                 {isUploading ? 'Uploading...' : 'Upload Photo'}
               </Button>
             </div>
-            <p className="text-[11px] text-white/70 font-manrope">
+            <p className="text-[11px] text-white/75 font-manrope">
               JPG, PNG or WebP. Max size 5MB.
             </p>
           </div>
@@ -202,36 +203,26 @@ export function ProfileSection() {
                 htmlFor="name"
                 className="text-xs font-semibold font-syne text-white/90 flex items-center gap-1.5"
               >
-                <HugeiconsIcon
-                  icon={User03Icon}
-                  className="size-3.5 text-white/80"
-                  strokeWidth={2}
-                />
                 Display Name
               </Label>
               <Input
                 id="name"
                 placeholder="Enter display name"
                 value={name}
-                onChange={(e) => setName(e.target.value)}
+                onChange={(e) => setNameInput(e.target.value)}
                 disabled={isUpdating}
-                className="h-10.5 rounded-xl border border-white/25 bg-black/15 text-white placeholder:text-white/40 text-xs md:text-sm font-medium focus-visible:ring-2 focus-visible:ring-white/40 focus-visible:border-white/60 transition-all shadow-inner font-manrope"
+                className="h-10 rounded-xl border border-white/25 bg-black/15 text-white placeholder:text-white/40 text-xs md:text-sm font-medium focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:border-white/70 transition-all shadow-inner font-manrope"
               />
             </div>
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold font-syne text-white/90 flex items-center gap-1.5">
-                <HugeiconsIcon
-                  icon={Mail01Icon}
-                  className="size-3.5 text-white/70"
-                  strokeWidth={2}
-                />
                 Email Address
               </Label>
               <Input
                 value={user?.email || ''}
                 disabled
-                className="h-10.5 rounded-xl border border-white/15 bg-black/25 text-white/60 text-xs md:text-sm font-medium font-manrope cursor-not-allowed opacity-80"
+                className="h-10 rounded-xl border border-white/15 bg-black/25 text-white/60 text-xs md:text-sm font-medium font-manrope cursor-not-allowed opacity-80 select-none"
               />
             </div>
           </div>
@@ -240,8 +231,8 @@ export function ProfileSection() {
             <Button
               type="submit"
               variant="waterdrop"
-              disabled={isUpdating || name.trim() === user?.name}
-              className="h-10 px-5 text-sm font-bold font-manrope text-emerald-950 border border-white/90 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-97"
+              disabled={isUpdating || name.trim() === user?.name || !name.trim()}
+              className="h-9.5 md:h-10 px-5 text-xs md:text-sm font-bold font-manrope text-emerald-950 border border-white/90 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed transition-all active:scale-97"
               style={{
                 background: 'linear-gradient(135deg, #FFFFFF 0%, #F3F4F6 100%)',
                 boxShadow: `
