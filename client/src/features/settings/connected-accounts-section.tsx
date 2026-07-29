@@ -4,9 +4,7 @@ import { Button } from '@/components/ui/button';
 import { accountApi } from '@/lib/api-client';
 import { authClient } from '@/lib/auth-client';
 import { toast } from 'sonner';
-
-const GOOGLE_LOGO_URL =
-  'https://cdn.brandfetch.io/id6O2oGzv-/theme/dark/symbol.svg?c=1bxid64Mup7aczewSAYMX&t=1755835725776';
+import googleLogoUrl from '@/assets/svg/google.svg';
 
 export function ConnectedAccountsSection() {
   const queryClient = useQueryClient();
@@ -80,7 +78,7 @@ export function ConnectedAccountsSection() {
         <div className="flex items-center justify-between p-3.5 md:p-4 rounded-2xl border border-slate-200/80 bg-[#F5F5F7] hover:bg-[#EEEEEF] transition-all duration-200 shadow-2xs">
           <div className="flex items-center gap-3.5">
             <div className="flex h-10 w-10 items-center justify-center rounded-[20px] bg-white border border-slate-200/80 shadow-2xs p-2 shrink-0">
-              <img src={GOOGLE_LOGO_URL} alt="Google" className="size-5 object-contain" />
+              <img src={googleLogoUrl} alt="Google" className="size-5 object-contain" />
             </div>
             <div>
               <p className="text-sm font-bold font-manrope text-neutral-900">Google</p>
