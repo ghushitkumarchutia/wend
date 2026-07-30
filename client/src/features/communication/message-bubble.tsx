@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
+import { useQueryClient } from '@tanstack/react-query';
 import { HugeiconsIcon } from '@hugeicons/react';
 import {
   MoreHorizontalCircle01Icon,
@@ -27,6 +28,7 @@ import { chatApi } from '@/lib/api-client';
 import { formatImageUrl } from '@/lib/utils';
 import { toast } from 'sonner';
 import type { ChatMessage } from '@/types/models';
+import type { ChatMessageListResponse } from '@/types/api';
 
 interface MessageBubbleProps {
   message: ChatMessage;
@@ -35,6 +37,7 @@ interface MessageBubbleProps {
 }
 
 export function MessageBubble({ message, isOwn, tripId }: MessageBubbleProps) {
+  const queryClient = useQueryClient();
   const [isEditing, setIsEditing] = useState(false);
   const [editBody, setEditBody] = useState(message.body);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,23 +50,55 @@ export function MessageBubble({ message, isOwn, tripId }: MessageBubbleProps) {
       return;
     }
 
+    const previousData = queryClient.getQueryData(['chat', tripId]);
+    const newBody = editBody.trim();
+
+    queryClient.setQueryData(['chat', tripId], (oldData: ChatMessageListResponse | undefined) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        data: {
+          ...oldData.data,
+          messages: oldData.data.messages.map((m: ChatMessage) =>
+            m.id === message.id ? { ...m, body: newBody, editedAt: new Date().toISOString() } : m,
+          ),
+        },
+      };
+    });
+    setIsEditing(false);
+
     try {
       setIsSubmitting(true);
-      await chatApi.editMessage(tripId, message.id, { body: editBody.trim() });
-      setIsEditing(false);
+      await chatApi.editMessage(tripId, message.id, { body: newBody });
     } catch {
+      queryClient.setQueryData(['chat', tripId], previousData);
       toast.error('Failed to edit message');
+      setIsEditing(true);
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleDelete = async () => {
+    const previousData = queryClient.getQueryData(['chat', tripId]);
+
+    queryClient.setQueryData(['chat', tripId], (oldData: ChatMessageListResponse | undefined) => {
+      if (!oldData) return oldData;
+      return {
+        ...oldData,
+        data: {
+          ...oldData.data,
+          messages: oldData.data.messages.filter((m: ChatMessage) => m.id !== message.id),
+        },
+      };
+    });
+    setIsDeleteDialogOpen(false);
+
     try {
       setIsDeleting(true);
       await chatApi.deleteMessage(tripId, message.id);
-      setIsDeleteDialogOpen(false);
     } catch {
+      queryClient.setQueryData(['chat', tripId], previousData);
       toast.error('Failed to delete message');
     } finally {
       setIsDeleting(false);
