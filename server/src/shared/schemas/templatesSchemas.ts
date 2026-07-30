@@ -1,6 +1,7 @@
 import { z } from 'zod';
-import { TemplateVisibility, TemplateDifficulty, TemplateSeason } from '../enums.js';
+import { TemplateVisibility, TemplateDifficulty, TemplateSeason, EventCategory, EventStatus } from '../enums.js';
 import { MAX_TRIP_NAME_LENGTH, MAX_DESCRIPTION_LENGTH, CURRENCIES } from '../constants.js';
+import { flightDetailsSchema } from './itinerarySchemas.js';
 
 export const createTemplateSchema = z.object({
   title: z.string().min(1).max(MAX_TRIP_NAME_LENGTH),
@@ -55,21 +56,30 @@ export const addDaySchema = z.object({
 
 export const addEventSchema = z.object({
   title: z.string().min(1).max(MAX_TRIP_NAME_LENGTH),
+  category: z.enum(EventCategory).default('activity'),
+  status: z.enum(EventStatus).default('confirmed'),
   time: z.string().optional(),
   location: z.string().optional(),
   description: z.string().max(MAX_DESCRIPTION_LENGTH).optional(),
   order: z.number(),
+  flightDetails: flightDetailsSchema.optional(),
 });
 
 export const updateTemplateEventSchema = z
   .object({
     title: z.string().min(1).max(MAX_TRIP_NAME_LENGTH),
+    category: z.enum(EventCategory),
+    status: z.enum(EventStatus),
     time: z.string().nullable(),
     location: z.string().nullable(),
     description: z.string().max(MAX_DESCRIPTION_LENGTH).nullable(),
     order: z.number(),
+    flightDetails: flightDetailsSchema.nullable(),
   })
-  .partial();
+  .partial()
+  .extend({
+    version: z.number().int().positive().optional(),
+  });
 
 export const reorderSchema = z.object({
   items: z

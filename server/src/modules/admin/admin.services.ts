@@ -1,6 +1,6 @@
 import { db } from '../../common/db.js';
 import { getPresignedPutUrl } from '../../common/storage.js';
-import { templates, templateDays, templateEvents, templateAuditLog } from '../../db/index.js';
+import { templates, templateDays, templateEvents, templateFlightDetails, templateAuditLog } from '../../db/index.js';
 import { eq, asc, sql } from 'drizzle-orm';
 
 export async function listAllTemplates(page: number, pageSize: number) {
@@ -98,33 +98,35 @@ export async function createTemplate(
     estimatedBudgetCurrency?: string;
   },
 ) {
-  const [template] = await db
-    .insert(templates)
-    .values({
-      title: data.title,
-      destination: data.destination,
-      description: data.description,
-      coverImageUrl: data.coverImageUrl ?? null,
-      visibility: (data.visibility ?? 'draft') as typeof templates.$inferInsert.visibility,
-      categories: data.categories,
-      recommendedGroupSizeMin: data.recommendedGroupSizeMin ?? null,
-      recommendedGroupSizeMax: data.recommendedGroupSizeMax ?? null,
-      bestSeason: data.bestSeason ?? null,
-      difficultyLevel: (data.difficultyLevel ??
-        null) as typeof templates.$inferInsert.difficultyLevel,
-      estimatedBudgetBreakdown: data.estimatedBudgetBreakdown ?? null,
-      estimatedBudgetCurrency: data.estimatedBudgetCurrency ?? null,
-      createdByUserId: adminUserId,
-    })
-    .returning();
+  return await db.transaction(async (tx) => {
+    const [template] = await tx
+      .insert(templates)
+      .values({
+        title: data.title,
+        destination: data.destination,
+        description: data.description,
+        coverImageUrl: data.coverImageUrl ?? null,
+        visibility: (data.visibility ?? 'draft') as typeof templates.$inferInsert.visibility,
+        categories: data.categories,
+        recommendedGroupSizeMin: data.recommendedGroupSizeMin ?? null,
+        recommendedGroupSizeMax: data.recommendedGroupSizeMax ?? null,
+        bestSeason: data.bestSeason ?? null,
+        difficultyLevel: (data.difficultyLevel ??
+          null) as typeof templates.$inferInsert.difficultyLevel,
+        estimatedBudgetBreakdown: data.estimatedBudgetBreakdown ?? null,
+        estimatedBudgetCurrency: data.estimatedBudgetCurrency ?? null,
+        createdByUserId: adminUserId,
+      })
+      .returning();
 
-  await db.insert(templateAuditLog).values({
-    templateId: template.id,
-    adminUserId,
-    action: 'created',
+    await tx.insert(templateAuditLog).values({
+      templateId: template.id,
+      adminUserId,
+      action: 'created',
+    });
+
+    return template;
   });
-
-  return template;
 }
 
 export async function updateTemplate(
@@ -151,25 +153,27 @@ export async function updateTemplate(
   if (data.estimatedBudgetCurrency !== undefined)
     values.estimatedBudgetCurrency = data.estimatedBudgetCurrency;
 
-  const [updated] = await db
-    .update(templates)
-    .set(values)
-    .where(eq(templates.id, templateId))
-    .returning();
+  return await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(templates)
+      .set(values)
+      .where(eq(templates.id, templateId))
+      .returning();
 
-  if (!updated) {
-    const err = new Error('Template not found') as Error & { status: number };
-    err.status = 404;
-    throw err;
-  }
+    if (!updated) {
+      const err = new Error('Template not found') as Error & { status: number };
+      err.status = 404;
+      throw err;
+    }
 
-  await db.insert(templateAuditLog).values({
-    templateId,
-    adminUserId,
-    action: 'updated',
+    await tx.insert(templateAuditLog).values({
+      templateId,
+      adminUserId,
+      action: 'updated',
+    });
+
+    return updated;
   });
-
-  return updated;
 }
 
 export async function changeTemplateVisibility(
@@ -177,26 +181,28 @@ export async function changeTemplateVisibility(
   adminUserId: string,
   visibility: string,
 ): Promise<void> {
-  const [updated] = await db
-    .update(templates)
-    .set({
-      visibility: visibility as typeof templates.$inferInsert.visibility,
-      updatedAt: new Date(),
-    })
-    .where(eq(templates.id, templateId))
-    .returning({ id: templates.id });
+  await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(templates)
+      .set({
+        visibility: visibility as typeof templates.$inferInsert.visibility,
+        updatedAt: new Date(),
+      })
+      .where(eq(templates.id, templateId))
+      .returning({ id: templates.id });
 
-  if (!updated) {
-    const err = new Error('Template not found') as Error & { status: number };
-    err.status = 404;
-    throw err;
-  }
+    if (!updated) {
+      const err = new Error('Template not found') as Error & { status: number };
+      err.status = 404;
+      throw err;
+    }
 
-  await db.insert(templateAuditLog).values({
-    templateId,
-    adminUserId,
-    action: 'visibility_changed',
-    metadata: { visibility },
+    await tx.insert(templateAuditLog).values({
+      templateId,
+      adminUserId,
+      action: 'visibility_changed',
+      metadata: { visibility },
+    });
   });
 }
 
@@ -209,6 +215,7 @@ export async function duplicateTemplate(templateId: string, adminUserId: string)
         with: {
           events: {
             orderBy: [asc(templateEvents.order)],
+            with: { flightDetails: true },
           },
         },
       },
@@ -221,76 +228,97 @@ export async function duplicateTemplate(templateId: string, adminUserId: string)
     throw err;
   }
 
-  const [duplicate] = await db
-    .insert(templates)
-    .values({
-      title: `${original.title} (Copy)`,
-      destination: original.destination,
-      description: original.description,
-      coverImageUrl: original.coverImageUrl,
-      visibility: 'draft',
-      categories: original.categories as string[],
-      recommendedGroupSizeMin: original.recommendedGroupSizeMin,
-      recommendedGroupSizeMax: original.recommendedGroupSizeMax,
-      bestSeason: original.bestSeason as string[] | null,
-      difficultyLevel: original.difficultyLevel as typeof templates.$inferInsert.difficultyLevel,
-      estimatedBudgetBreakdown: original.estimatedBudgetBreakdown as Record<string, number> | null,
-      estimatedBudgetCurrency: original.estimatedBudgetCurrency,
-      createdByUserId: adminUserId,
-    })
-    .returning();
-
-  for (const day of original.days) {
-    const [newDay] = await db
-      .insert(templateDays)
+  return await db.transaction(async (tx) => {
+    const [duplicate] = await tx
+      .insert(templates)
       .values({
-        templateId: duplicate.id,
-        dayNumber: day.dayNumber,
-        order: day.order,
+        title: `${original.title} (Copy)`,
+        destination: original.destination,
+        description: original.description,
+        coverImageUrl: original.coverImageUrl,
+        visibility: 'draft',
+        categories: original.categories as string[],
+        recommendedGroupSizeMin: original.recommendedGroupSizeMin,
+        recommendedGroupSizeMax: original.recommendedGroupSizeMax,
+        bestSeason: original.bestSeason as string[] | null,
+        difficultyLevel: original.difficultyLevel as typeof templates.$inferInsert.difficultyLevel,
+        estimatedBudgetBreakdown: original.estimatedBudgetBreakdown as Record<string, number> | null,
+        estimatedBudgetCurrency: original.estimatedBudgetCurrency,
+        createdByUserId: adminUserId,
       })
       .returning();
 
-    for (const event of day.events) {
-      await db.insert(templateEvents).values({
-        dayId: newDay.id,
-        title: event.title,
-        time: event.time,
-        location: event.location,
-        description: event.description,
-        order: event.order,
-      });
+    for (const day of original.days) {
+      const [newDay] = await tx
+        .insert(templateDays)
+        .values({
+          templateId: duplicate.id,
+          dayNumber: day.dayNumber,
+          order: day.order,
+        })
+        .returning();
+
+      for (const event of day.events) {
+        const [newEvent] = await tx.insert(templateEvents).values({
+          dayId: newDay.id,
+          title: event.title,
+          category: event.category,
+          status: event.status,
+          time: event.time,
+          location: event.location,
+          description: event.description,
+          order: event.order,
+        }).returning();
+
+        if (event.flightDetails) {
+          await tx.insert(templateFlightDetails).values({
+            eventId: newEvent.id,
+            airline: event.flightDetails.airline,
+            flightNumber: event.flightDetails.flightNumber,
+            departureAirport: event.flightDetails.departureAirport,
+            arrivalAirport: event.flightDetails.arrivalAirport,
+            confirmationRef: event.flightDetails.confirmationRef,
+            terminal: event.flightDetails.terminal,
+            gate: event.flightDetails.gate,
+            seat: event.flightDetails.seat,
+            baggageAllowance: event.flightDetails.baggageAllowance,
+          });
+        }
+      }
     }
-  }
 
-  await db.insert(templateAuditLog).values({
-    templateId: duplicate.id,
-    adminUserId,
-    action: 'duplicated',
-    metadata: { sourceTemplateId: templateId },
+    await tx.insert(templateAuditLog).values({
+      templateId: duplicate.id,
+      adminUserId,
+      action: 'duplicated',
+      metadata: { sourceTemplateId: templateId },
+    });
+
+    return duplicate;
   });
-
-  return duplicate;
 }
 
 export async function deleteTemplate(templateId: string, adminUserId: string): Promise<void> {
-  const existing = await db.query.templates.findFirst({
-    where: eq(templates.id, templateId),
-    columns: { id: true },
+  await db.transaction(async (tx) => {
+    const existing = await tx.query.templates.findFirst({
+      where: eq(templates.id, templateId),
+      columns: { id: true },
+    });
+
+    if (!existing) {
+      const err = new Error('Template not found') as Error & { status: number };
+      err.status = 404;
+      throw err;
+    }
+
+    await tx.insert(templateAuditLog).values({
+      templateId,
+      adminUserId,
+      action: 'deleted',
+    });
+
+    await tx.delete(templates).where(eq(templates.id, templateId));
   });
-
-  if (!existing) {
-    const err = new Error('Template not found') as Error & { status: number };
-    err.status = 404;
-    throw err;
-  }
-
-  await db.insert(templateAuditLog).values({
-    templateId,
-    adminUserId,
-    action: 'deleted',
-  });
-
-  await db.delete(templates).where(eq(templates.id, templateId));
 }
 
 export async function addDay(templateId: string, data: { dayNumber: number }) {
@@ -341,44 +369,109 @@ export async function removeDay(dayId: string): Promise<void> {
 
 export async function addEvent(
   dayId: string,
-  data: { title: string; time?: string; location?: string; description?: string; order: number },
+  data: {
+    title: string;
+    category?: string;
+    status?: string;
+    time?: string;
+    location?: string;
+    description?: string;
+    order: number;
+    flightDetails?: Record<string, string | undefined>;
+  },
 ) {
-  const [event] = await db
-    .insert(templateEvents)
-    .values({
-      dayId,
-      title: data.title,
-      time: data.time ?? null,
-      location: data.location ?? null,
-      description: data.description ?? null,
-      order: data.order,
-    })
-    .returning();
+  return await db.transaction(async (tx) => {
+    const [event] = await tx
+      .insert(templateEvents)
+      .values({
+        dayId,
+        title: data.title,
+        category: (data.category ?? 'activity') as typeof templateEvents.$inferInsert.category,
+        status: (data.status ?? 'confirmed') as typeof templateEvents.$inferInsert.status,
+        time: data.time ?? null,
+        location: data.location ?? null,
+        description: data.description ?? null,
+        order: data.order,
+      })
+      .returning();
 
-  return event;
+    if (data.flightDetails && (data.category === 'flight' || !data.category)) {
+      await tx.insert(templateFlightDetails).values({
+        eventId: event.id,
+        airline: data.flightDetails.airline ?? null,
+        flightNumber: data.flightDetails.flightNumber ?? null,
+        departureAirport: data.flightDetails.departureAirport ?? null,
+        arrivalAirport: data.flightDetails.arrivalAirport ?? null,
+        confirmationRef: data.flightDetails.confirmationRef ?? null,
+        terminal: data.flightDetails.terminal ?? null,
+        gate: data.flightDetails.gate ?? null,
+        seat: data.flightDetails.seat ?? null,
+        baggageAllowance: data.flightDetails.baggageAllowance ?? null,
+      });
+    }
+
+    return event;
+  });
 }
 
 export async function editEvent(eventId: string, data: Record<string, unknown>) {
-  const values: Record<string, unknown> = {};
-  if (data.title !== undefined) values.title = data.title;
-  if (data.time !== undefined) values.time = data.time;
-  if (data.location !== undefined) values.location = data.location;
-  if (data.description !== undefined) values.description = data.description;
-  if (data.order !== undefined) values.order = data.order;
+  const existing = await db.query.templateEvents.findFirst({
+    where: eq(templateEvents.id, eventId),
+  });
 
-  const [updated] = await db
-    .update(templateEvents)
-    .set(values)
-    .where(eq(templateEvents.id, eventId))
-    .returning();
-
-  if (!updated) {
+  if (!existing) {
     const err = new Error('Event not found') as Error & { status: number };
     err.status = 404;
     throw err;
   }
 
-  return updated;
+  if (data.version !== undefined && existing.version !== (data.version as number)) {
+    const err = new Error('Version conflict — reload and try again') as Error & { status: number };
+    err.status = 409;
+    throw err;
+  }
+
+  const values: Record<string, unknown> = {
+    version: existing.version + 1,
+  };
+
+  if (data.title !== undefined) values.title = data.title;
+  if (data.category !== undefined) values.category = data.category;
+  if (data.status !== undefined) values.status = data.status;
+  if (data.time !== undefined) values.time = data.time;
+  if (data.location !== undefined) values.location = data.location;
+  if (data.description !== undefined) values.description = data.description;
+  if (data.order !== undefined) values.order = data.order;
+
+  return await db.transaction(async (tx) => {
+    const [updated] = await tx
+      .update(templateEvents)
+      .set(values)
+      .where(eq(templateEvents.id, eventId))
+      .returning();
+
+    if (data.flightDetails !== undefined) {
+      await tx.delete(templateFlightDetails).where(eq(templateFlightDetails.eventId, eventId));
+
+      if (data.flightDetails !== null) {
+        const fd = data.flightDetails as Record<string, string | undefined>;
+        await tx.insert(templateFlightDetails).values({
+          eventId,
+          airline: fd.airline ?? null,
+          flightNumber: fd.flightNumber ?? null,
+          departureAirport: fd.departureAirport ?? null,
+          arrivalAirport: fd.arrivalAirport ?? null,
+          confirmationRef: fd.confirmationRef ?? null,
+          terminal: fd.terminal ?? null,
+          gate: fd.gate ?? null,
+          seat: fd.seat ?? null,
+          baggageAllowance: fd.baggageAllowance ?? null,
+        });
+      }
+    }
+
+    return updated;
+  });
 }
 
 export async function removeEvent(eventId: string): Promise<void> {
@@ -395,13 +488,15 @@ export async function removeEvent(eventId: string): Promise<void> {
 }
 
 export async function reorderItems(items: Array<{ id: string; order: number }>): Promise<void> {
-  for (const item of items) {
-    await db.update(templateDays).set({ order: item.order }).where(eq(templateDays.id, item.id));
-    await db
-      .update(templateEvents)
-      .set({ order: item.order })
-      .where(eq(templateEvents.id, item.id));
-  }
+  await db.transaction(async (tx) => {
+    for (const item of items) {
+      await tx.update(templateDays).set({ order: item.order }).where(eq(templateDays.id, item.id));
+      await tx
+        .update(templateEvents)
+        .set({ order: item.order })
+        .where(eq(templateEvents.id, item.id));
+    }
+  });
 }
 
 export async function generateCoverImageUrl(templateId: string) {

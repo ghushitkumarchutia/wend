@@ -6,8 +6,11 @@ import {
   trips,
   tripMembers,
   itineraryEvents,
+  itineraryFlightDetails,
 } from '../../db/index.js';
-import { eq, sql, asc, or, ilike, and } from 'drizzle-orm';
+import { eq, sql, asc, or, ilike, and, isNull } from 'drizzle-orm';
+import { logActivityInTx } from '../../common/activity.js';
+import { remindersQueue } from '../../common/queues.js';
 import type { TemplateWithDays, PaginatedResponse } from '../../shared/types.js';
 
 export async function listPublishedTemplates(
@@ -16,7 +19,9 @@ export async function listPublishedTemplates(
   search?: string,
   category?: string,
 ): Promise<PaginatedResponse<Omit<TemplateWithDays, 'days'>>> {
-  const conditions = [or(eq(templates.visibility, 'published'), eq(templates.visibility, 'featured'))];
+  const conditions = [
+    or(eq(templates.visibility, 'published'), eq(templates.visibility, 'featured')),
+  ];
 
   if (search) {
     conditions.push(
@@ -153,6 +158,7 @@ export async function cloneTemplateToTrip(
         with: {
           events: {
             orderBy: [asc(templateEvents.order)],
+            with: { flightDetails: true },
           },
         },
       },
@@ -165,56 +171,187 @@ export async function cloneTemplateToTrip(
     throw err;
   }
 
-  let tripId: string;
+  if (!data.existingTripId && data.startDate && data.endDate) {
+    const newStart = new Date(data.startDate);
+    const newEnd = new Date(data.endDate);
 
-  if (data.existingTripId) {
-    tripId = data.existingTripId;
-  } else {
-    const [newTrip] = await db
-      .insert(trips)
-      .values({
-        name: data.tripName!,
-        destination: data.destination ?? template.destination,
-        startDate: new Date(data.startDate!),
-        endDate: new Date(data.endDate!),
-        baseCurrency: data.baseCurrency ?? 'USD',
-        createdByUserId: userId,
+    const existingTrips = await db
+      .select({
+        id: trips.id,
+        name: trips.name,
+        startDate: trips.startDate,
+        endDate: trips.endDate,
       })
-      .returning();
+      .from(trips)
+      .innerJoin(tripMembers, eq(trips.id, tripMembers.tripId))
+      .where(and(eq(tripMembers.userId, userId), isNull(trips.archivedAt)));
 
-    await db.insert(tripMembers).values({
-      tripId: newTrip.id,
-      userId,
-      role: 'organizer',
-    });
+    const now = new Date();
 
-    tripId = newTrip.id;
-  }
+    for (const t of existingTrips) {
+      const isOngoing = now >= t.startDate && now <= t.endDate;
+      const isUpcoming = now < t.startDate;
 
-  const startDate = data.startDate ? new Date(data.startDate) : new Date();
-
-  for (const day of template.days) {
-    const eventDate = new Date(startDate);
-    eventDate.setDate(eventDate.getDate() + day.dayNumber - 1);
-
-    for (const event of day.events) {
-      await db.insert(itineraryEvents).values({
-        tripId,
-        title: event.title,
-        category: 'activity',
-        startAt: eventDate,
-        location: event.location ?? null,
-        notes: event.description ?? null,
-        order: event.order,
-        createdByUserId: userId,
-      });
+      if (isOngoing) {
+        if (newStart <= t.endDate) {
+          const err = new Error(
+            `You have an ongoing trip (${t.name}) until ${t.endDate.toLocaleDateString()}. You can only add new trips after this date.`,
+          ) as Error & { status: number };
+          err.status = 409;
+          throw err;
+        }
+      } else if (isUpcoming) {
+        const isEntirelyBefore = newEnd < t.startDate;
+        const isEntirelyAfter = newStart > t.endDate;
+        if (!isEntirelyBefore && !isEntirelyAfter) {
+          const err = new Error(
+            `Your new trip overlaps with an upcoming trip (${t.name}) from ${t.startDate.toLocaleDateString()} to ${t.endDate.toLocaleDateString()}. You must choose dates entirely before or entirely after this trip.`,
+          ) as Error & { status: number };
+          err.status = 409;
+          throw err;
+        }
+      } else {
+        const isEntirelyBefore = newEnd < t.startDate;
+        const isEntirelyAfter = newStart > t.endDate;
+        if (!isEntirelyBefore && !isEntirelyAfter) {
+          const err = new Error(
+            `Your new trip overlaps with an existing past trip (${t.name}).`,
+          ) as Error & { status: number };
+          err.status = 409;
+          throw err;
+        }
+      }
     }
   }
 
-  await db
-    .update(templates)
-    .set({ cloneCount: sql`${templates.cloneCount} + 1` })
-    .where(eq(templates.id, templateId));
+  const { tripId, emitActivities, tripDepartureDate, newEvents } = await db.transaction(
+    async (tx) => {
+      let currentTripId = data.existingTripId;
+      let activities: (() => Promise<void>)[] = [];
+      let currentTripStart = data.startDate ? new Date(data.startDate) : new Date();
+
+      if (!currentTripId) {
+        const [newTrip] = await tx
+          .insert(trips)
+          .values({
+            name: data.tripName!,
+            destination: data.destination ?? template.destination,
+            startDate: new Date(data.startDate!),
+            endDate: new Date(data.endDate!),
+            baseCurrency: data.baseCurrency ?? 'USD',
+            createdByUserId: userId,
+          })
+          .returning();
+
+        await tx.insert(tripMembers).values({
+          tripId: newTrip.id,
+          userId,
+          role: 'organizer',
+        });
+
+        currentTripId = newTrip.id;
+        currentTripStart = newTrip.startDate;
+
+        const emitActivity = await logActivityInTx(tx, {
+          tripId: currentTripId,
+          actorUserId: userId,
+          type: 'trip_created',
+        });
+        activities.push(emitActivity);
+      }
+
+      const createdEvents = [];
+
+      for (const day of template.days) {
+        const eventDate = new Date(currentTripStart);
+        eventDate.setDate(eventDate.getDate() + day.dayNumber - 1);
+
+        for (const event of day.events) {
+          const [newEvent] = await tx
+            .insert(itineraryEvents)
+            .values({
+              tripId: currentTripId!,
+              title: event.title,
+              category: (event.category ??
+                'activity') as typeof itineraryEvents.$inferInsert.category,
+              status: (event.status ?? 'confirmed') as typeof itineraryEvents.$inferInsert.status,
+              startAt: eventDate,
+              location: event.location ?? null,
+              notes: event.description ?? null,
+              order: event.order,
+              createdByUserId: userId,
+            })
+            .returning();
+
+          createdEvents.push(newEvent);
+
+          if (event.flightDetails) {
+            await tx.insert(itineraryFlightDetails).values({
+              eventId: newEvent.id,
+              airline: event.flightDetails.airline ?? null,
+              flightNumber: event.flightDetails.flightNumber ?? null,
+              departureAirport: event.flightDetails.departureAirport ?? null,
+              arrivalAirport: event.flightDetails.arrivalAirport ?? null,
+              confirmationRef: event.flightDetails.confirmationRef ?? null,
+              terminal: event.flightDetails.terminal ?? null,
+              gate: event.flightDetails.gate ?? null,
+              seat: event.flightDetails.seat ?? null,
+              baggageAllowance: event.flightDetails.baggageAllowance ?? null,
+            });
+          }
+
+          const emitActivity = await logActivityInTx(tx, {
+            tripId: currentTripId!,
+            actorUserId: userId,
+            type: 'itinerary_added',
+            metadata: { eventTitle: newEvent.title },
+          });
+          activities.push(emitActivity);
+        }
+      }
+
+      await tx
+        .update(templates)
+        .set({ cloneCount: sql`${templates.cloneCount} + 1` })
+        .where(eq(templates.id, templateId));
+
+      return {
+        tripId: currentTripId,
+        emitActivities: activities,
+        tripDepartureDate: currentTripStart,
+        newEvents: createdEvents,
+      };
+    },
+  );
+
+  for (const emit of emitActivities) {
+    emit().catch(() => {});
+  }
+
+  if (!data.existingTripId && tripDepartureDate) {
+    const reminderTime = new Date(tripDepartureDate.getTime() - 24 * 60 * 60 * 1000);
+    const delay = Math.max(0, reminderTime.getTime() - Date.now());
+
+    if (delay > 0) {
+      await remindersQueue.add(
+        `reminder-trip-${tripId}-1d`,
+        { type: 'trip-departure', tripId },
+        { delay, jobId: `reminder-trip-${tripId}-1d` },
+      );
+    }
+  }
+
+  for (const ev of newEvents) {
+    const eventTime = new Date(ev.startAt).getTime();
+    const delay = Math.max(0, eventTime - 60 * 60 * 1000 - Date.now());
+    if (delay > 0) {
+      await remindersQueue.add(
+        `reminder-event-${ev.id}-1h`,
+        { type: 'event-start', tripId, eventId: ev.id },
+        { delay, jobId: `reminder-event-${ev.id}-1h` },
+      );
+    }
+  }
 
   return { tripId };
 }

@@ -69,13 +69,43 @@ export const templateEvents = pgTable(
       .notNull()
       .references(() => templateDays.id, { onDelete: 'cascade' }),
     title: text('title').notNull(),
+    category: text('category', {
+      enum: ['flight', 'hotel', 'restaurant', 'activity', 'transport', 'other'],
+    })
+      .notNull()
+      .default('activity'),
+    status: text('status', {
+      enum: ['confirmed', 'tentative', 'cancelled'],
+    })
+      .notNull()
+      .default('confirmed'),
     time: text('time'),
     location: text('location'),
     description: text('description'),
     order: doublePrecision('order').notNull().default(0),
+    version: integer('version').notNull().default(1),
   },
   (t) => [index('template_events_day_idx').on(t.dayId)],
 );
+
+export const templateFlightDetails = pgTable('template_flight_details', {
+  id: text('id')
+    .primaryKey()
+    .$defaultFn(() => crypto.randomUUID()),
+  eventId: text('event_id')
+    .notNull()
+    .unique()
+    .references(() => templateEvents.id, { onDelete: 'cascade' }),
+  airline: text('airline'),
+  flightNumber: text('flight_number'),
+  departureAirport: text('departure_airport'),
+  arrivalAirport: text('arrival_airport'),
+  confirmationRef: text('confirmation_ref'),
+  terminal: text('terminal'),
+  gate: text('gate'),
+  seat: text('seat'),
+  baggageAllowance: text('baggage_allowance'),
+});
 
 export const templateAuditLog = pgTable(
   'template_audit_log',
@@ -117,6 +147,17 @@ export const templateEventsRelations = relations(templateEvents, ({ one }) => ({
   day: one(templateDays, {
     fields: [templateEvents.dayId],
     references: [templateDays.id],
+  }),
+  flightDetails: one(templateFlightDetails, {
+    fields: [templateEvents.id],
+    references: [templateFlightDetails.eventId],
+  }),
+}));
+
+export const templateFlightDetailsRelations = relations(templateFlightDetails, ({ one }) => ({
+  event: one(templateEvents, {
+    fields: [templateFlightDetails.eventId],
+    references: [templateEvents.id],
   }),
 }));
 
