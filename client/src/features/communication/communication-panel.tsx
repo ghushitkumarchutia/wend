@@ -1,10 +1,6 @@
 import { useState } from 'react';
 import { HugeiconsIcon } from '@hugeicons/react';
-import {
-  Chat01Icon,
-  Chart01Icon,
-  Activity01Icon,
-} from '@hugeicons/core-free-icons';
+import { Chat01Icon, Chart01Icon, Activity01Icon } from '@hugeicons/core-free-icons';
 import { useCommunicationPanelStore } from '@/stores/communication-panel-store';
 import { ChatTab } from './chat-tab';
 import { PollsTab } from './polls-tab';
@@ -33,9 +29,9 @@ export function CommunicationPanel({ tripId }: CommunicationPanelProps) {
 
   return (
     <div className="flex flex-col h-full bg-[#F5F5F7] border-l border-neutral-200/80 font-manrope select-none">
-      <div className="p-2.5 md:p-3 border-b border-neutral-200/70 bg-white/80 backdrop-blur-md flex items-center justify-center shrink-0">
+      <div className="py-2.5 px-2.5 md:py-3 md:px-3 pr-14 md:pr-14 lg:pr-3 border-b border-neutral-200/70 bg-white/80 backdrop-blur-md flex items-center justify-center shrink-0">
         <nav
-          className="w-full inline-flex items-center justify-between gap-1 p-1 rounded-full bg-white border border-black/5 shadow-[0_8px_30px_rgb(0,0,0,0.08)] max-w-full overflow-x-auto no-scrollbar"
+          className="w-full max-w-xs lg:max-w-full inline-flex items-center justify-between gap-1 p-1 rounded-full bg-white border border-black/5 shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-x-auto no-scrollbar"
           aria-label="Communication Tabs"
         >
           {tabs.map((tab) => {
@@ -48,7 +44,7 @@ export function CommunicationPanel({ tripId }: CommunicationPanelProps) {
                   key={tab.id}
                   type="button"
                   onClick={() => setActiveTab(tab.id)}
-                  className="relative flex-1 inline-flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-full text-white font-semibold text-[11px] md:text-xs cursor-pointer select-none shrink-0 group focus:outline-none transition-all duration-200 active:scale-[0.97]"
+                  className="relative flex-1 inline-flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full text-white font-semibold text-[11px] md:text-xs cursor-pointer select-none shrink-0 group focus:outline-none transition-all duration-200 active:scale-[0.97]"
                   style={{
                     background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
                     boxShadow: `
@@ -91,7 +87,7 @@ export function CommunicationPanel({ tripId }: CommunicationPanelProps) {
                 key={tab.id}
                 type="button"
                 onClick={() => setActiveTab(tab.id)}
-                className="flex-1 inline-flex items-center justify-center gap-1.5 md:gap-2 px-2.5 md:px-4 py-2 md:py-2.5 rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 font-medium text-[11px] md:text-xs transition-all duration-150 cursor-pointer shrink-0 group"
+                className="flex-1 inline-flex items-center justify-center gap-1.5 md:gap-2 px-3 md:px-4 py-2 md:py-2.5 rounded-full text-neutral-500 hover:text-neutral-900 hover:bg-neutral-100/80 font-medium text-[11px] md:text-xs transition-all duration-150 cursor-pointer shrink-0 group"
               >
                 <HugeiconsIcon
                   icon={Icon}
