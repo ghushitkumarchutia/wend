@@ -1,14 +1,8 @@
 import { db } from '../../common/db.js';
-import { getIO } from '../../common/socket.js';
-import {
-  itineraryEvents,
-  itineraryFlightDetails,
-  activityLog,
-  trips,
-  user,
-} from '../../db/index.js';
+import { itineraryEvents, itineraryFlightDetails, trips, user } from '../../db/index.js';
 import { eq, and, asc } from 'drizzle-orm';
 import { notificationsQueue, remindersQueue } from '../../common/queues.js';
+import { logAndEmitActivity, logActivityInTx } from '../../common/activity.js';
 import type { ItineraryEventWithDetails } from '../../shared/types.js';
 
 function formatEvent(
@@ -122,30 +116,26 @@ export async function createEvent(
       });
     }
 
-    await tx.insert(activityLog).values({
+    const emitActivity = await logActivityInTx(tx, {
       tripId,
       actorUserId: userId,
-      type: 'event_created',
+      type: 'itinerary_added',
       referenceId: evt.id,
       referenceType: 'itinerary_event',
     });
 
-    return evt;
+    return { evt, emitActivity };
   });
 
-  getIO().to(`trip:${tripId}`).emit('activity:new', {
-    type: 'event_created',
-    tripId,
-    referenceId: event.id,
-  });
+  event.emitActivity().catch(() => {});
 
   const eventStart = new Date(data.startAt);
   const reminderDelay = Math.max(0, eventStart.getTime() - 60 * 60 * 1000 - Date.now());
   if (reminderDelay > 0) {
     await remindersQueue.add(
-      `reminder-event-${event.id}`,
-      { type: 'event', eventId: event.id },
-      { delay: reminderDelay, jobId: `reminder-event-${event.id}` },
+      `reminder-event-${event.evt.id}`,
+      { type: 'event', eventId: event.evt.id },
+      { delay: reminderDelay, jobId: `reminder-event-${event.evt.id}` },
     );
   }
 
@@ -164,11 +154,11 @@ export async function createEvent(
     tripName: trip?.name ?? '',
     actorUserId: userId,
     actorName: actor?.name ?? 'Someone',
-    referenceId: event.id,
+    referenceId: event.evt.id,
     referenceType: 'itinerary_event',
   });
 
-  return event;
+  return event.evt;
 }
 
 export async function updateEvent(
@@ -233,19 +223,13 @@ export async function updateEvent(
     }
   }
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: userId,
-    type: 'event_updated',
+    type: 'itinerary_updated',
     referenceId: eventId,
     referenceType: 'itinerary_event',
-  });
-
-  getIO().to(`trip:${tripId}`).emit('activity:new', {
-    type: 'event_updated',
-    tripId,
-    referenceId: eventId,
-  });
+  }).catch(() => {});
 
   return updated;
 }
@@ -262,19 +246,13 @@ export async function deleteEvent(tripId: string, eventId: string, userId: strin
     throw err;
   }
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: userId,
-    type: 'event_deleted',
+    type: 'itinerary_deleted',
     referenceId: eventId,
     referenceType: 'itinerary_event',
-  });
-
-  getIO().to(`trip:${tripId}`).emit('activity:new', {
-    type: 'event_deleted',
-    tripId,
-    referenceId: eventId,
-  });
+  }).catch(() => {});
 }
 
 export async function reorderEvents(

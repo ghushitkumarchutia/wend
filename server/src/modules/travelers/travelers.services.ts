@@ -1,6 +1,7 @@
 import { db } from '../../common/db.js';
 import { emailQueue, notificationsQueue } from '../../common/queues.js';
-import { trips, tripMembers, tripInvites, activityLog, user } from '../../db/index.js';
+import { logAndEmitActivity, logActivityInTx } from '../../common/activity.js';
+import { trips, tripMembers, tripInvites, user } from '../../db/index.js';
 import { eq, and } from 'drizzle-orm';
 import { env } from '../../common/env.js';
 import { INVITE_EXPIRY_DAYS } from '../../shared/constants.js';
@@ -61,14 +62,14 @@ export async function changeMemberRole(
 
   await db.update(tripMembers).set({ role: newRole }).where(eq(tripMembers.id, membership.id));
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: actorId,
     type: 'role_changed',
     referenceId: targetUserId,
     referenceType: 'user',
     metadata: { newRole },
-  });
+  }).catch(() => {});
 
   const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
   const actor = await db.query.user.findFirst({ where: eq(user.id, actorId), columns: { name: true } });
@@ -107,13 +108,13 @@ export async function removeTripMember(
     throw err;
   }
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: actorId,
     type: 'member_removed',
     referenceId: targetUserId,
     referenceType: 'user',
-  });
+  }).catch(() => {});
 
   const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
   const actor = await db.query.user.findFirst({ where: eq(user.id, actorId), columns: { name: true } });
@@ -154,11 +155,11 @@ export async function leaveTrip(tripId: string, userId: string): Promise<void> {
     .delete(tripMembers)
     .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, userId)));
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: userId,
     type: 'member_left',
-  });
+  }).catch(() => {});
 }
 
 export async function transferOrganizerRole(
@@ -178,7 +179,7 @@ export async function transferOrganizerRole(
     throw err;
   }
 
-  await db.transaction(async (tx) => {
+  const emitFn = await db.transaction(async (tx) => {
     await tx
       .update(tripMembers)
       .set({ role: 'member' })
@@ -189,14 +190,19 @@ export async function transferOrganizerRole(
       .set({ role: 'organizer' })
       .where(and(eq(tripMembers.tripId, tripId), eq(tripMembers.userId, newOrganizerId)));
 
-    await tx.insert(activityLog).values({
+    const emitActivity = await logActivityInTx(tx, {
       tripId,
       actorUserId: currentOrganizerId,
-      type: 'organizer_transferred',
+      type: 'role_changed',
       referenceId: newOrganizerId,
       referenceType: 'user',
+      metadata: { newRole: 'organizer' },
     });
+
+    return emitActivity;
   });
+
+  emitFn().catch(() => {});
 
   const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
   const actor = await db.query.user.findFirst({ where: eq(user.id, currentOrganizerId), columns: { name: true } });
@@ -297,14 +303,14 @@ export async function createInvite(
     type: 'trip-invite',
   });
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: inviterUserId,
     type: 'invite_sent',
     referenceId: invite.id,
     referenceType: 'invite',
     metadata: { invitedEmail: data.email },
-  });
+  }).catch(() => {});
 
   return invite;
 }
@@ -418,7 +424,7 @@ export async function acceptInvite(token: string, userId: string): Promise<void>
     return;
   }
 
-  await db.transaction(async (tx) => {
+  const emitFn = await db.transaction(async (tx) => {
     await tx.insert(tripMembers).values({
       tripId: invite.tripId,
       userId,
@@ -430,14 +436,18 @@ export async function acceptInvite(token: string, userId: string): Promise<void>
       .set({ status: 'accepted' })
       .where(eq(tripInvites.id, invite.id));
 
-    await tx.insert(activityLog).values({
+    const emitActivity = await logActivityInTx(tx, {
       tripId: invite.tripId,
       actorUserId: userId,
       type: 'member_joined',
       referenceId: invite.id,
       referenceType: 'invite',
     });
+
+    return emitActivity;
   });
+
+  emitFn().catch(() => {});
 
   const trip = await db.query.trips.findFirst({ where: eq(trips.id, invite.tripId), columns: { name: true } });
   const joiner = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });

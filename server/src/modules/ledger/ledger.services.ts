@@ -5,11 +5,11 @@ import {
   settlements,
   tripMembers,
   trips,
-  activityLog,
   user,
 } from '../../db/index.js';
 import { eq, and, desc, isNull, sql, sum } from 'drizzle-orm';
 import { notificationsQueue } from '../../common/queues.js';
+import { logAndEmitActivity, logActivityInTx } from '../../common/activity.js';
 import type { BalanceEntry, SettlementSuggestion, BudgetOverview } from '../../shared/types.js';
 
 export async function listExpenses(tripId: string) {
@@ -139,16 +139,18 @@ export async function createExpense(
       );
     }
 
-    await tx.insert(activityLog).values({
+    const emitActivity = await logActivityInTx(tx, {
       tripId,
       actorUserId: userId,
-      type: 'expense_added',
+      type: 'expense_logged',
       referenceId: exp.id,
       referenceType: 'expense',
     });
 
-    return exp;
+    return { exp, emitActivity };
   });
+
+  expense.emitActivity().catch(() => {});
 
   const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
 
@@ -158,11 +160,11 @@ export async function createExpense(
     tripName: trip?.name ?? '',
     actorUserId: userId,
     actorName: actor?.name ?? 'Someone',
-    referenceId: expense.id,
+    referenceId: expense.exp.id,
     referenceType: 'expense',
   });
 
-  return expense;
+  return expense.exp;
 }
 
 export async function updateExpense(
@@ -226,7 +228,7 @@ export async function updateExpense(
       }
     }
 
-    await tx.insert(activityLog).values({
+    const emitActivity = await logActivityInTx(tx, {
       tripId,
       actorUserId: userId,
       type: 'expense_updated',
@@ -234,8 +236,10 @@ export async function updateExpense(
       referenceType: 'expense',
     });
 
-    return upd;
+    return { upd, emitActivity };
   });
+
+  updated.emitActivity().catch(() => {});
 
   const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
   const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
@@ -250,7 +254,7 @@ export async function updateExpense(
     referenceType: 'expense',
   });
 
-  return updated;
+  return updated.upd;
 }
 
 export async function softDeleteExpense(
@@ -272,13 +276,13 @@ export async function softDeleteExpense(
     throw err;
   }
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: userId,
     type: 'expense_deleted',
     referenceId: expenseId,
     referenceType: 'expense',
-  });
+  }).catch(() => {});
 
   const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
   const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
@@ -466,13 +470,13 @@ export async function recordSettlement(
     })
     .returning();
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId,
-    type: 'settlement_recorded',
+    type: 'settlement_logged',
     referenceId: settlement.id,
     referenceType: 'settlement',
-  });
+  }).catch(() => {});
 
   return settlement;
 }

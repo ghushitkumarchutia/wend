@@ -1,6 +1,7 @@
 import { db } from '../../common/db.js';
 import { getPresignedPutUrl, getPresignedGetUrl } from '../../common/storage.js';
-import { tripDocuments, activityLog } from '../../db/index.js';
+import { logAndEmitActivity } from '../../common/activity.js';
+import { tripDocuments } from '../../db/index.js';
 import { eq, and, isNull, or } from 'drizzle-orm';
 
 export async function listDocuments(tripId: string, userId: string) {
@@ -65,13 +66,13 @@ export async function confirmDocumentUpload(
     })
     .returning();
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: userId,
     type: 'document_uploaded',
     referenceId: doc.id,
     referenceType: 'document',
-  });
+  }).catch(() => {});
 
   return doc;
 }
@@ -132,11 +133,11 @@ export async function softDeleteDocument(
     .set({ archivedAt: new Date() })
     .where(eq(tripDocuments.id, docId));
 
-  await db.insert(activityLog).values({
+  logAndEmitActivity({
     tripId,
     actorUserId: userId,
     type: 'document_deleted',
     referenceId: docId,
     referenceType: 'document',
-  });
+  }).catch(() => {});
 }
