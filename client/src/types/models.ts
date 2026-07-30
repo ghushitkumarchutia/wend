@@ -326,3 +326,5 @@ export interface NotificationPreference {
   inApp: boolean;
   email: boolean;
 }
+
+export type { PollListResponse } from './api';
