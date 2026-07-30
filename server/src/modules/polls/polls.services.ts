@@ -1,20 +1,24 @@
 import { db } from '../../common/db.js';
 import { getIO } from '../../common/socket.js';
 import { notificationsQueue } from '../../common/queues.js';
-import { polls, pollOptions, pollVotes, activityLog, trips, user } from '../../db/index.js';
-import { eq, and, sql, asc, desc } from 'drizzle-orm';
+import { logAndEmitActivity } from '../../common/activity.js';
+import { polls, pollOptions, pollVotes, trips, user } from '../../db/index.js';
+import { eq, and, asc, desc } from 'drizzle-orm';
 
 export async function listPolls(tripId: string) {
   const rows = await db.query.polls.findMany({
     where: eq(polls.tripId, tripId),
     orderBy: [asc(polls.status), desc(polls.createdAt)],
     with: {
+      createdBy: {
+        columns: { id: true, name: true, image: true },
+      },
       options: {
         orderBy: [asc(pollOptions.order)],
         columns: { id: true, text: true, order: true },
       },
       votes: {
-        columns: { userId: true, optionId: true },
+        columns: { id: true, userId: true, optionId: true, votedAt: true },
       },
     },
   });
@@ -26,14 +30,32 @@ export async function listPolls(tripId: string) {
     status: p.status,
     deadline: p.deadline?.toISOString() ?? null,
     createdByUserId: p.createdByUserId,
+    createdBy: p.createdBy
+      ? {
+          id: p.createdBy.id,
+          name: p.createdBy.name,
+          image: p.createdBy.image,
+        }
+      : null,
     closedAt: p.closedAt?.toISOString() ?? null,
     createdAt: p.createdAt.toISOString(),
-    options: p.options.map((o) => ({
-      id: o.id,
-      text: o.text,
-      order: o.order,
-      voteCount: p.votes.filter((v) => v.optionId === o.id).length,
-    })),
+    options: p.options.map((o) => {
+      const optionVotes = p.votes.filter((v) => v.optionId === o.id);
+      return {
+        id: o.id,
+        pollId: p.id,
+        text: o.text,
+        order: o.order,
+        voteCount: optionVotes.length,
+        votes: optionVotes.map((v) => ({
+          id: v.id,
+          pollId: p.id,
+          userId: v.userId,
+          optionId: v.optionId,
+          votedAt: v.votedAt?.toISOString() ?? p.createdAt.toISOString(),
+        })),
+      };
+    }),
     totalVotes: p.votes.length,
   }));
 }
@@ -53,38 +75,70 @@ export async function createPoll(
     })
     .returning();
 
-  await db.insert(pollOptions).values(
-    data.options.map((text, index) => ({
+  const [insertedOptions, creator] = await Promise.all([
+    db
+      .insert(pollOptions)
+      .values(
+        data.options.map((text, index) => ({
+          pollId: poll.id,
+          text,
+          order: index,
+        })),
+      )
+      .returning(),
+    db.query.user.findFirst({
+      where: eq(user.id, userId),
+      columns: { id: true, name: true, image: true },
+    }),
+  ]);
+
+  logAndEmitActivity({
+    tripId,
+    actorUserId: userId,
+    type: 'poll_created',
+    referenceId: poll.id,
+    referenceType: 'poll',
+  }).catch(() => {});
+
+  const fullPoll = {
+    id: poll.id,
+    tripId: poll.tripId,
+    question: poll.question,
+    status: poll.status,
+    deadline: poll.deadline?.toISOString() ?? null,
+    createdByUserId: poll.createdByUserId,
+    createdBy: creator ? { id: creator.id, name: creator.name, image: creator.image } : null,
+    closedAt: poll.closedAt?.toISOString() ?? null,
+    createdAt: poll.createdAt.toISOString(),
+    options: insertedOptions.map((o) => ({
+      id: o.id,
       pollId: poll.id,
-      text,
-      order: index,
+      text: o.text,
+      order: o.order,
+      votes: [],
     })),
-  );
+  };
 
-  await db.insert(activityLog).values({
-    tripId,
-    actorUserId: userId,
-    type: 'poll_created',
-    referenceId: poll.id,
-    referenceType: 'poll',
-  });
+  getIO().to(`trip:${tripId}`).emit('poll:created', { poll: fullPoll });
 
-  getIO().to(`trip:${tripId}`).emit('poll:created', { pollId: poll.id, question: data.question });
+  db.query.trips
+    .findFirst({ where: eq(trips.id, tripId), columns: { name: true } })
+    .then((trip) => {
+      notificationsQueue
+        .add('poll_created', {
+          type: 'poll_created',
+          tripId,
+          tripName: trip?.name ?? '',
+          actorUserId: userId,
+          actorName: creator?.name ?? 'Someone',
+          referenceId: poll.id,
+          referenceType: 'poll',
+        })
+        .catch(() => {});
+    })
+    .catch(() => {});
 
-  const trip = await db.query.trips.findFirst({ where: eq(trips.id, tripId), columns: { name: true } });
-  const actor = await db.query.user.findFirst({ where: eq(user.id, userId), columns: { name: true } });
-
-  await notificationsQueue.add('poll_created', {
-    type: 'poll_created',
-    tripId,
-    tripName: trip?.name ?? '',
-    actorUserId: userId,
-    actorName: actor?.name ?? 'Someone',
-    referenceId: poll.id,
-    referenceType: 'poll',
-  });
-
-  return poll;
+  return fullPoll;
 }
 
 export async function castOrChangeVote(
@@ -139,16 +193,7 @@ export async function castOrChangeVote(
     });
   }
 
-  const voteCounts = await db
-    .select({
-      optionId: pollVotes.optionId,
-      count: sql<number>`count(*)::int`,
-    })
-    .from(pollVotes)
-    .where(eq(pollVotes.pollId, pollId))
-    .groupBy(pollVotes.optionId);
-
-  getIO().to(`trip:${tripId}`).emit('poll:vote:updated', { pollId, voteCounts });
+  getIO().to(`trip:${tripId}`).emit('poll:vote:updated', { pollId, userId, optionId });
 }
 
 export async function closePoll(tripId: string, pollId: string): Promise<void> {
