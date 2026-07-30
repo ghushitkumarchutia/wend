@@ -2,6 +2,7 @@ import { db } from '../../common/db.js';
 import { trips, tripMembers, activityLog, user } from '../../db/index.js';
 import { eq, and, desc, lt, lte, gt, gte, isNull, isNotNull, ilike, or } from 'drizzle-orm';
 import { remindersQueue } from '../../common/queues.js';
+import { logActivityInTx } from '../../common/activity.js';
 import type { TripMemberRole } from '../../shared/enums.js';
 import type { TripWithRole, CursorPaginatedResponse } from '../../shared/types.js';
 
@@ -190,14 +191,16 @@ export async function createTrip(
       role: 'organizer',
     });
 
-    await tx.insert(activityLog).values({
+    const emitActivity = await logActivityInTx(tx, {
       tripId: newTrip.id,
       actorUserId: userId,
       type: 'trip_created',
     });
 
-    return newTrip;
+    return { newTrip, emitActivity };
   });
+
+  trip.emitActivity().catch(() => {});
 
   const startDate = new Date(data.startDate);
   const reminderTime = new Date(startDate.getTime() - 24 * 60 * 60 * 1000);
@@ -205,13 +208,13 @@ export async function createTrip(
 
   if (delay > 0) {
     await remindersQueue.add(
-      `reminder-trip-${trip.id}-1d`,
-      { type: 'trip-departure', tripId: trip.id },
-      { delay, jobId: `reminder-trip-${trip.id}-1d` },
+      `reminder-trip-${trip.newTrip.id}-1d`,
+      { type: 'trip-departure', tripId: trip.newTrip.id },
+      { delay, jobId: `reminder-trip-${trip.newTrip.id}-1d` },
     );
   }
 
-  return trip;
+  return trip.newTrip;
 }
 
 export async function getTripById(tripId: string, userId: string): Promise<TripWithRole> {
@@ -334,13 +337,15 @@ export async function getActivityFeed(
   const rows = await db
     .select({
       id: activityLog.id,
+      tripId: activityLog.tripId,
+      actorUserId: activityLog.actorUserId,
       type: activityLog.type,
       referenceId: activityLog.referenceId,
       referenceType: activityLog.referenceType,
       metadata: activityLog.metadata,
       createdAt: activityLog.createdAt,
-      actorUserId: activityLog.actorUserId,
       actorName: user.name,
+      actorImage: user.image,
     })
     .from(activityLog)
     .leftJoin(user, eq(activityLog.actorUserId, user.id))
@@ -352,5 +357,19 @@ export async function getActivityFeed(
   const data = hasMore ? rows.slice(0, limit) : rows;
   const nextCursor = hasMore ? data[data.length - 1].createdAt.toISOString() : null;
 
-  return { data, nextCursor, hasMore };
+  const formatted = data.map((r) => ({
+    id: r.id,
+    tripId: r.tripId,
+    actorUserId: r.actorUserId,
+    type: r.type,
+    referenceId: r.referenceId,
+    referenceType: r.referenceType,
+    metadata: r.metadata,
+    createdAt: r.createdAt.toISOString(),
+    actor: r.actorName
+      ? { id: r.actorUserId, name: r.actorName, image: r.actorImage ?? null }
+      : null,
+  }));
+
+  return { data: formatted, nextCursor, hasMore };
 }
