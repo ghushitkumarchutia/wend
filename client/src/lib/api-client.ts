@@ -468,7 +468,7 @@ export const exploreApi = {
     const searchParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
+        if (value !== undefined && value !== null && value !== '') {
           searchParams.append(key, value.toString());
         }
       });
@@ -479,7 +479,7 @@ export const exploreApi = {
   },
 
   getTemplate: (templateId: string) =>
-    fetcher<TemplateDetailResponse>(`/v1/templates/${templateId}`),
+    fetcher<ApiSuccessResponse<TemplateDetailResponse>>(`/v1/templates/${templateId}`),
 
   cloneTemplate: (templateId: string, data: CloneTemplateRequest) =>
     fetcher<CloneTemplateResponse>(`/v1/templates/${templateId}/clone`, {
