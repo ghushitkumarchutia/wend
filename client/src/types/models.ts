@@ -80,6 +80,7 @@ export interface TemplateEvent {
   id: string;
   dayId: string;
   title: string;
+  category?: string | null;
   time: string | null;
   location: string | null;
   description: string | null;
