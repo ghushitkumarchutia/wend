@@ -249,11 +249,38 @@ export async function cloneTemplateToTrip(
     }
   }
 
+  let validatedTripStart: Date | undefined;
+  if (data.existingTripId) {
+    const existingTrip = await db.query.trips.findFirst({
+      where: eq(trips.id, data.existingTripId),
+      with: { members: true },
+    });
+
+    if (!existingTrip) {
+      const err = new Error('Target trip not found') as Error & { status: number };
+      err.status = 404;
+      throw err;
+    }
+
+    const isMember = existingTrip.members.some((m) => m.userId === userId);
+    if (!isMember) {
+      const err = new Error('You do not have permission to modify this trip') as Error & { status: number };
+      err.status = 403;
+      throw err;
+    }
+
+    validatedTripStart = existingTrip.startDate;
+  }
+
   const { tripId, emitActivities, tripDepartureDate, newEvents } = await db.transaction(
     async (tx) => {
       let currentTripId = data.existingTripId;
       let activities: (() => Promise<void>)[] = [];
-      let currentTripStart = data.startDate ? new Date(data.startDate) : new Date();
+      let currentTripStart = validatedTripStart
+        ? new Date(validatedTripStart)
+        : data.startDate
+          ? new Date(data.startDate)
+          : new Date();
 
       if (!currentTripId) {
         const [newTrip] = await tx
@@ -292,6 +319,12 @@ export async function cloneTemplateToTrip(
         eventDate.setDate(eventDate.getDate() + day.dayNumber - 1);
 
         for (const event of day.events) {
+          let eventNotes = event.description ?? null;
+          if (event.time) {
+            const timePrefix = `[Scheduled for: ${event.time}]`;
+            eventNotes = eventNotes ? `${timePrefix}\n\n${eventNotes}` : timePrefix;
+          }
+
           const [newEvent] = await tx
             .insert(itineraryEvents)
             .values({
@@ -302,7 +335,7 @@ export async function cloneTemplateToTrip(
               status: (event.status ?? 'confirmed') as typeof itineraryEvents.$inferInsert.status,
               startAt: eventDate,
               location: event.location ?? null,
-              notes: event.description ?? null,
+              notes: eventNotes,
               order: event.order,
               createdByUserId: userId,
             })
