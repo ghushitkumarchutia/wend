@@ -41,18 +41,20 @@ function SelectTrigger({
       data-slot="select-trigger"
       data-size={size}
       className={cn(
-        "flex w-fit items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+        "flex w-fit items-center justify-between gap-1.5 rounded-lg border border-input bg-transparent py-2 pr-2 pl-2.5 text-sm whitespace-nowrap transition-colors outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 data-placeholder:text-muted-foreground data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=sm]:rounded-[min(var(--radius-md),10px)] *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center *:data-[slot=select-value]:gap-1.5 dark:bg-input/30 dark:hover:bg-input/50 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg:not([class*='size-'])]:size-4 **:data-[slot=select-icon]:transition-transform **:data-[slot=select-icon]:duration-300 **:data-[slot=select-icon]:ease-in-out data-popup-open:**:data-[slot=select-icon]:rotate-180 data-open:**:data-[slot=select-icon]:rotate-180 data-[state=open]:**:data-[slot=select-icon]:rotate-180 aria-expanded:**:data-[slot=select-icon]:rotate-180 data-[popup-open=true]:**:data-[slot=select-icon]:rotate-180 data-[open=true]:**:data-[slot=select-icon]:rotate-180",
         className,
       )}
       {...props}
     >
       {children}
       <SelectPrimitive.Icon
+        data-slot="select-icon"
+        className="transition-transform duration-300 ease-in-out shrink-0"
         render={
           <HugeiconsIcon
             icon={ArrowDown01Icon}
-            className="pointer-events-none size-4.5 text-neutral-400 shrink-0"
-            strokeWidth={2}
+            className="pointer-events-none size-4.5 md:size-5 text-neutral-400 shrink-0 transition-transform duration-300 ease-in-out"
+            strokeWidth={1.8}
           />
         }
       />
