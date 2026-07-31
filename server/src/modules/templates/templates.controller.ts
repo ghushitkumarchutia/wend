@@ -4,9 +4,10 @@ import * as templatesServices from './templates.services.js';
 export async function listPublished(req: Request, res: Response): Promise<void> {
   const page = req.query.page ? Number(req.query.page) : 1;
   const pageSize = req.query.pageSize ? Number(req.query.pageSize) : 12;
-  const search = req.query.search as string | undefined;
+  const search = (req.query.search || req.query.q) as string | undefined;
   const category = req.query.category as string | undefined;
-  const result = await templatesServices.listPublishedTemplates(page, pageSize, search, category);
+  const sort = (req.query.sort as string) || 'popular';
+  const result = await templatesServices.listPublishedTemplates(page, pageSize, search, category, sort);
   res.json(result);
 }
 

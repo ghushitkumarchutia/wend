@@ -18,6 +18,7 @@ export async function listPublishedTemplates(
   pageSize: number,
   search?: string,
   category?: string,
+  sort: string = 'popular',
 ): Promise<PaginatedResponse<Omit<TemplateWithDays, 'days'>>> {
   const conditions = [
     or(eq(templates.visibility, 'published'), eq(templates.visibility, 'featured')),
@@ -29,8 +30,14 @@ export async function listPublishedTemplates(
     );
   }
 
-  if (category) {
-    conditions.push(sql`${templates.categories}::jsonb @> ${JSON.stringify([category])}::jsonb`);
+  if (category && category.trim() !== '') {
+    conditions.push(
+      sql`EXISTS (
+        SELECT 1 
+        FROM jsonb_array_elements_text(COALESCE(${templates.categories}, '[]'::jsonb)) AS elem 
+        WHERE elem ILIKE ${category}
+      )`
+    );
   }
 
   const whereClause = and(...conditions);
@@ -43,12 +50,30 @@ export async function listPublishedTemplates(
   const total = countResult?.total ?? 0;
   const offset = (page - 1) * pageSize;
 
-  const rows = await db.query.templates.findMany({
-    where: whereClause,
-    orderBy: [asc(templates.createdAt)],
-    limit: pageSize,
-    offset,
-  });
+  let orderByClause;
+  switch (sort) {
+    case 'newest':
+      orderByClause = [sql`${templates.createdAt} DESC`];
+      break;
+    case 'featured':
+      orderByClause = [
+        sql`CASE WHEN ${templates.visibility} = 'featured' THEN 0 ELSE 1 END ASC`,
+        sql`${templates.cloneCount} DESC`,
+      ];
+      break;
+    case 'popular':
+    default:
+      orderByClause = [sql`${templates.cloneCount} DESC`, sql`${templates.createdAt} DESC`];
+      break;
+  }
+
+  const rows = await db
+    .select()
+    .from(templates)
+    .where(whereClause)
+    .orderBy(...orderByClause)
+    .limit(pageSize)
+    .offset(offset);
 
   const data = rows.map((r) => ({
     id: r.id,
