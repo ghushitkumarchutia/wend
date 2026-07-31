@@ -345,6 +345,8 @@ export interface CloneTemplateRequest {
   tripName: string;
   startDate: string;
   endDate: string;
+  destination?: string;
+  baseCurrency?: string;
 }
 
 export type CloneTemplateResponse = ApiSuccessResponse<{ tripId: string }>;
