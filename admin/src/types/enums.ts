@@ -20,3 +20,9 @@ export const CURRENCIES = [
   'MXN', 'NZD', 'SGD', 'HKD', 'THB', 'SEK', 'NOK', 'DKK', 'BRL', 'ZAR',
 ] as const;
 export type Currency = (typeof CURRENCIES)[number];
+
+export const EventCategory = ['flight', 'hotel', 'restaurant', 'activity', 'transport', 'other'] as const;
+export type EventCategory = (typeof EventCategory)[number];
+
+export const EventStatus = ['confirmed', 'tentative', 'cancelled'] as const;
+export type EventStatus = (typeof EventStatus)[number];

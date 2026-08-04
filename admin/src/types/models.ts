@@ -36,4 +36,17 @@ export interface TemplateEvent {
   location: string | null;
   description: string | null;
   order: number;
+  category?: string;
+  status?: string;
+  flightDetails?: {
+    airline?: string;
+    flightNumber?: string;
+    departureAirport?: string;
+    arrivalAirport?: string;
+    confirmationRef?: string;
+    terminal?: string;
+    gate?: string;
+    seat?: string;
+    baggageAllowance?: string;
+  } | null;
 }
