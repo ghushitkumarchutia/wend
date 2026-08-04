@@ -29,7 +29,7 @@ function AuthenticatedLayout() {
 
   return (
     <SocketProvider>
-      <div className="flex min-h-screen flex-col bg-background">
+      <div className="flex min-h-screen flex-col bg-[#F5F5F7]">
         <TopNavbar />
         <main className="flex-1">
           <Outlet />

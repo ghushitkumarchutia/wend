@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { TravelersPage } from '@/features/travelers/travelers-page';
 

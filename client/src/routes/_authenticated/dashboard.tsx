@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createFileRoute } from '@tanstack/react-router';
 import { useQuery } from '@tanstack/react-query';
 import { dashboardApi, tripsApi } from '@/lib/api-client';
@@ -14,7 +15,13 @@ export const Route = createFileRoute('/_authenticated/dashboard')({
       }),
       queryClient.prefetchInfiniteQuery({
         queryKey: ['trips', 'all', ''],
-        queryFn: ({ pageParam }) => tripsApi.listTrips({ cursor: pageParam as string | undefined, limit: 4, status: 'all', search: '' }),
+        queryFn: ({ pageParam }) =>
+          tripsApi.listTrips({
+            cursor: pageParam as string | undefined,
+            limit: 4,
+            status: 'all',
+            search: '',
+          }),
         initialPageParam: undefined,
       }),
     ]);
@@ -27,7 +34,6 @@ function DashboardRoute() {
     queryKey: ['dashboard-stats'],
     queryFn: dashboardApi.getStats,
   });
-
 
   const defaultStats = {
     upcomingTrips: 0,

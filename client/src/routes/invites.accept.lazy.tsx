@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createLazyFileRoute, useRouter } from '@tanstack/react-router';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -73,7 +74,9 @@ function InvitesAcceptRoute() {
       <div className="flex min-h-screen items-center justify-center bg-[#FAFAFA] font-manrope p-4 select-none">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-3 border-emerald-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm font-semibold font-syne text-neutral-700">Verifying invitation...</p>
+          <p className="text-sm font-semibold font-syne text-neutral-700">
+            Verifying invitation...
+          </p>
         </div>
       </div>
     );
@@ -90,14 +93,19 @@ function InvitesAcceptRoute() {
             }}
           >
             <div className="w-14 h-14 rounded-2xl bg-rose-100/90 border border-rose-200/70 flex items-center justify-center mb-4 shadow-2xs">
-              <HugeiconsIcon icon={Alert02Icon} className="w-7 h-7 text-rose-600" strokeWidth={1.8} />
+              <HugeiconsIcon
+                icon={Alert02Icon}
+                className="w-7 h-7 text-rose-600"
+                strokeWidth={1.8}
+              />
             </div>
 
             <h2 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 font-syne">
               Invalid Invite
             </h2>
             <p className="text-xs md:text-sm text-neutral-500 font-manrope mt-2 leading-relaxed max-w-sm">
-              No invite token was provided in the URL or the link has expired. Please ask the trip organizer to resend your invitation.
+              No invite token was provided in the URL or the link has expired. Please ask the trip
+              organizer to resend your invitation.
             </p>
 
             <Button
@@ -135,14 +143,19 @@ function InvitesAcceptRoute() {
           }}
         >
           <div className="w-14 h-14 rounded-2xl bg-emerald-100/90 border border-emerald-200/70 flex items-center justify-center mb-4 shadow-2xs">
-            <HugeiconsIcon icon={Sent02Icon} className="w-7 h-7 text-emerald-600" strokeWidth={1.8} />
+            <HugeiconsIcon
+              icon={Sent02Icon}
+              className="w-7 h-7 text-emerald-600"
+              strokeWidth={1.8}
+            />
           </div>
 
           <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-neutral-900 font-syne">
             Trip Invitation
           </h1>
           <p className="text-xs md:text-sm text-neutral-500 font-manrope mt-1.5 leading-relaxed max-w-sm">
-            You've been invited to join a trip workspace on Wend. Once accepted, you can collaborate on itineraries, expenses, and travel documents.
+            You've been invited to join a trip workspace on Wend. Once accepted, you can collaborate
+            on itineraries, expenses, and travel documents.
           </p>
 
           {user && (
@@ -171,7 +184,11 @@ function InvitesAcceptRoute() {
           {error && (
             <div className="w-full mt-3.5 p-3 rounded-2xl bg-rose-50/90 border border-rose-200/70 flex items-center gap-3 text-left shadow-2xs animate-in fade-in zoom-in-95 duration-200">
               <div className="h-9 w-9 rounded-xl bg-white border border-rose-200/60 flex items-center justify-center shrink-0 shadow-2xs">
-                <HugeiconsIcon icon={Alert02Icon} className="h-4.5 w-4.5 text-rose-600" strokeWidth={1.8} />
+                <HugeiconsIcon
+                  icon={Alert02Icon}
+                  className="h-4.5 w-4.5 text-rose-600"
+                  strokeWidth={1.8}
+                />
               </div>
               <p className="text-xs md:text-sm font-semibold text-rose-900 font-manrope leading-snug flex-1">
                 {error}
@@ -196,7 +213,11 @@ function InvitesAcceptRoute() {
                 `,
               }}
             >
-              <HugeiconsIcon icon={Cancel01Icon} className="w-4 h-4 mr-1 text-white" strokeWidth={2} />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                className="w-4 h-4 mr-1 text-white"
+                strokeWidth={2}
+              />
               Decline
             </Button>
 
@@ -225,4 +246,3 @@ function InvitesAcceptRoute() {
     </div>
   );
 }
-

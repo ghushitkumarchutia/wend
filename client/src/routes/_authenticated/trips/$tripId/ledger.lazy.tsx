@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createLazyFileRoute } from '@tanstack/react-router';
 import { LedgerPage } from '@/features/ledger/ledger-page';
 

@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createFileRoute } from '@tanstack/react-router';
 import { SignInForm } from '@/features/auth/sign-in-form';
 import { useAuth } from '@/hooks/use-auth';

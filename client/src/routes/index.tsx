@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components */
 import { createFileRoute } from '@tanstack/react-router';
 import { HeroSection } from '@/features/landing/hero-section';
 import { PartnersSection } from '@/features/landing/partners-section';
