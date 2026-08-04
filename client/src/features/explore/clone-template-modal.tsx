@@ -1,21 +1,33 @@
-import { useState } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useState, useMemo } from 'react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from '@tanstack/react-router';
-import { exploreApi } from '@/lib/api-client';
+import { exploreApi, tripsApi } from '@/lib/api-client';
 import type { Template } from '@/types/models';
+import type { TripWithRole } from '@/types/models';
 import {
   Dialog,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Copy, Loader2, Sparkles } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Calendar } from '@/components/ui/calendar';
+import { format } from 'date-fns';
 import { toast } from 'sonner';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Calendar02Icon, Alert02Icon } from '@hugeicons/core-free-icons';
+import { CURRENCIES } from '@/types/enums';
 
 interface CloneTemplateModalProps {
   template: Template | null;
@@ -25,110 +37,398 @@ interface CloneTemplateModalProps {
 
 export function CloneTemplateModal({ template, isOpen, onClose }: CloneTemplateModalProps) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [tripName, setTripName] = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [destination, setDestination] = useState('');
+  const [startDate, setStartDate] = useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = useState<Date | undefined>(undefined);
+  const [baseCurrency, setBaseCurrency] = useState('USD');
+  const [formError, setFormError] = useState<string | null>(null);
 
-  const { mutate: cloneTemplate, isPending } = useMutation({
-    mutationFn: (data: { tripName: string; startDate: string; endDate: string }) =>
-      exploreApi.cloneTemplate(template!.id, data),
+  const { data: tripsData } = useQuery({
+    queryKey: ['trips-for-clone'],
+    queryFn: () => tripsApi.listTrips({ limit: 100, status: 'all' }),
+    enabled: isOpen,
+  });
+
+  const existingTrips = useMemo(() => {
+    if (!tripsData) return [];
+
+    const unknownData = tripsData as unknown as { pages?: { data?: TripWithRole[] }[] };
+    const tripsArray = Array.isArray(tripsData.data)
+      ? tripsData.data
+      : unknownData.pages
+        ? unknownData.pages.flatMap((p) => p.data || [])
+        : [];
+
+    return tripsArray.filter((t: TripWithRole) => t.status !== 'archived');
+  }, [tripsData]);
+
+  const [prevTemplateId, setPrevTemplateId] = useState<string | null>(null);
+
+  const currentTemplateId = template?.id ?? null;
+  if (currentTemplateId !== prevTemplateId) {
+    setPrevTemplateId(currentTemplateId);
+    if (template) {
+      setTripName(`${template.title} Trip`);
+      setDestination(template.destination);
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setBaseCurrency('USD');
+      setFormError(null);
+    }
+  }
+
+  const overlapWarning = useMemo(() => {
+    if (!startDate || !endDate || existingTrips.length === 0) return null;
+
+    const newStart = startDate;
+    const newEnd = endDate;
+    const now = new Date();
+
+    for (const t of existingTrips) {
+      const tripStart = new Date(t.startDate);
+      const tripEnd = new Date(t.endDate);
+      const isOngoing = now >= tripStart && now <= tripEnd;
+      const isUpcoming = now < tripStart;
+
+      if (isOngoing) {
+        if (newStart <= tripEnd) {
+          return `You have an ongoing trip (${t.name}) until ${format(tripEnd, 'M/d/yyyy')}. You can only add new trips after this date.`;
+        }
+      } else if (isUpcoming) {
+        const isEntirelyBefore = newEnd < tripStart;
+        const isEntirelyAfter = newStart > tripEnd;
+        if (!isEntirelyBefore && !isEntirelyAfter) {
+          return `Your new trip overlaps with an upcoming trip (${t.name}) from ${format(tripStart, 'M/d/yyyy')} to ${format(tripEnd, 'M/d/yyyy')}. You must choose dates entirely before or entirely after this trip.`;
+        }
+      }
+    }
+
+    return null;
+  }, [startDate, endDate, existingTrips]);
+
+  const { mutate: doClone, isPending } = useMutation({
+    mutationFn: (data: {
+      tripName: string;
+      startDate: string;
+      endDate: string;
+      destination: string;
+      baseCurrency: string;
+    }) => exploreApi.cloneTemplate(template!.id, data),
     onSuccess: (res) => {
       toast.success('Template successfully cloned!');
+      queryClient.invalidateQueries({ queryKey: ['trips'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard', 'stats'] });
+      queryClient.invalidateQueries({ queryKey: ['explore-templates'] });
       onClose();
       navigate({ to: `/trips/${res.data.tripId}` });
     },
-    onError: () => {
-      toast.error('Failed to clone template. Please try again.');
+    onError: (error) => {
+      const msg = error instanceof Error ? error.message : 'Failed to clone template.';
+      toast.error(msg);
+      setFormError(msg);
     },
   });
 
+  const handleStartDateChange = (date: Date | undefined) => {
+    setStartDate(date);
+    setFormError(null);
+    if (date && endDate && endDate < date) {
+      setEndDate(undefined);
+    }
+  };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!template || !tripName || !startDate || !endDate) return;
+    if (!template || !tripName.trim() || !startDate || !endDate) return;
 
-    if (new Date(startDate) > new Date(endDate)) {
+    if (startDate > endDate) {
       toast.error('End date must be after start date');
       return;
     }
 
-    cloneTemplate({ tripName, startDate, endDate });
+    if (overlapWarning) {
+      setFormError(overlapWarning);
+      return;
+    }
+
+    setFormError(null);
+    doClone({
+      tripName: tripName.trim(),
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      destination: destination.trim() || template.destination,
+      baseCurrency,
+    });
   };
 
-  const isFormValid = tripName.trim() !== '' && startDate !== '' && endDate !== '';
+  const isFormValid =
+    tripName.trim() !== '' &&
+    destination.trim() !== '' &&
+    startDate !== undefined &&
+    endDate !== undefined &&
+    !overlapWarning;
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setTripName('');
+      setDestination('');
+      setStartDate(undefined);
+      setEndDate(undefined);
+      setBaseCurrency('USD');
+      setFormError(null);
+      onClose();
+    }
+  };
 
   return (
-    <Dialog
-      open={isOpen}
-      onOpenChange={(open) => {
-        if (!open) {
-          setTripName('');
-          setStartDate('');
-          setEndDate('');
-          onClose();
-        }
-      }}
-    >
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <div className="flex items-center gap-2 mb-2 text-primary">
-            <Sparkles className="h-5 w-5" />
-            <span className="text-sm font-medium uppercase tracking-wider">Use Template</span>
-          </div>
-          <DialogTitle className="text-2xl">Create Your Trip</DialogTitle>
-          <DialogDescription>
-            We'll copy the itinerary from <strong>{template?.title}</strong> into a brand new trip.
-            Just tell us when you plan to go.
-          </DialogDescription>
-        </DialogHeader>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      <DialogContent
+        showCloseButton={false}
+        className="max-w-[92vw] md:max-w-120 rounded-3xl md:rounded-[32px] bg-white pt-5 pb-6 px-6 md:pt-6 md:pb-8 md:px-8 border border-neutral-200/50 shadow-2xl gap-0 max-h-[90vh] overflow-y-auto font-manrope"
+      >
+        <form onSubmit={handleSubmit}>
+          <DialogHeader className="text-center flex flex-col items-center justify-center gap-1">
+            <DialogTitle className="text-xl md:text-2xl font-bold text-neutral-900 font-syne text-center tracking-tight">
+              Clone Template
+            </DialogTitle>
+            <DialogDescription className="text-xs md:text-sm text-neutral-500 font-manrope text-center leading-relaxed">
+              We'll copy the itinerary from <strong>{template?.title}</strong> into a brand new
+              trip.
+            </DialogDescription>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6 pt-4">
-          <div className="space-y-2">
-            <Label htmlFor="tripName">Trip Name</Label>
-            <Input
-              id="tripName"
-              placeholder={`E.g., My ${template?.destination || 'Awesome'} Adventure`}
-              value={tripName}
-              onChange={(e) => setTripName(e.target.value)}
-              required
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="startDate">Start Date</Label>
+          <div className="grid gap-3.5 py-0 mt-4">
+            <div className="flex flex-col gap-1.5">
+              <Label
+                htmlFor="cloneTripName"
+                className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
+              >
+                Trip Name
+              </Label>
               <Input
-                id="startDate"
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
+                id="cloneTripName"
+                placeholder={`E.g., My ${template?.destination || 'Awesome'} Adventure`}
+                value={tripName}
+                onChange={(e) => setTripName(e.target.value)}
+                disabled={isPending}
+                className="bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 placeholder:text-neutral-400 transition-all duration-200 shadow-2xs"
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="endDate">End Date</Label>
+
+            <div className="flex flex-col gap-1.5">
+              <Label
+                htmlFor="cloneDestination"
+                className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
+              >
+                Destination
+              </Label>
               <Input
-                id="endDate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
+                id="cloneDestination"
+                placeholder="e.g. Tokyo, Kyoto, Osaka"
+                value={destination}
+                onChange={(e) => setDestination(e.target.value)}
+                disabled={isPending}
+                className="bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5 md:h-11 px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 placeholder:text-neutral-400 transition-all duration-200 shadow-2xs"
                 required
               />
             </div>
+
+            <div className="grid grid-cols-2 gap-2.5 md:gap-3">
+              <div className="flex flex-col gap-1.5">
+                <Label
+                  htmlFor="cloneStartDate"
+                  className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
+                >
+                  Start Date
+                </Label>
+                <Popover>
+                  <PopoverTrigger
+                    type="button"
+                    className="w-full bg-[#F5F5F7] hover:bg-[#EEEEEF] border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-3 md:px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 text-left flex items-center justify-between cursor-pointer!"
+                  >
+                    <span
+                      className={`truncate pr-1 ${
+                        startDate ? 'text-neutral-900 font-medium' : 'text-neutral-400'
+                      }`}
+                    >
+                      {startDate ? format(startDate, 'MMM d, yyyy') : 'Select date'}
+                    </span>
+                    <HugeiconsIcon
+                      icon={Calendar02Icon}
+                      className="size-4 text-neutral-400 shrink-0"
+                      strokeWidth={1.75}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0 bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl overflow-hidden ring-transparent z-50 font-manrope"
+                    align="start"
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={handleStartDateChange}
+                      disabled={{ before: new Date() }}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <Label
+                  htmlFor="cloneEndDate"
+                  className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
+                >
+                  End Date
+                </Label>
+                <Popover>
+                  <PopoverTrigger
+                    type="button"
+                    disabled={!startDate}
+                    className="w-full bg-[#F5F5F7] hover:bg-[#EEEEEF] border border-neutral-200/80 focus-visible:ring-0! focus-visible:outline-none! focus-visible:border-[#10b981]! rounded-xl h-10.5 md:h-11 px-3 md:px-4 text-xs md:text-sm font-manrope text-neutral-900 transition-all duration-200 text-left flex items-center justify-between cursor-pointer! disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <span
+                      className={`truncate pr-1 ${endDate ? 'text-neutral-900 font-medium' : 'text-neutral-400'}`}
+                    >
+                      {endDate ? format(endDate, 'MMM d, yyyy') : 'Select date'}
+                    </span>
+                    <HugeiconsIcon
+                      icon={Calendar02Icon}
+                      className="size-4 text-neutral-400 shrink-0"
+                      strokeWidth={1.75}
+                    />
+                  </PopoverTrigger>
+                  <PopoverContent
+                    className="w-auto p-0 bg-white/90 backdrop-blur-md border border-neutral-200/50 rounded-xl shadow-xl overflow-hidden ring-transparent z-50 font-manrope"
+                    align="start"
+                  >
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(d) => {
+                        setEndDate(d);
+                        setFormError(null);
+                      }}
+                      disabled={startDate ? { before: startDate } : undefined}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <Label
+                htmlFor="cloneCurrency"
+                className="text-xs md:text-sm font-semibold font-manrope text-neutral-900 tracking-wide select-none"
+              >
+                Base Currency
+              </Label>
+              <Select
+                value={baseCurrency}
+                onValueChange={(val) => val && setBaseCurrency(val)}
+                disabled={isPending}
+              >
+                <SelectTrigger
+                  id="cloneCurrency"
+                  className="bg-white border border-neutral-200 focus-visible:ring-2! focus-visible:ring-emerald-500/20! focus-visible:border-emerald-500! rounded-xl h-10.5! md:h-11! px-4 text-xs md:text-sm font-manrope font-semibold text-neutral-900 transition-all duration-200 w-full cursor-pointer! flex items-center justify-between shadow-2xs"
+                >
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent
+                  side="bottom"
+                  sideOffset={8}
+                  align="start"
+                  alignItemWithTrigger={false}
+                  className="w-full min-w-(--radix-select-trigger-width) bg-white/95 backdrop-blur-md border border-black/5 rounded-2xl shadow-2xl p-2 overflow-y-auto ring-transparent z-50 mt-1 max-h-56 font-manrope"
+                >
+                  {CURRENCIES.map((currency) => {
+                    const isSelected = currency === baseCurrency;
+                    return (
+                      <SelectItem
+                        key={currency}
+                        value={currency}
+                        className={`rounded-lg transition-all cursor-pointer py-2.25! px-3.5! pr-9! my-0.5 font-manrope text-sm font-medium ${
+                          isSelected
+                            ? 'text-emerald-700! hover:text-emerald-700! focus:text-emerald-700! focus:bg-emerald-50! hover:bg-emerald-50! font-semibold border border-emerald-200/50'
+                            : 'hover:bg-slate-50! focus:bg-slate-50! hover:text-emerald-600! focus:text-emerald-600! text-neutral-800'
+                        }`}
+                        style={
+                          isSelected
+                            ? {
+                                background:
+                                  'linear-gradient(135deg, rgba(255,255,255,0.98) 0%, #D1FAE5 100%)',
+                                boxShadow: `
+                                  inset 0 1px 1.5px 0 rgba(255, 255, 255, 0.95),
+                                  inset 0 -1px 2px 0 rgba(0, 0, 0, 0.05),
+                                  0 2px 8px -2px rgba(16, 185, 129, 0.2)
+                                `,
+                              }
+                            : undefined
+                        }
+                      >
+                        {currency}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
-          <DialogFooter className="pt-2">
-            <Button type="button" variant="outline" onClick={onClose} disabled={isPending}>
+          {(formError || overlapWarning) && (
+            <div className="mt-4 p-3.5 bg-red-50/80 border border-red-200/60 rounded-xl flex items-start gap-2.5 animate-in fade-in zoom-in-95 duration-200">
+              <div className="p-1 bg-white rounded-full shadow-xs border border-red-100">
+                <HugeiconsIcon
+                  icon={Alert02Icon}
+                  className="h-4 w-4 text-red-600"
+                  strokeWidth={1.75}
+                />
+              </div>
+              <p className="text-xs md:text-[13.5px] leading-relaxed text-red-900/90 font-medium font-manrope">
+                {formError || overlapWarning}
+              </p>
+            </div>
+          )}
+
+          <div className="flex gap-2.5 md:gap-3 mt-6">
+            <Button
+              type="button"
+              variant="waterdrop"
+              disabled={isPending}
+              onClick={() => handleOpenChange(false)}
+              className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer"
+              style={{
+                background: 'linear-gradient(135deg, #F85252 0%, #E63946 100%)',
+                boxShadow: `
+                  inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+                  inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+                  0 4px 14px -2px rgba(230, 57, 70, 0.4),
+                  0 1px 3px 0 rgba(0, 0, 0, 0.08)
+                `,
+              }}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={!isFormValid || isPending} className="gap-2">
-              {isPending ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-              {isPending ? 'Creating...' : 'Create Trip'}
+            <Button
+              type="submit"
+              variant="waterdrop"
+              disabled={!isFormValid || isPending}
+              className="flex-1 h-10 md:h-11 text-xs md:text-sm font-semibold font-manrope text-white border border-white/35 cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
+              style={{
+                background: 'linear-gradient(145deg, #10b981 0%, #059669 100%)',
+                boxShadow: `
+                  inset 0 1.5px 2px 0 rgba(255, 255, 255, 0.45),
+                  inset 0 -1.5px 3px 0 rgba(0, 0, 0, 0.2),
+                  0 4px 14px -2px rgba(16, 185, 129, 0.4),
+                  0 1px 3px 0 rgba(0, 0, 0, 0.08)
+                `,
+              }}
+            >
+              {isPending ? 'Cloning...' : 'Clone & Create Trip'}
             </Button>
-          </DialogFooter>
+          </div>
         </form>
       </DialogContent>
     </Dialog>

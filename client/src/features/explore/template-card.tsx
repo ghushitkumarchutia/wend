@@ -1,7 +1,11 @@
 import type { Template } from '@/types/models';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { MapPin, Users, Calendar, BarChart, Copy } from 'lucide-react';
+import { HugeiconsIcon } from '@hugeicons/react';
+import {
+  Calendar02Icon,
+  UserGroupIcon,
+  Copy01Icon,
+  SparklesIcon,
+} from '@hugeicons/core-free-icons';
 
 interface TemplateCardProps {
   template: Template;
@@ -9,91 +13,104 @@ interface TemplateCardProps {
 }
 
 export function TemplateCard({ template, onClick }: TemplateCardProps) {
+  const capitalize = (str: string) => {
+    if (!str) return '';
+    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+  };
+
+  const defaultCover =
+    'https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1920&q=90';
+
+  const rawCover = template.coverImageUrl || defaultCover;
+  const coverUrl = rawCover.includes('images.unsplash.com')
+    ? rawCover.includes('w=')
+      ? rawCover.replace(/w=\d+/, 'w=1920').replace(/q=\d+/, 'q=90')
+      : `${rawCover}${rawCover.includes('?') ? '&' : '?'}auto=format&fit=crop&w=1920&q=90`
+    : rawCover;
+
+  const minGroup = template.recommendedGroupSizeMin || 1;
+  const maxGroup = template.recommendedGroupSizeMax;
+  const groupText = maxGroup ? `${minGroup}-${maxGroup}` : `${minGroup}+`;
+
   return (
-    <Card
-      className="overflow-hidden cursor-pointer hover:border-primary/50 transition-colors group flex flex-col h-full"
+    <div
       onClick={() => onClick(template)}
+      className="group block relative w-full aspect-video rounded-[24px] overflow-hidden border border-black/5 shadow-[0_13px_27px_-5px_rgba(50,50,93,0.25),0_8px_16px_-8px_rgba(0,0,0,0.3)] select-none cursor-pointer hover:scale-[1.004] transition-transform duration-300 ease-out"
     >
-      <div className="relative aspect-video w-full overflow-hidden bg-muted">
-        {template.coverImageUrl ? (
-          <img
-            src={template.coverImageUrl}
-            alt={template.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-          />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center bg-secondary/50">
-            <MapPin className="h-10 w-10 text-muted-foreground/30" />
-          </div>
-        )}
-        <div className="absolute top-2 right-2 flex gap-2">
-          {template.visibility === 'featured' && (
-            <Badge variant="default" className="bg-amber-500 hover:bg-amber-600">
-              Featured
-            </Badge>
-          )}
-        </div>
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <img
+          src={coverUrl}
+          alt={template.title}
+          className="w-full h-full object-cover object-center"
+        />
       </div>
 
-      <CardHeader className="p-4 pb-2 space-y-1">
-        <div className="flex justify-between items-start gap-4">
-          <h3 className="font-semibold text-lg leading-tight line-clamp-1 group-hover:text-primary transition-colors">
-            {template.title}
-          </h3>
-        </div>
-        <div className="flex items-center text-sm text-muted-foreground gap-1">
-          <MapPin className="h-3.5 w-3.5" />
-          <span className="line-clamp-1">{template.destination}</span>
-        </div>
-      </CardHeader>
+      <div className="absolute inset-0 bg-linear-to-t from-black/80 via-black/25 to-black/35 z-10" />
 
-      <CardContent className="p-4 pt-2 grow">
-        <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{template.description}</p>
-
-        <div className="flex flex-wrap gap-1.5 mb-4">
-          {template.categories.slice(0, 3).map((cat: string) => (
-            <Badge key={cat} variant="secondary" className="text-xs font-normal">
-              {cat}
-            </Badge>
-          ))}
-          {template.categories.length > 3 && (
-            <Badge variant="secondary" className="text-xs font-normal">
-              +{template.categories.length - 3}
-            </Badge>
+      <div className="relative z-20 h-full w-full p-4.5 md:p-5 flex flex-col justify-between font-manrope">
+        <div className="flex gap-1.5 justify-end">
+          {template.visibility === 'featured' && (
+            <span className="inline-flex items-center gap-1 px-2 md:px-2.5 py-1 md:py-1.25 text-[8px] md:text-[10.5px] font-medium font-manrope rounded-full bg-amber-500/80 backdrop-blur-md text-white border border-amber-300/30 leading-none">
+              <HugeiconsIcon icon={SparklesIcon} className="size-2.5 md:size-3 text-white" />
+              <span className="translate-y-[-0.5px]">Featured</span>
+            </span>
+          )}
+          {template.categories?.[0] && (
+            <span className="inline-flex items-center px-2 md:px-2.5 py-1 md:py-1.25 text-[8px] md:text-[10.5px] font-light font-manrope rounded-full bg-white/20 backdrop-blur-md text-white border border-white/10 leading-none">
+              <span className="translate-y-[-0.5px]">{capitalize(template.categories[0])}</span>
+            </span>
           )}
         </div>
-      </CardContent>
 
-      <CardFooter className="p-4 pt-0 text-xs text-muted-foreground flex flex-wrap gap-y-2 gap-x-4 border-t mt-auto items-center">
-        {template.difficultyLevel && (
-          <div className="flex items-center gap-1.5 capitalize">
-            <BarChart className="h-3.5 w-3.5" />
-            {template.difficultyLevel}
+        <div className="flex flex-col text-left space-y-2 md:space-y-2.5">
+          <div className="md:space-y-0.5">
+            <h3 className="text-[20px] md:text-[28px] font-bold text-white font-syne leading-tight line-clamp-1 tracking-tight">
+              {template.title}
+            </h3>
+            <p className="text-[12px] md:text-xs font-normal text-white/90 font-manrope tracking-wide line-clamp-1">
+              {template.destination}
+            </p>
           </div>
-        )}
 
-        {(template.recommendedGroupSizeMin || template.recommendedGroupSizeMax) && (
-          <div className="flex items-center gap-1.5">
-            <Users className="h-3.5 w-3.5" />
-            {template.recommendedGroupSizeMin || 1}
-            {template.recommendedGroupSizeMax ? `-${template.recommendedGroupSizeMax}` : '+'}
+          <div className="flex flex-row md:flex-col flex-wrap gap-1.5 md:pt-0.5">
+            {template.bestSeason && template.bestSeason.length > 0 && (
+              <div className="inline-flex items-center gap-1 md:gap-2 px-2 md:px-3 py-1 md:py-1.25 rounded-[10px] md:rounded-[12px] bg-white/20 backdrop-blur-md text-white border border-white/10 text-[9px] md:text-[11px] font-light font-manrope tracking-wide w-max leading-none">
+                <HugeiconsIcon
+                  icon={Calendar02Icon}
+                  className="size-2.75 md:size-3.5 text-white/90 shrink-0"
+                  strokeWidth={1.75}
+                />
+                <span className="md:translate-y-[-0.5px]">
+                  {template.bestSeason[0]}
+                  {template.bestSeason.length > 1 ? ' & more' : ''}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1.5">
+              <div className="inline-flex items-center gap-1 md:gap-2 px-2.5 md:px-3 py-1 md:py-1.25 rounded-[10px] md:rounded-[12px] bg-white/20 backdrop-blur-md text-white border border-white/10 text-[9px] md:text-[11px] font-light font-manrope tracking-wide w-max leading-none">
+                <HugeiconsIcon
+                  icon={UserGroupIcon}
+                  className="size-2.75 md:size-3.5 text-white/90 shrink-0"
+                  strokeWidth={1.75}
+                />
+                <span className="md:translate-y-[-0.5px]">{groupText} travelers</span>
+              </div>
+
+              <div className="inline-flex items-center gap-1 md:gap-2 px-2.5 md:px-3 py-1 md:py-1.25 rounded-[10px] md:rounded-[12px] bg-white/20 backdrop-blur-md text-white border border-white/10 text-[9px] md:text-[11px] font-light font-manrope tracking-wide w-max leading-none">
+                <HugeiconsIcon
+                  icon={Copy01Icon}
+                  className="size-2.75 md:size-3.5 text-white/90 shrink-0"
+                  strokeWidth={1.75}
+                />
+                <span className="md:translate-y-[-0.5px]">
+                  {template.cloneCount} {template.cloneCount === 1 ? 'clone' : 'clones'}
+                </span>
+              </div>
+            </div>
           </div>
-        )}
-
-        {template.bestSeason && template.bestSeason.length > 0 && (
-          <div className="flex items-center gap-1.5">
-            <Calendar className="h-3.5 w-3.5" />
-            {template.bestSeason.length > 1
-              ? `${template.bestSeason[0]} & more`
-              : template.bestSeason[0]}
-          </div>
-        )}
-
-        <div className="flex items-center gap-1.5 ml-auto text-primary font-medium">
-          <Copy className="h-3.5 w-3.5" />
-          {template.cloneCount} {template.cloneCount === 1 ? 'clone' : 'clones'}
         </div>
-      </CardFooter>
-    </Card>
+      </div>
+    </div>
   );
 }
