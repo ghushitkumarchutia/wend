@@ -26,6 +26,8 @@ import { requestLogger } from './common/logger.js';
 
 export const app = express();
 
+app.set('trust proxy', 1);
+
 app.use(requestLogger);
 app.use(
   helmet({
