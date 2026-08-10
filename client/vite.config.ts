@@ -19,8 +19,12 @@ export default defineConfig(({ mode }) => {
       strictPort: true,
     },
     define: {
-      'import.meta.env.VITE_API_URL': JSON.stringify(`http://localhost:${env.PORT || 3000}/api`),
-      'import.meta.env.VITE_AUTH_URL': JSON.stringify(`http://localhost:${env.PORT || 3000}`),
+      'import.meta.env.VITE_API_URL': JSON.stringify(
+        process.env.VITE_API_URL || env.VITE_API_URL || `http://localhost:${env.PORT || 3000}/api`
+      ),
+      'import.meta.env.VITE_AUTH_URL': JSON.stringify(
+        process.env.VITE_AUTH_URL || env.VITE_AUTH_URL || `http://localhost:${env.PORT || 3000}`
+      ),
     },
   };
 });
