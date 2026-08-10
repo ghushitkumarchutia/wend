@@ -62,6 +62,15 @@ app.use('/api/v1/dashboard', dashboardRouter);
 app.use('/api/v1/account', accountRouter);
 app.use('/api/v1/templates', templatesRouter);
 app.use('/api/admin', adminRouter);
+app.get(['/', '/health'], (_req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'Wend API Server Running',
+    docs: '/api/docs',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 app.use('/api', docsRouter);
 
 app.use((_req, res) => {
